@@ -1,0 +1,64 @@
+{
+  "Queue": "arn:aws:mediaconvert:us-east-2:275355320286:queues/Default",
+  "UserMetadata": {},
+  "Role": "arn:aws:iam::275355320286:role/service-role/MediaConvert_Default_Role",
+  "Settings": {
+    "TimecodeConfig": {
+      "Source": "ZEROBASED"
+    },
+    "OutputGroups": [
+      {
+        "CustomName": "hls-conversion",
+        "Name": "Apple HLS",
+        "Outputs": [
+          {
+            "Preset": "System-Avc_16x9_1080p_29_97fps_8500kbps",
+            "NameModifier": "-1080p"
+          },
+          {
+            "Preset": "System-Avc_16x9_720p_29_97fps_5000kbps",
+            "NameModifier": "-720p"
+          },
+          {
+            "Preset": "System-Avc_16x9_540p_29_97fps_3500kbps",
+            "NameModifier": "-540p"
+          },
+          {
+            "Preset": "System-Avc_16x9_360p_29_97fps_1200kbps",
+            "NameModifier": "-360p"
+          },
+          {
+            "Preset": "System-Avc_16x9_270p_14_99fps_400kbps",
+            "NameModifier": "-270p"
+          }
+        ],
+        "OutputGroupSettings": {
+          "Type": "HLS_GROUP_SETTINGS",
+          "HlsGroupSettings": {
+            "SegmentLength": 10,
+            "Destination": "<INSERT HLS DESTINATION HERE>",
+            "MinSegmentLength": 0,
+            "ManifestCompression": "NONE"
+          }
+        }
+      }
+    ],
+    "Inputs": [
+      {
+        "AudioSelectors": {
+          "Audio Selector 1": {
+            "DefaultSelection": "DEFAULT"
+          }
+        },
+        "VideoSelector": {},
+        "TimecodeSource": "ZEROBASED",
+        "FileInput": "<INSERT S3 SOURCE HERE>"
+      }
+    ]
+  },
+  "AccelerationSettings": {
+    "Mode": "PREFERRED"
+  },
+  "StatusUpdateInterval": "SECONDS_60",
+  "Priority": 0
+}

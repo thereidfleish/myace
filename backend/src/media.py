@@ -7,155 +7,86 @@ See this guide for bash implementation:
 https://ryanparman.com/posts/2018/serving-bandwidth-friendly-video-with-hls/
 """
 
-from pathlib import Path
-import gzip
-import integv
-import os
-import shutil
-import subprocess
-import sys
 import boto3
+import json
+import os
 
-class ConversionError(Exception):
-    """Raised when there is an error converting between filetypes"""
-    pass
+def get_hls_url(bucket_name: str, bucket_region: str, fmp4_filename: str) -> str:
+    """ Get the HLS index.m3u8 object URL for a specific upload 
+        Requires the object exists and is public
 
-def verify_mp4_integrity(mp4_file) -> bool:
+    :param bucket_name: The name of the S3 bucket
+    :param bucket_region: The region of the S3 bucket
+    :param upload_uuid: The upload UUID
     """
-    Check the integrity of a .mp4 file
+    return f"https://{bucket_name}.s3.{bucket_region}.amazonaws.com/uploads/{upload_uuid}/hls/index.m3u8"
 
-    :param mp4_file: The file obj to check
-    :return: True if valid
+def create_presigned_url_post(s3, bucket_name: str, upload_uuid: str, filename: str, expiration: int = 3600):
+    """ Generate a presigned URL that allows the client to upload a file using a POST request
+    :param s3: The boto3 S3 client
+    :param bucket_name: The name of the S3 bucket
+    :param upload_uuid: The upload UUID
+    :param filename: The original media filename
+    :param expiration: Time in seconds for the presigned URL to remain valid
+    :return: dictionary containing url and pertinent information for POST request
     """
-    return integv.verify(mp4_file, file_type="mp4")
+    key = f"uploads/{upload_uuid}/{filename}"
+    response = s3.generate_presigned_post(bucket_name, key, ExpiresIn=expiration)
+    return response
 
-def convert_mp4_to_hsl(path_to_mp4: str) -> str:
+def create_mediaconvert_job(mediaconvert, bucket_name: str, upload_uuid: str, filename: str) -> str:
+    """ Create an AWS MediaConvert job to convert a video file stored in S3 into an HLS playlist 
+    :param mediaconvert: The boto3 mediaconvert client
+    :param bucket_name: The name of the S3 bucket
+    :param upload_uuid: The upload UUID
+    :param filename: The original media filename
+    :return: The mediaconvert job ID
     """
-    Convert a .mp4 file to a .fmp4 folder
+    # Load json job template
+    with open("mediaconvert-job-template.json", "r") as f:
+        job_object = json.load(f)
+    # Complete template
+    job_object['Settings']['Inputs'][0]['FileInput'] = f's3://tennis-trainer/uploads/{upload_uuid}/{filename}'
+    job_object['Settings']['OutputGroups'][0]['OutputGroupSettings']['HlsGroupSettings']['Destination'] = f's3://tennis-trainer/uploads/{upload_uuid}/hls/index'
+    # Unpack the job_object and create mediaconvert job
+    response = mediaconvert.create_job(**job_object)
+    id = response['Job']['Id']
+    return id
 
-    :param path_to_mp4: The path to the .mp4 file
-    :return: Path to .fmp4 folder
+def check_mediaconvert_status(mediaconvert, job_id: str) -> str:
+    """ Check on an AWS MediaConvert job
+    :param mediaconvert: The boto3 mediaconvert client
+    :param job_id: The mediaconvert job ID
+    :return: 'SUBMITTED' | 'PROGRESSING' | 'COMPLETE' | 'CANCELED' | 'ERROR'
     """
-    # Remove file extension
-    # path/to/file.mp4 -> path/to/file
-    path_no_ext = os.path.splitext(path_to_mp4)[0]
-    # Call git submodule containing python executable video2hls
-
-    try:
-        subprocess.run(["/app/video2hls/video2hls", "--debug", "--output",
-                    f"{path_no_ext}.fmp4", "--hls-type", "fmp4", f"{path_to_mp4}"], check=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        print(e.returncode)
-        print(e.output)
-        raise ConversionError("Error converting from .mp4 to HSL") from e
-
-    # Remove original .mp4
-    os.remove(path_to_mp4)
-    return f"{path_no_ext}.fmp4"
-
-def compress_fmp4(path_to_fmp4: str) -> None:
-    """
-    Find all .m3u8 playlist files in a .fmp4 folder and gzip them.
-    Maintains the original .m3u8 file extension.
-
-    :param path_to_fmp4: The path to the .fmp4 file
-    """
-    # for all .m3u8 files
-    for path in Path(path_to_fmp4).rglob('*.m3u8'):
-        filepath = os.path.join(path_to_fmp4, path.name)
-        # compress into .gz
-        with open(filepath, 'rb') as f_in, gzip.open(filepath + '.gz', 'wb') as f_out:
-            f_out.writelines(f_in)
-        # overwrite original
-        os.replace(filepath + '.gz', filepath)
-    print("Compressed all files with gzip")
-
-def upload_to_aws(s3, bucket_name: str, bucket_region: str, path_to_fmp4: str) -> str:
-    """
-    Upload all the necessary files for HLS support contained in a .fmp4 to AWS
-
-    :s3: The boto3 S3 client
-    :bucket_name: The name of the S3 bucket
-    :bucket_region: The location of the S3 bucket
-    :param path_to_fmp4: The path to the .fmp4 file
-    :return: The .m3u8 URL hosted on AWS
-    """
-    # Get filename
-    # path/to/dir.fmp4 -> dir.fmp4
-    fmp4_filename = os.path.basename(path_to_fmp4)
-    # Upload all .m3u8 files
-    for path in Path(path_to_fmp4).rglob('*.m3u8'):
-        filepath = os.path.join(path_to_fmp4, path.name)
-        with open(filepath, 'rb') as f:
-            key = path.name
-            s3.upload_fileobj(f, bucket_name, f"hls/{fmp4_filename}/{key}",
-                              ExtraArgs={'ContentType': 'application/vnd.apple.mpegurl',
-                                         'ACL': 'public-read',
-                                         'ContentEncoding': 'gzip',
-                                         'CacheControl': 'max-age=31536000,public'
-                                         })
-    # Upload video "posters"
-    for path in Path(path_to_fmp4).rglob('*.jpg'):
-        filepath = os.path.join(path_to_fmp4, path.name)
-        with open(filepath, 'rb') as f:
-            key = path.name
-            s3.upload_fileobj(f, bucket_name, f"hls/{fmp4_filename}/{key}",
-                              ExtraArgs={'ContentType': 'image/jpeg',
-                                         'ACL': 'public-read',
-                                         'CacheControl': 'max-age=31536000,public'
-                                         })
-    # Upload fragmented .mp4 files
-    for path in Path(path_to_fmp4).rglob('*.mp4'):
-        filepath = os.path.join(path_to_fmp4, path.name)
-        with open(filepath, 'rb') as f:
-            key = path.name
-            s3.upload_fileobj(f, bucket_name, f"hls/{fmp4_filename}/{key}",
-                              ExtraArgs={'ContentType': 'video/mp4',
-                                         'ACL': 'public-read',
-                                         'CacheControl': 'max-age=31536000,public'
-                                         })
-    object_url = get_object_url(bucket_name, bucket_region, fmp4_filename)
-    return object_url
-
-def get_object_url(bucket_name: str, bucket_region: str, fmp4_filename: str) -> str:
-    """ Get the index.m3u8's object URL for a specific HLS upload """
-    return f"https://{bucket_name}.s3.{bucket_region}.amazonaws.com/hls/{fmp4_filename}/index.m3u8"
-
-def remove_fmp4(path_to_fmp4: str) -> None:
-    """
-    Remove the .fmp4 folder
-
-    :param path_to_fmp4: The path to the .fmp4 file
-    """
-    shutil.rmtree(path_to_fmp4)
+    response = mediaconvert.get_job(Id=job_id)
+    status = response['Job']['Status']
+    return status
 
 def main() -> None:
     from botocore.client import Config
     from dotenv import load_dotenv
+    import time
     # load environment variables
     load_dotenv()
     # constants
     ACCESS_KEY_ID = str(os.environ.get("ACCESS_KEY_ID")).strip()
     SECRET_ACCESS_KEY = str(os.environ.get("SECRET_ACCESS_KEY")).strip()
     REGION_NAME = 'us-east-2'
-    BUCKET_NAME = 'appdev-backend-final'
+    BUCKET_NAME = 'tennis-trainer'
     s3 = boto3.client('s3', region_name=REGION_NAME, endpoint_url=f'https://s3.{REGION_NAME}.amazonaws.com',
                   aws_access_key_id=ACCESS_KEY_ID, aws_secret_access_key=SECRET_ACCESS_KEY,
                       config=Config(signature_version='s3v4'))
-    if len(sys.argv) < 2:
-        print("Usage: <FILENAME>.py path/to/file.mp4")
-        return
-    # The workflow
-    path_to_mp4 = sys.argv[1]
-    with open(path_to_mp4, 'rb') as f:
-        if not verify_mp4_integrity(f):
-            print("Corrupt MP4")
-            return
-    path_to_fmp4 = convert_mp4_to_hsl(path_to_mp4)
-    compress_fmp4(path_to_fmp4)
-    url = upload_to_aws(s3, BUCKET_NAME, REGION_NAME, path_to_fmp4)
-    print(url)
-    remove_fmp4(path_to_fmp4)
+    mediaconvert = boto3.client('mediaconvert', endpoint_url='https://mqm13wgra.mediaconvert.us-east-2.amazonaws.com',
+                  aws_access_key_id=ACCESS_KEY_ID, aws_secret_access_key=SECRET_ACCESS_KEY)
+    print("Starting media convert")
+    job_id = create_mediaconvert_job(mediaconvert, BUCKET_NAME, 'exampleuploaduid', 'fullcourtstock.mp4')
+    while True:
+        status = check_mediaconvert_status(mediaconvert, job_id)
+        print(status)
+        if status == 'COMPLETE':
+            break
+        time.sleep(0.5)
 
 if __name__ == '__main__':
     main()

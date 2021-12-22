@@ -297,6 +297,13 @@ def upload_video():
     return success_response({'vid': vid, 'url': object_url})
 
 
+@app.route("/api/callback/upload/", methods=['POST'])
+def upload_callback():
+    """Called by AWS after a successful upload to the S3 bucket"""
+    # TODO: create mediaconvert job and add upload to database
+    pass
+
+
 @app.route("/api/media/<int:vid>/tag/", methods=['POST'])
 def add_tag(vid):
     """
