@@ -3,10 +3,12 @@ boto3==1.20.16
 botocore==1.23.16
 cachetools==4.2.4
 certifi==2021.10.8
+cffi==1.15.0
 chardet==4.0.0
 charset-normalizer==2.0.8
 click==8.0.3
 colorama==0.4.4
+cryptography==36.0.1
 Flask==2.0.2
 Flask-SQLAlchemy==2.5.1
 google==3.0.0
@@ -30,6 +32,7 @@ protobuf==3.19.1
 psycopg2-binary==2.9.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycparser==2.21
 pyparsing==3.0.6
 python-dateutil==2.8.2
 python-dotenv==0.19.2
