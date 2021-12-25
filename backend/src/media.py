@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """
-Utility functions to convert a .mp4 file into HlS, upload to AWS, and remove
-local .mp4 and HLS files, and more.
-
-See this guide for bash implementation:
-https://ryanparman.com/posts/2018/serving-bandwidth-friendly-video-with-hls/
+Provides a utility class to manage AWS streams.
 """
 
 import boto3
@@ -40,6 +36,13 @@ class AWS:
         self.cloudfront = boto3.client('cloudfront', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
         self.mediaconvert = boto3.client('mediaconvert', endpoint_url='https://mqm13wgra.mediaconvert.us-east-2.amazonaws.com',
                       aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
+        # Invalidation requests that have not yet completed. Relevant to self.get_presigned_hls_url().
+        # TODO: This could become problematic when serving multiple clients using the same class instance.
+        #       For example, because get_presigned_hls_url() blocks until this list is empty, if multiple
+        #       clients are continually appending, no single method call will complete until all invalidation
+        #       requests are complete, including those unrelated to that call.
+        #       A possible fix would be accumulating invalidation request IDs in a local var rather than member
+        self.__invalidation_ids = []
 
     def __rsa_sign(self, message):
         """Sign a message with self.cf_private_key_file.
@@ -97,7 +100,7 @@ class AWS:
         temp_filename = m3u8_object_key.replace('/', '-') + '.tmp'
         # Download m3u8
         self.s3.download_file(self.s3_bucket_name, m3u8_object_key, temp_filename)
-        # Modify file TODO multithread
+        # Modify file TODO modify subfiles, collect list of keys, invalidate all keys at once
         with open(temp_filename, 'r+') as f:
             lines = f.readlines() # Manifest files are small. It's ok to load it all into memory.
             modified_lines = []
@@ -115,13 +118,14 @@ class AWS:
             f.writelines(modified_lines)
             f.truncate()
         # Reupload file
-        print(f"Uploading and invalidating {m3u8_object_key}")
+        print(f"Uploading {m3u8_object_key}")
         response = self.s3.upload_file(temp_filename, self.s3_bucket_name, m3u8_object_key)
         # Invalidate cloudfront cache
         invalidation_id = self.__create_m3u8_invalidation(m3u8_object_key)
-        while not self.__is_invalidation_request_completed(invalidation_id):
-            time.sleep(0.1)
-        # TODO Remove local file
+        self.__invalidation_ids.append(invalidation_id)
+        # Remove local file
+        print(f"Removing {temp_filename}")
+        os.remove(temp_filename)
 
     def __get_presigned_url(self, object_key: str, expiration: datetime.datetime) -> str:
         """Generate a presigned Cloudfront URL for any S3 object.
@@ -153,7 +157,14 @@ class AWS:
         :return: Presigned URL pointing to the manifest file
         """
         object_key = f"uploads/{upload_uuid}/hls/index.m3u8"
-        return self.__get_presigned_url(object_key, expiration)
+        url = self.__get_presigned_url(object_key, expiration) # populates self.__invalidation_ids
+        print(f"Waiting for {len(self.__invalidation_ids)} invalidation requests to complete...")
+        for id in self.__invalidation_ids:
+            if self.__is_invalidation_request_completed(id):
+                self.__invalidation_ids.remove(id)
+            else:
+                time.sleep(0.2)
+        return url
 
     def get_presigned_url_post(self, upload_uuid: str, filename: str, expiration: int = 3600) -> dict:
         """Generate a presigned URL that allows the client to upload a file using a POST request.
