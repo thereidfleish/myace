@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from botocore.signers import CloudFrontSigner
 from botocore.client import Config
+from botocore.exceptions import ClientError
 
 class AWS:
     def __init__(self, access_key_id: str, secret_access_key: str, cf_public_key_id: str, cf_private_key_file: str) -> None:
@@ -154,10 +155,14 @@ class AWS:
 
         :param upload_uuid: The upload UUID
         :param expiration: The datetime obj when the URL should expire
-        :return: Presigned URL pointing to the manifest file
+        :return: Presigned URL pointing to the manifest file or None if there was an error
         """
         object_key = f"uploads/{upload_uuid}/hls/index.m3u8"
-        url = self.__get_presigned_url(object_key, expiration) # populates self.__invalidation_ids
+        try:
+            url = self.__get_presigned_url(object_key, expiration) # populates self.__invalidation_ids
+        except ClientError as e:
+            print(e.response['Error']['Message'])
+            return None
         print(f"Waiting for {len(self.__invalidation_ids)} invalidation requests to complete...")
         for id in self.__invalidation_ids:
             if self.__is_invalidation_request_completed(id):
@@ -211,11 +216,11 @@ def main() -> None:
     # load environment variables
     load_dotenv()
     # constants
-    ACCESS_KEY_ID = str(os.environ.get("ACCESS_KEY_ID")).strip()
-    SECRET_ACCESS_KEY = str(os.environ.get("SECRET_ACCESS_KEY")).strip()
-    cf_public_key_id = 'KKCTRVE3DKWU7'
-    cf_private_key_file = './private_key.pem'
-    aws = AWS(ACCESS_KEY_ID, SECRET_ACCESS_KEY, cf_public_key_id, cf_private_key_file)
+    ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
+    SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
+    CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
+    CF_PRIVATE_KEY_FILE = './private_key.pem'
+    aws = AWS(ACCESS_KEY_ID, SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
     # Reset the playlist files
     # print("Converting MP4 to HLS. This may take a sec...")
     # job_id = aws.create_mediaconvert_job('exampleuploaduid', 'fullcourtstock.mp4')
@@ -224,6 +229,7 @@ def main() -> None:
     #     if status == 'COMPLETE':
     #         print(status)
     #         break
+    #     time.sleep(1)
     # Generate presigned URL
     # Super important to use utcnow() instead of local now()
     expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
