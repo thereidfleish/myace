@@ -175,7 +175,7 @@ class AWS:
         :return: dictionary containing url and information pertinent to POST request
         """
         key = f"uploads/{upload_uuid}/{filename}"
-        response = s3.generate_presigned_post(self.s3_bucket_name, key, ExpiresIn=expiration)
+        response = self.s3.generate_presigned_post(self.s3_bucket_name, key, ExpiresIn=expiration)
         return response
 
     def create_mediaconvert_job(self, upload_uuid: str, filename: str) -> str:

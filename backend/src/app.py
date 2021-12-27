@@ -28,7 +28,8 @@ app = Flask(__name__)
 load_dotenv()
 
 # constants
-ENV = "prod"
+ENV = "dev"
+DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip()
 DB_NAME = str(os.environ.get("DB_NAME")).strip()
 DB_USERNAME = str(os.environ.get("DB_USERNAME")).strip()
 DB_PASSWORD = str(os.environ.get("DB_PASSWORD")).strip()
@@ -46,11 +47,10 @@ s3 = boto3.client('s3', region_name=AWS_BUCKET_REGION_NAME,
                   config=Config(signature_version='s3v4'))
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}/{DB_NAME}"
 if ENV == "dev":
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@localhost:5432/{DB_NAME}"
     app.config["SQLALCHEMY_ECHO"] = True
 else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = str(os.environ.get('DATABASE_URL')).replace("postgres", "postgresql")
     app.config["SQLALCHEMY_ECHO"] = False
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
