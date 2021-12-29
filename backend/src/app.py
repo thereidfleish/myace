@@ -14,6 +14,7 @@ import media
 
 from db import User
 from db import Upload
+from db import Comment
 from db import Tag
 from db import db
 
@@ -87,7 +88,7 @@ def authenticate_user():
             db.session.add(user)
             db.session.commit()
 
-        return success_response(user.serialize(db, aws), 200)
+        return success_response(user.serialize(), 200)
     except ValueError:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
 
@@ -156,7 +157,7 @@ def create_upload_url(user_id):
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/", methods=['PUT'])
-def update_upload(user_id, upload_id):
+def edit_upload(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
@@ -202,6 +203,41 @@ def start_convert(user_id, upload_id):
 #     """Called by AWS after a successful upload to the S3 bucket"""
 #     # TODO: create mediaconvert job and add upload to database
 #     pass
+
+
+@app.route("/api/upload/<int:upload_id>/comment/", methods=['POST'])
+def create_comment(upload_id):
+    upload = Upload.query.filter_by(id=upload_id).first()
+
+    if upload is None:
+        return failure_response("Upload not found.")
+
+    # Check for valid fields
+    body = json.loads(request.data)
+
+    # Check for valid author
+    author_id = body.get("author_id")
+    if author_id is None:
+        return failure_response("Missing author ID.", 400)
+    author = User.query.filter_by(id=author_id).first()
+    if author is None:
+        return failure_response("Author not found.")
+    # Check if user is allowed to comment
+    # TODO: allow coaches to comment
+    if author_id != upload.user_id:
+        return failure_response("User forbidden to comment on upload.", 403)
+
+    # Check for valid text
+    text = body.get("text")
+    if text is None or text.isspace():
+        return failure_response("Invalid comment text.", 400)
+
+    # Create comment row
+    comment = Comment(author_id=author_id, upload_id=upload_id, text=text)
+    db.session.add(comment)
+    db.session.commit()
+
+    return success_response(comment.serialize())
 
 
 @app.route("/api/upload/<int:upload_id>/tags/", methods=['POST'])
@@ -259,7 +295,8 @@ def create_test_user():
     user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com")
     db.session.add(user)
     db.session.commit()
-    return success_response(user.serialize(db, aws))
+    return success_response(user.serialize())
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

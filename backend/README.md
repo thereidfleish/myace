@@ -23,21 +23,6 @@ Response:
     "uid": "{User's local id}",
     "display_name": "{User's display name}",
     "email": "{User's email}"
-    "uploads":
-        [
-            {
-                "id": "{upload id}",
-                "display_title": "..."
-                "tags": [
-                    {
-                        "tid": 1,
-                        "name": "backhand"
-                    }
-                    ...
-                ]
-            }
-            ...
-        ]
 }
 ```
 
@@ -58,16 +43,23 @@ Response:
             "created": "{ISO 8601 formatted timestamp}",
             "display_title": "...",
             "stream_ready": true,
-            "tags": [
+            "comments": [
+                {
+                    "id": 1,
+                    "created": "{ISO 8601 formatted timestamp}",
+                    "author_id": 1,
+                    "text": "Tennis goals!!! LOML 😍"
+                },
                 ...
             ],
+            "tags": [...]
         }
         ...
     ]
 }
 ```
 
-### Get a specific upload with stream URL
+### Get a specific upload
 
 **GET: /api/user/{user_id}/upload/{upload_id}/**
 
@@ -82,6 +74,15 @@ Reponse:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "...",
     "stream_ready": true,
+    "comments": [
+        {
+            "id": 1,
+            "created": "{ISO 8601 formatted timestamp}",
+            "author_id": 1,
+            "text": "Tennis goals!!! LOML 😍"
+        },
+        ...
+    ],
     "tags": [
         ...
     ],
@@ -125,7 +126,7 @@ Response:
 
 This route begins converting an upload into a streamable format.
 
-*Should be deprecated when upload detection is working.*
+*Should be deprecated in the near future when upload detection is working.*
 
 Request: N/A
 
@@ -149,9 +150,45 @@ Response:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "{upload display title}",
     "stream_ready": true,
+    "comments": [
+        {
+            "id": 1,
+            "created": "{ISO 8601 formatted timestamp}",
+            "author_id": 1,
+            "text": "Tennis goals!!! LOML 😍"
+        },
+        ...
+    ],
     "tags": [
         ...
     ]
+}
+```
+
+## Comments
+
+### Create a comment
+
+**POST /api/upload/{upload_id}/comment/**
+
+This route posts a comment under a certain upload. As of now, the only user allowed to comment is the upload owner.
+
+Request:
+```json
+{
+    "author_id": 1,
+    "text": "Tennis goals!!! LOML 😍"
+}
+```
+
+Response:
+```json
+{
+    "id": 1,
+    "created": "{ISO 8601 formatted timestamp}",
+    "author_id": 1,
+    "upload_id": 1,
+    "text": "Tennis goals!!! LOML 😍"
 }
 ```
 
