@@ -1,49 +1,39 @@
 //
-//  StudentUploadView.swift
+//  CoachMainView.swift
 //  AI Tennis Coach
 //
-//  Created by Reid Fleishman on 12/22/21.
+//  Created by Reid Fleishman on 12/25/21.
 //
 
 import SwiftUI
 
-struct StudentUploadView: View {
-    
-    @EnvironmentObject var studentInfo: StudentInfo
+struct CoachMainView: View {
+    @EnvironmentObject var coachInfo: CoachInfo
     
     var body: some View {
         NavigationView {
             ScrollView {
-                ForEach(studentInfo.strokeNames.indices, id: \.self) { i in
-                    NavigationLink(destination: StudentUploadDetailView(name: studentInfo.strokeNames[i], student: true).navigationTitle(studentInfo.strokeNames[i]).navigationBarTitleDisplayMode(.inline))
+                ForEach(coachInfo.studentNames.indices, id: \.self) { i in
+                    NavigationLink(destination: CoachStudentView(name: coachInfo.studentNames[i]).navigationTitle(coachInfo.studentNames[i]).navigationBarTitleDisplayMode(.inline))
                     {
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(studentInfo.strokeNames[i])
+                                Text(coachInfo.studentNames[i])
                                     .font(.title2)
                                     .fontWeight(.heavy)
                                     .foregroundColor(Color.white)
                                 
                                 HStack {
-                                    Image(systemName: "person.fill")
-                                        .foregroundColor(Color.white)
-                                        .frame(width: 15)
-                                    Text(studentInfo.trainerNames[i])
-                                        .font(.subheadline)
-                                        .foregroundColor(Color.white)
-                                }
-                                
-                                HStack {
-                                    Image(systemName: "text.bubble.fill")
+                                    Image(systemName: "video.fill")
                                         .foregroundColor(.white)
                                         .frame(width: 15)
-                                    if (studentInfo.numFeedback[i] == 0) {
-                                        Text("\(studentInfo.numFeedback[i]) New Feedback")
+                                    if (coachInfo.numNewVideos[i] == 0) {
+                                        Text("\(coachInfo.numNewVideos[i]) New Uploads")
                                             .font(.subheadline)
                                             .foregroundColor(Color.white)
                                     }
                                     else {
-                                        Text("*\(studentInfo.numFeedback[i]) New Feedback")
+                                        Text("*\(coachInfo.numNewVideos[i]) New Uploads")
                                             .font(.subheadline)
                                             .bold()
                                             .foregroundColor(Color.white)
@@ -55,7 +45,7 @@ struct StudentUploadView: View {
                                     Image(systemName: "clock.fill")
                                         .foregroundColor(.white)
                                         .frame(width: 15)
-                                    Text(studentInfo.modifyDates[i])
+                                    Text(coachInfo.modifyDates[i])
                                         .font(.subheadline)
                                         .foregroundColor(Color.white)
                                 }
@@ -76,14 +66,13 @@ struct StudentUploadView: View {
                         .shadow(radius: 5)
                     }
                 }
-            }.navigationTitle("Uploads"/*, displayMode: .inline*/)
+            }.navigationTitle("Students"/*, displayMode: .inline*/)
         }
     }
 }
 
-
-//struct StudentUploadView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        StudentUploadView()
-//    }
-//}
+struct CoachMainView_Previews: PreviewProvider {
+    static var previews: some View {
+        CoachMainView()
+    }
+}

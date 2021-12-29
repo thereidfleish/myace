@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-import boto3
 import datetime
 import json
 import os
@@ -29,6 +27,7 @@ load_dotenv()
 
 # constants
 ENV = "dev"
+DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip()
 DB_NAME = str(os.environ.get("DB_NAME")).strip()
 DB_USERNAME = str(os.environ.get("DB_USERNAME")).strip()
 DB_PASSWORD = str(os.environ.get("DB_PASSWORD")).strip()
