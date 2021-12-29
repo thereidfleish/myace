@@ -25,12 +25,12 @@ class User(db.Model):
 
     # flask_sqlalchemy has an implicit constructor with column names
 
-    def serialize(self):
+    def serialize(self, db, aws):
         return {
             "id": self.id,
             "display_name": self.display_name,
             "email": self.email,
-            "uploads": [u.serialize() for u in self.uploads]
+            "uploads": [u.serialize(db, aws) for u in self.uploads]
         }
 
 
@@ -38,16 +38,26 @@ class User(db.Model):
 class Upload(db.Model):
     __tablename__ = 'upload'
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
-    stream_ready = db.Column(db.Boolean, nullable=False, default=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    # Mediaconvert
+    mediaconvert_job_id = db.Column(db.String, nullable=True)
+    stream_ready = db.Column(db.Boolean, nullable=False, default=False)
+    # Tags
     tags = db.relationship("Tag", secondary=tag_association_table)
 
-    def serialize(self):
+    def serialize(self, db, aws):
+        if not self.stream_ready and self.mediaconvert_job_id is not None:
+            status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
+            if status == 'COMPLETE':
+                self.stream_ready = True
+            print("fetching status. status=" + status)
+            db.session.commit()
         return {
             "id": self.id,
-            "timestamp": self.timestamp,
+            "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
             "tags": [t.serialize() for t in self.tags]

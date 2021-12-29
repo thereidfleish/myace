@@ -26,8 +26,8 @@ Response:
     "uploads":
         [
             {
-                "vid": "{video id}",
-                "display_title": "{display title of video}"
+                "id": "{upload id}",
+                "display_title": "..."
                 "tags": [
                     {
                         "tid": 1,
@@ -41,14 +41,11 @@ Response:
 }
 ```
 
-## Videos
+## Uploads
 
-### Get all videos
+### Get all uploads
 
 **GET: /api/user/{user_id}/uploads/**
-
-This route gets all the uploads for a user (identified by uid). The uploads do not contain the media but rather
-their vid, display title, and tags.
 
 Request: N/A
 
@@ -57,87 +54,108 @@ Response:
 {
     "uploads": [
         {
-            "vid": 1,
-            "display_title": "{the new display title for the video}",
+            "id": 1,
+            "created": "{ISO 8601 formatted timestamp}",
+            "display_title": "...",
+            "stream_ready": true,
             "tags": [
-                {
-                    "tid": 1,
-                    "name": "backhand"
-                }
-            ]
+                ...
+            ],
         }
+        ...
     ]
 }
 ```
 
-### Update video title
+### Get a specific upload with stream URL
 
-**POST: /api/upload/{upload_id}/update-title/**
+**GET: /api/user/{user_id}/upload/{upload_id}/**
 
-This route updates the display title for an upload identified by vid.
-
-Request:
-```json
-{
-    "new_title": "{the new display title for the video}" or None (keeps display title the same)
-}
-```
-
-Response:
-```json
-{
-    "vid": "{video id}",
-    "display_title": "{display title of video}",
-    "tags": [
-        {
-            "tid": 1,
-            "name": "backhand"
-        }
-    ]
-}
-```
-
-### Get a specific video
-
-**GET: /api/upload/{upload_id}/**
-
-This route gets Apple's HTTPS livestreaming (HLS) playlist from our S3 bucket for the specified vid.
+This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist. If `stream_ready` is false, the `url` field will be omitted from the response.
 
 Request: N/A
 
 Reponse:
 ```json
 {
-    "url": "www.something.m3u8",
+    "id": 1,
+    "created": "{ISO 8601 formatted timestamp}",
+    "display_title": "...",
+    "stream_ready": true,
+    "tags": [
+        ...
+    ],
+    "url": "www.something.m3u8"
 }
 ```
 
 ### Upload a video
 
-**GET: /api/upload/**
+**POST: /api/user/{user_id}/upload/**
 
-This route uses form data to post a video file to the S3 bucket in Apple's HLS format for livestreaming. This works
-by first uploading the video to us and then using the vincentbernat/video2hls github repo to convert the video to the
-proper HLS files. These are then uploaded to the S3 bucket.
+This route returns an presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. The **POST** request must contain the specified `fields`. After a successful upload, the client should request to convert the media to a streamable format.
 
-Request encoding = form-data:
+Request:
 ```json
 {
-    "file": <FILEDATA>
-    "filename": "backhand.mp4",
-    "display_title": "Backhand Serve 12-2-2021",
-    "uid": 5
+    "filename": "fullcourtstock.mp4",
+    "display_title": "My cool full court clip 😎"
 }
 ```
 
-Response encoding = JSON:
+Response:
 ```json
 {
-    "vid": 4
+    "id": <upload id>,
+    "url": "<upload url>",
+    "fields": {
+        "key": "...", 
+        "x-amz-algorithm": "...",
+        "x-amz-credential": "...", 
+        "x-amz-date": "...", 
+        "policy": "...",
+        "x-amz-signature": "..."
+    }
 }
 ```
 
-## Video tags
+### Begin converting upload to stream ready format
+
+**POST: /api/user/{user_id}/upload/{upload_id}/convert/**
+
+This route begins converting an upload into a streamable format.
+
+*Should be deprecated when upload detection is working.*
+
+Request: N/A
+
+Response: N/A
+
+### Edit upload
+
+**PUT: /api/user/{user_id}/upload/{upload_id}/**
+
+Request:
+```json
+{
+    "display_title": "{new upload display title}"
+}
+```
+
+Response:
+```json
+{
+    "id": 1,
+    "created": "{ISO 8601 formatted timestamp}",
+    "display_title": "{upload display title}",
+    "stream_ready": true,
+    "tags": [
+        ...
+    ]
+}
+```
+
+## Tags
 
 ### Add a tag
 
@@ -153,11 +171,13 @@ Request:
 }
 ```
 
+TODO: return just serialized tag
+
 Response:
 ```json
 {
-    "vid": 1,
-    "display_title": "{the new display title for the video}",
+    "id": 1,
+    "display_title": "{upload title}",
     "tags": [
         {
             "tid": 1,
@@ -198,8 +218,8 @@ Request: N/A
 Response:
 ```json
 {
-    "vid": 1,
-    "display_title": "{the display title for the video}",
+    "id": 1,
+    "display_title": "{upload title}",
     "tags": []
 }
 ```

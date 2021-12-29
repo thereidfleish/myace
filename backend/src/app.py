@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import boto3
+import datetime
 import json
 import os
-import boto3
 
 from botocore.client import Config
 
@@ -51,7 +52,7 @@ with app.app_context():
 aws = media.AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
 
 
-def success_response(data, code=200):
+def success_response(data={}, code=200):
     return json.dumps(data), code
 
 
@@ -87,7 +88,7 @@ def authenticate_user():
             db.session.add(user)
             db.session.commit()
 
-        return success_response(user.serialize(), 200)
+        return success_response(user.serialize(db, aws), 200)
     except ValueError:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
 
@@ -97,108 +98,111 @@ def get_all_user_uploads(user_id):
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         return failure_response("User not found.")
+
     return success_response(
-        {"uploads": [u.serialize() for u in Upload.query.filter_by(id=user_id)]}
+        {"uploads": [u.serialize(db, aws) for u in Upload.query.filter_by(user_id=user_id)]}
     )
 
 
-@app.route("/api/upload/<int:upload_id>/update-title/", methods=['POST'])
-def update_upload_title(upload_id):
+@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/")
+def get_specific_user_upload(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
         return failure_response("Upload not found.")
 
+    if user_id != upload.user_id:
+        return failure_response("User forbidden to access upload.", 403)
+
+    # Create response
+    res = upload.serialize(db, aws)
+
+    if upload.stream_ready:
+        # TODO: cache url in database to avoid expensive signing
+        expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+        url = aws.get_presigned_hls_url(upload_id, expire_date)
+        if url is None:
+            return failure_response("An error occurred when presigning the HLS URL.", 500)
+        res["url"] = url
+
+    return success_response(res)
+
+
+@app.route("/api/user/<int:user_id>/upload/", methods=['POST'])
+def create_upload_url(user_id):
+    user = User.query.filter_by(id=user_id).first()
+
+    if user is None:
+        return failure_response("User not found.")
+
+    # Check for valid fields
     body = json.loads(request.data)
+    filename = body.get("filename")
+    if filename is None or filename.isspace():
+        return failure_response("Invalid filename.", 400)
+    display_title = body.get("display_title")
+    if display_title is None or display_title.isspace():
+        return failure_response("Invalid display title.", 400)
 
-    new_title = body.get("new_title")
-
-    if new_title is not None:
-        upload.display_title = new_title
-
+    # Create upload row
+    new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id)
+    db.session.add(new_upload)
     db.session.commit()
 
-    return success_response(upload.serialize())
+    # Create URL
+    res = {'id': new_upload.id}
+    urldata = aws.get_presigned_url_post(new_upload.id, filename)
+    res.update(urldata)
+    return success_response(res)
 
 
-@app.route("/api/upload/<int:upload_id>/")
-def get_video_url(upload_id):
+@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/", methods=['PUT'])
+def update_upload(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
-        return failure_response("Could not locate video id in database.")
+        return failure_response("Upload not found.")
 
-    vkey = upload.vkey
-    expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    url = aws.get_presigned_hls_url(vkey, expire_date)
+    if user_id != upload.user_id:
+        return failure_response("User forbidden to access upload.", 403)
 
-    if url is None:
-        return failure_response("An error occurred when presigning the HLS URL.")
+    body = json.loads(request.data)
 
-    return success_response({'url': url})
+    # Update title
+    new_title = body.get("display_title")
+    if new_title is not None:
+        if new_title.isspace():
+            return failure_response("Invalid title.", 400)
+        upload.display_title = new_title
+
+    db.session.commit()
+    return success_response(upload.serialize(db, aws))
 
 
-@app.route("/api/upload/")
-def get_upload_url():
-    filename = request.form.get("filename")
-    display_title = request.form.get("display_title")
-    uid = request.form.get("uid")
+@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/convert/", methods=['POST'])
+def start_convert(user_id, upload_id):
+    upload = Upload.query.filter_by(id=upload_id).first()
 
-    if filename is None or display_title is None or uid is None:
-        return failure_response("Did not provide all requested fields.", 400)
+    if upload is None:
+        return failure_response("Upload not found.")
 
-    # Sanitize filename
-    filename = secure_filename(filename)
+    if user_id != upload.user_id:
+        return failure_response("User forbidden to access upload.", 403)
 
-    # Check if UID is int
-    if not uid.isdigit():
-        return failure_response("UID is not a number.", 400)
+    # create convert job
+    convert_job_id = aws.create_mediaconvert_job(upload_id, upload.filename)
+    upload.mediaconvert_job_id = convert_job_id
+    db.session.commit()
 
-    uid = int(uid)
+    return success_response()
 
-    if filename.isspace() or display_title.isspace() or uid < 0:
-        return failure_response("Invalid fields.", 400)
 
-    # Check for valid file
-    # For security reference, see:
-    # https://blog.miguelgrinberg.com/post/handling-file-uploads-with-flask
-    uploaded_file = request.files['file']
-    file_ext = os.path.splitext(filename)[1]
-    if file_ext not in app.config['UPLOAD_EXTENSIONS'] \
-            or not verify_mp4_integrity(uploaded_file.stream):
-        failure_response("Bad MP4.", 400)
-
-    try:
-        # Creates upload with vkey as filename and then changes it after using the new vid to make the vkey
-        new_upload = Upload(vkey=filename, display_title=display_title, id=uid)
-        db.session.add(new_upload)
-        db.session.flush()
-        upload_id = new_upload.id
-        vkey = str(abs(hash(str(filename+str(uid)+str(upload_id)))))
-        new_upload.vkey = vkey
-        db.session.commit()
-    except Exception as e:
-        print(e)
-        return failure_response("Error while trying to submit to database")
-
-    try:
-        # Save file to disk
-        path_to_mp4 = os.path.join(app.config['UPLOAD_PATH'], vkey) + '.mp4'
-        uploaded_file.save(path_to_mp4)
-
-        # Convert, compress, and upload file to AWS
-        path_to_fmp4 = convert_mp4_to_hsl(path_to_mp4)
-        compress_fmp4(path_to_fmp4)
-        object_url = upload_to_aws(s3, AWS_BUCKET_NAME, AWS_BUCKET_REGION_NAME, path_to_fmp4)
-        remove_fmp4(path_to_fmp4)
-    except Exception as e:
-        # Delete unsuccessful upload from database
-        Upload.query.filter_by(id=upload_id).delete()
-        db.session.commit()
-        print(e)
-        return failure_response("Error while transferring video", 502)
-
-    return success_response({'id': upload_id, 'url': object_url})
+# TODO: autodetect S3 uploads
+# @app.route("/api/callback/s3upload/", methods=['POST'])
+# def upload_callback():
+#     """Called by AWS after a successful upload to the S3 bucket"""
+#     # TODO: create mediaconvert job and add upload to database
+#     pass
 
 
 @app.route("/api/upload/<int:upload_id>/tags/", methods=['POST'])
@@ -226,7 +230,7 @@ def add_tag(upload_id):
     upload.tags.append(tag)
     db.session.commit()
 
-    return success_response(upload.serialize(), status_code)
+    return success_response(upload.serialize(db, aws), status_code)
 
 
 @app.route("/api/upload/<int:upload_id>/tags/")
@@ -248,21 +252,15 @@ def delete_tag(upload_id, tid):
 
     db.session.commit()
 
-    return success_response(upload.serialize())
+    return success_response(upload.serialize(db, aws))
 
 
-@app.route("/api/callback/s3upload/", methods=['POST'])
-def upload_callback():
-    """Called by AWS after a successful upload to the S3 bucket"""
-    # TODO: create mediaconvert job and add upload to database
-    pass
-
-
+# @app.route("/api/")
 def create_test_user():
     user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com")
     db.session.add(user)
     db.session.commit()
-    return success_response(user.serialize())
+    return success_response(user.serialize(db, aws))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
