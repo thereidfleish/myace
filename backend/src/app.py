@@ -15,7 +15,7 @@ import media
 from db import User
 from db import Upload
 from db import Comment
-from db import Tag
+from db import Bucket
 from db import db
 
 from google.oauth2 import id_token
@@ -153,9 +153,15 @@ def create_upload_url(user_id):
     display_title = body.get("display_title")
     if display_title is None or display_title.isspace():
         return failure_response("Invalid display title.", 400)
+    bucket_id = body.get("bucket_id")
+    if bucket_id is None:
+        return failure_response("Could not get bucket id.", 400)
+    bucket = Bucket.query.filter_by(id=bucket_id).first()
+    if bucket is None:
+        return failure_response("Could not find the specified bucket.", 400)
 
     # Create upload row
-    new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id)
+    new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id, bucket_id=bucket_id)
     db.session.add(new_upload)
     db.session.commit()
 
@@ -250,59 +256,49 @@ def create_comment(upload_id):
     return success_response(comment.serialize(), 201)
 
 
-@app.route("/api/upload/<int:upload_id>/tags/", methods=['POST'])
-def add_tag(upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
-    if upload is None:
-        return failure_response("Upload not found.")
+@app.route("/api/user/<int:user_id>/buckets/", methods=['POST'])
+def create_bucket(user_id):
+    # Check of user exists
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        return failure_response("User does not exist.")
 
+    # Get name from request body
     body = json.loads(request.data)
     name = body.get("name")
-
     if name is None:
-        return failure_response("Could not get name from request.", 400)
+        return failure_response("Could not get bucket name from request body.", 400)
 
-    tag = Tag.query.filter_by(name=name).first()
-
-    status_code = 200
-
-    if tag is None:
-        tag = Tag(name=name)
-        db.session.add(tag)
-        db.session.flush()
-        status_code = 201
-
-    upload.tags.append(tag)
+    bucket = Bucket(user_id=user_id, name=name)
+    db.session.add(bucket)
     db.session.commit()
 
-    return success_response(upload.serialize(aws), status_code)
+    return success_response(bucket.serialize(aws=aws), 201)
 
 
-@app.route("/api/upload/<int:upload_id>/tags/")
-def get_tags(upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
-    if upload is None:
-        return failure_response("Upload not found.")
+@app.route("/api/user/<int:user_id>/bucket/<int:bucket_id>/")
+def get_uploads_in_bucket(user_id, bucket_id):
+    bucket = Bucket.query.filter_by(id=bucket_id).first()
+    if bucket is None:
+        return failure_response("Bucket not found.")
+    elif bucket.user_id != user_id:
+        return failure_response("User forbidden to access this bucket.", 403)
 
-    return success_response({"tags": [t.serialize() for t in upload.tags]})
-
-
-@app.route("/api/upload/<int:upload_id>/tag/<int:tid>/", methods=['DELETE'])
-def delete_tag(upload_id, tid):
-    upload = Upload.query.filter_by(id=upload_id).first()
-    if upload is None:
-        return failure_response("Upload not found.")
-
-    upload.tags = [t for t in upload.tags if t.id != tid]
-
-    db.session.commit()
-
-    return success_response(upload.serialize(aws))
+    return success_response(bucket.serialize(aws=aws))
 
 
-# @app.route("/api/")
+@app.route("/api/user/<int:user_id>/buckets/")
+def get_buckets(user_id):
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        return failure_response("User not found.")
+
+    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
+
+
+@app.route("/api/")
 def create_test_user():
-    user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com")
+    user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com", type=0)
     db.session.add(user)
     db.session.commit()
     return success_response(user.serialize())
