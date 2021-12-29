@@ -64,10 +64,18 @@ def failure_response(message, code=404):
 @app.route("/api/user/authenticate/", methods=["POST"])
 def authenticate_user():
     body = json.loads(request.data)
-    token = body.get("token")
 
+    # Validate type
+    user_type = body.get("type")
+    if user_type is None:
+        return failure_response("Missing type.", 400)
+    if not (user_type == 0 or user_type == 1):
+        return failure_response("Invalid type.", 400)
+
+    # Validate google auth
+    token = body.get("token")
     if token is None:
-        return failure_response("Could not get token from request body.", 400)
+        return failure_response("Missing token.", 400)
 
     try:
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), G_CLIENT_ID)
@@ -80,13 +88,15 @@ def authenticate_user():
             return failure_response("Could not retrieve required fields (Google Account ID, email, and name) from"
                                     "Google token. Unauthorized.", 401)
 
-        user = User.query.filter_by(google_id=gid).first()
+        # Check if user exists
+        user = User.query.filter_by(google_id=gid, type=user_type).first()
 
         if user is None:
             # User does not exist, add them.
-            user = User(google_id=gid, display_name=display_name, email=email)
+            user = User(google_id=gid, display_name=display_name, email=email, type=user_type)
             db.session.add(user)
             db.session.commit()
+            return success_response(user.serialize(), 201)
 
         return success_response(user.serialize(), 200)
     except ValueError:
@@ -153,7 +163,7 @@ def create_upload_url(user_id):
     res = {'id': new_upload.id}
     urldata = aws.get_presigned_url_post(new_upload.id, filename)
     res.update(urldata)
-    return success_response(res)
+    return success_response(res, 201)
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/", methods=['PUT'])
@@ -237,7 +247,7 @@ def create_comment(upload_id):
     db.session.add(comment)
     db.session.commit()
 
-    return success_response(comment.serialize())
+    return success_response(comment.serialize(), 201)
 
 
 @app.route("/api/upload/<int:upload_id>/tags/", methods=['POST'])

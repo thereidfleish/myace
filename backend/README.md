@@ -6,23 +6,30 @@
 
 **POST /api/user/authenticate/**
 
-This route takes an encrypted Google authentication token as the request body. It then verifies the token with oauth and
-decrypts it. If the user is not in the database, they are added to it. The response then contains the user's information
-(such as their display name and email), as well as all their uploads.
+This route returns a user's information given a Google OAuth token. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
+
+- `type`:
+  - 0: player
+  - 1: coach
 
 Request:
 ```json
 {
-    "token": "{User's ID Token}"
+    "token": "{Google ID Token}",
+    "type": 0
 }
 ```
 
 Response:
+- 200: User fetched.
+- 201: User created.
+
 ```json
 {
-    "uid": "{User's local id}",
+    "id": 1,
     "display_name": "{User's display name}",
-    "email": "{User's email}"
+    "email": "{User's email}",
+    "type": 0
 }
 ```
 

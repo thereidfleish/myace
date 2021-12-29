@@ -23,6 +23,7 @@ class User(db.Model):
     google_id = db.Column(db.String, nullable=False)
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
+    type = db.Column(db.Integer, nullable=False) # Player vs coach...See API docs for interpretation
     uploads = db.relationship("Upload", cascade="delete")
     comments = db.relationship("Comment", cascade="delete")
 
@@ -33,6 +34,7 @@ class User(db.Model):
             "id": self.id,
             "display_name": self.display_name,
             "email": self.email,
+            "type": self.type
         }
 
 
