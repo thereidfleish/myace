@@ -52,7 +52,7 @@ class Upload(db.Model):
     # Comments
     comments = db.relationship("Comment", cascade="delete")
 
-    def serialize(self, db, aws):
+    def serialize(self, aws):
         if not self.stream_ready and self.mediaconvert_job_id is not None:
             status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
             if status == 'COMPLETE':

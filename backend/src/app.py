@@ -100,7 +100,7 @@ def get_all_user_uploads(user_id):
         return failure_response("User not found.")
 
     return success_response(
-        {"uploads": [u.serialize(db, aws) for u in Upload.query.filter_by(user_id=user_id)]}
+        {"uploads": [u.serialize(aws) for u in Upload.query.filter_by(user_id=user_id)]}
     )
 
 
@@ -115,7 +115,7 @@ def get_specific_user_upload(user_id, upload_id):
         return failure_response("User forbidden to access upload.", 403)
 
     # Create response
-    res = upload.serialize(db, aws)
+    res = upload.serialize(aws)
 
     if upload.stream_ready:
         # TODO: cache url in database to avoid expensive signing
@@ -176,7 +176,7 @@ def edit_upload(user_id, upload_id):
         upload.display_title = new_title
 
     db.session.commit()
-    return success_response(upload.serialize(db, aws))
+    return success_response(upload.serialize(aws))
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/convert/", methods=['POST'])
@@ -265,7 +265,7 @@ def add_tag(upload_id):
     upload.tags.append(tag)
     db.session.commit()
 
-    return success_response(upload.serialize(db, aws), status_code)
+    return success_response(upload.serialize(aws), status_code)
 
 
 @app.route("/api/upload/<int:upload_id>/tags/")
@@ -287,7 +287,7 @@ def delete_tag(upload_id, tid):
 
     db.session.commit()
 
-    return success_response(upload.serialize(db, aws))
+    return success_response(upload.serialize(aws))
 
 
 # @app.route("/api/")
