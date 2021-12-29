@@ -180,7 +180,7 @@ class AWS:
         :return: dictionary containing url and information pertinent to POST request
         """
         key = f"uploads/{upload_uuid}/{filename}"
-        response = s3.generate_presigned_post(self.s3_bucket_name, key, ExpiresIn=expiration)
+        response = self.s3.generate_presigned_post(self.s3_bucket_name, key, ExpiresIn=expiration)
         return response
 
     def create_mediaconvert_job(self, upload_uuid: str, filename: str) -> str:
@@ -221,6 +221,7 @@ def main() -> None:
     CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
     CF_PRIVATE_KEY_FILE = './private_key.pem'
     aws = AWS(ACCESS_KEY_ID, SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
+
     # Reset the playlist files
     # print("Converting MP4 to HLS. This may take a sec...")
     # job_id = aws.create_mediaconvert_job('exampleuploaduid', 'fullcourtstock.mp4')
@@ -230,12 +231,18 @@ def main() -> None:
     #         print(status)
     #         break
     #     time.sleep(1)
-    # Generate presigned URL
+
+    # Create presigned view URL
     # Super important to use utcnow() instead of local now()
-    expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    print(f"Generating presigned URLs with expiration {expire_date}...")
-    url = aws.get_presigned_hls_url('exampleuploaduid', expire_date)
-    print(url)
+    # expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+    # print(f"Generating presigned URLs with expiration {expire_date}...")
+    # url = aws.get_presigned_hls_url('exampleuploaduid', expire_date)
+    # print(url)
+
+    # Create presigned upload URL
+    # info = aws.get_presigned_url_post('exampleuploaduid', 'fullcourtstock.mp4')
+    # print(info)
+
 
 if __name__ == '__main__':
     main()
