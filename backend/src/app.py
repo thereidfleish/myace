@@ -273,7 +273,7 @@ def create_bucket(user_id):
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.serialize(aws=aws), 201)
+    return success_response(bucket.sub_serialize(), 201)
 
 
 @app.route("/api/user/<int:user_id>/bucket/<int:bucket_id>/")
@@ -293,10 +293,10 @@ def get_buckets(user_id):
     if user is None:
         return failure_response("User not found.")
 
-    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
+    return success_response({"buckets": [b.sub_serialize() for b in user.buckets]})
 
 
-@app.route("/api/")
+#@app.route("/api/")
 def create_test_user():
     user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com", type=0)
     db.session.add(user)

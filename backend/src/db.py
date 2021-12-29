@@ -60,8 +60,8 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
+            "bucket_id": self.bucket_id,
             "comments": [c.serialize(show_upload_id=False) for c in self.comments],
-            "bucket_id": self.bucket_id
         }
 
 
@@ -100,4 +100,11 @@ class Bucket(db.Model):
             "name": self.name,
             "user_id": self.user_id,
             "uploads": [u.serialize(aws) for u in self.uploads]
+        }
+
+    def sub_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "user_id": self.user_id
         }
