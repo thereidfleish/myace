@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import MediaPicker
 
 struct StudentUploadDetailView: View {
     @EnvironmentObject var studentInfo: StudentInfo
     @State private var showingFeedback = false
+    @State private var showingVideo = false
+    @State private var isShowingMediaPicker = false
+    @State private var url: [URL] = []
     @State var name: String
+    @State private var originalName = ""
     @State var student: Bool
     
     var body: some View {
@@ -22,31 +27,55 @@ struct StudentUploadDetailView: View {
                     .foregroundColor(.green)
                     .padding([.top, .leading, .trailing])
                 
-                TextField("Name", text: $name)
-                    .autocapitalization(.none)
-                    .padding(.horizontal)
+                HStack {
+                    TextField("Name", text: $name)
+                        .autocapitalization(.none)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onAppear(perform: {
+                        self.originalName = name
+                    })
+                    
+                    Button(action: {
+                        print("save")
+                        originalName = name
+                    }, label: {
+                        Text("Save")
+                            .foregroundColor(name == originalName ? Color.gray : Color.green)
+                            .fontWeight(.bold)
+                    })
+                        .disabled(name == originalName)
+                }.padding(.horizontal)
                 
                 if (student) {
-                Button(action: {
-                    print("uploading...")
-                }, label: {
-                    Text("Upload New Video")
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                    //.opacity(subject != subjectText ? 1 : 0.75)
-                })
-                //.disabled(subject == subjectText ? true : false)
-                    .padding([.horizontal, .top, .bottom])
+                    Button(action: {
+                        isShowingMediaPicker.toggle()
+                    }, label: {
+                        Text("Upload New Video")
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                            .foregroundColor(.white)
+                    })
+                        .padding([.horizontal, .top, .bottom])
+                        .mediaImporter(isPresented: $isShowingMediaPicker,
+                                       allowedMediaTypes: .all,
+                                       allowsMultipleSelection: false) { result in
+                            switch result {
+                            case .success(let url):
+                                self.url = url
+                                print(url)
+                            case .failure(let error):
+                                print(error)
+                                self.url = []
+                            }
+                        }
                 }
                 
                 ForEach(studentInfo.strokeNames.indices, id: \.self) { i in
                     HStack {
                         Button(action: {
-                            print("video...")
+                            showingVideo.toggle()
                         }, label: {
                             Image("testimage")
                                 .resizable()
@@ -67,7 +96,7 @@ struct StudentUploadDetailView: View {
                                 showingFeedback.toggle()
                             }, label: {
                                 if (studentInfo.feedbacks[i] == .awaiting) {
-                                    Image(systemName: student ? "person.crop.circle.badge.clock.fill" : "note.text.badge.plus")
+                                    Image(systemName: student ? "person.crop.circle.badge.clock.fill" : "plus.bubble.fill")
                                         .resizable()
                                         .scaledToFill()
                                         .foregroundColor(student ? Color.gray: Color.green)
@@ -75,14 +104,14 @@ struct StudentUploadDetailView: View {
                                         .opacity(student ? 0.5 : 1)
                                 }
                                 if (studentInfo.feedbacks[i] == .unread) {
-                                    Image(systemName: student ? "text.bubble.fill" : "note.text")
+                                    Image(systemName: "text.bubble.fill")
                                         .resizable()
                                         .scaledToFill()
                                         .foregroundColor(Color.green)
                                         .frame(width: 25, height: 25)
                                 }
                                 if (studentInfo.feedbacks[i] == .read) {
-                                    Image(systemName: student ? "text.bubble.fill" : "note.text")
+                                    Image(systemName: "text.bubble.fill")
                                         .resizable()
                                         .scaledToFill()
                                         .foregroundColor(Color.gray)
@@ -105,14 +134,11 @@ struct StudentUploadDetailView: View {
             }.sheet(isPresented: $showingFeedback) {
                 StudentFeedbackView(text: "This is some sample feedback", student: student)
             }
+            .sheet(isPresented: $showingVideo) {
+                StudentVideoView(student: student)
+            }
             
-            
-        }.navigationBarItems(
-            trailing:
-                Button("Save") {
-                    print("save")
-                }
-        )
+        }
     }
 }
 

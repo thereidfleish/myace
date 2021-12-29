@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVKit
 
 struct StudentFeedbackView: View {
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
@@ -16,6 +17,9 @@ struct StudentFeedbackView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading) {
+                    VideoPlayer(player: AVPlayer(url:  URL(string: "https://appdev-backend-final.s3.us-east-2.amazonaws.com/hls/RFvsNadal_full_point_0.fmp4/index.m3u8")!))
+                        .frame(height: 400)
+                    
                     if (student) {
                         Text(text)
                             .multilineTextAlignment(.leading)
@@ -38,12 +42,19 @@ struct StudentFeedbackView: View {
                     
                 }.padding(.horizontal)
             }.navigationTitle("Feedback")
-                .navigationBarItems(trailing: student ? Button("Close") {
+                .navigationBarItems(trailing: student ? Button(action: {
                     self.mode.wrappedValue.dismiss()
-                } : Button("Save and Close") {
-                    print("saving...")
+                }, label: {
+                    Text("Close")
+                        .foregroundColor(Color.green)
+                        .fontWeight(.bold)
+                }) : Button(action: {
                     self.mode.wrappedValue.dismiss()
-                })
+                }, label: {
+                    Text("Save and Close")
+                        .foregroundColor(Color.green)
+                        .fontWeight(.bold)
+                }))
         }
         
     }

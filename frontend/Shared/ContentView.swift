@@ -9,33 +9,43 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection = 0
-    var studentInfo = StudentInfo()
-    var coachInfo = CoachInfo()
+    @StateObject var studentInfo = StudentInfo()
+    @StateObject var coachInfo = CoachInfo()
+    @EnvironmentObject private var networkController: NetworkController
     
     var body: some View {
         TabView(selection: $selection) {
-            StudentUploadView() // Will need to add logic to show this view or another one based on if its a student or a coach logged in
-                .environmentObject(studentInfo)
-                .environmentObject(coachInfo)
-                .tabItem {
-                    VStack {
-                        Image(systemName: "square.and.arrow.up.circle.fill")
-                        Text("Student View")
+            if (networkController.userData.shared.type == 0) {
+                StudentUploadView(data: networkController.userData)
+                    .environmentObject(studentInfo)
+                    .environmentObject(coachInfo)
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "square.and.arrow.up.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Student View")
+                                .foregroundColor(.green)
+                        }
                     }
+                    .tag(0)
             }
-            .tag(0)
+            else {
+                CoachMainView(data: networkController.userData)
+                    .environmentObject(coachInfo)
+                    .environmentObject(studentInfo)
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Coach View")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .tag(0)
+            }
             
-            CoachMainView()
-                .environmentObject(coachInfo)
-                .environmentObject(studentInfo)
-                .tabItem {
-                    VStack {
-                        Image(systemName: "person.circle.fill")
-                        Text("Coach View")
-                    }
-            }
-            .tag(1)
-        }
+            
+        }.accentColor(Color.green)
     }
 }
 

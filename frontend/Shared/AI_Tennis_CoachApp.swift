@@ -9,9 +9,18 @@ import SwiftUI
 
 @main
 struct AI_Tennis_CoachApp: App {
+    @StateObject private var networkController = NetworkController()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if (networkController.userData.shared.type == -1) {
+                LogInView()
+                    .environmentObject(networkController)
+            }
+            else {
+                ContentView()
+                    .environmentObject(networkController)
+            }
         }
     }
 }
