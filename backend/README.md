@@ -4,7 +4,7 @@
 
 ## Authentication
 
-**POST: /api/user/authenticate/**
+**POST /api/user/authenticate/**
 
 This route takes an encrypted Google authentication token as the request body. It then verifies the token with oauth and
 decrypts it. If the user is not in the database, they are added to it. The response then contains the user's information
@@ -30,7 +30,7 @@ Response:
 
 ### Get all uploads
 
-**GET: /api/user/{user_id}/uploads/**
+**GET /api/user/{user_id}/uploads/**
 
 Request: N/A
 
@@ -61,7 +61,7 @@ Response:
 
 ### Get a specific upload
 
-**GET: /api/user/{user_id}/upload/{upload_id}/**
+**GET /api/user/{user_id}/upload/{upload_id}/**
 
 This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist. If `stream_ready` is false, the `url` field will be omitted from the response.
 
@@ -92,9 +92,9 @@ Reponse:
 
 ### Upload a video
 
-**POST: /api/user/{user_id}/upload/**
+**POST /api/user/{user_id}/upload/**
 
-This route returns an presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. The **POST** request must contain the specified `fields`. After a successful upload, the client should request to convert the media to a streamable format.
+This route returns a presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. The **POST** request must contain the specified `fields`. After a successful upload, the client should request to convert the media to a streamable format.
 
 Request:
 ```json
@@ -122,7 +122,7 @@ Response:
 
 ### Begin converting upload to stream ready format
 
-**POST: /api/user/{user_id}/upload/{upload_id}/convert/**
+**POST /api/user/{user_id}/upload/{upload_id}/convert/**
 
 This route begins converting an upload into a streamable format.
 
@@ -134,7 +134,7 @@ Response: N/A
 
 ### Edit upload
 
-**PUT: /api/user/{user_id}/upload/{upload_id}/**
+**PUT /api/user/{user_id}/upload/{upload_id}/**
 
 Request:
 ```json
