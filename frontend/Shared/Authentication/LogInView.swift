@@ -9,6 +9,8 @@ import SwiftUI
 
 struct LogInView: View {
     @EnvironmentObject private var networkController: NetworkController
+    @State private var showingError = false
+    @State private var errorMessage = ""
     
     var body: some View {
         VStack {
@@ -19,18 +21,29 @@ struct LogInView: View {
             
             Button(action: {
                 Task {
-                    await networkController.authenticate(token: "test", type: 0)
+                    do {
+                        try await networkController.authenticate(token: "test", type: 0)
+                    } catch {
+                        print(error)
+                        errorMessage = error.localizedDescription
+                        showingError.toggle()
+                    }
+                    networkController.awaiting = false
                     print(networkController.userData.shared)
                 }
                 
                 
             }, label: {
-                Text("Sign In With Google")
-                    .padding(.vertical, 15)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green)
-                    .cornerRadius(10)
-                    .foregroundColor(.white)
+                if (!networkController.awaiting) {
+                    Text("Sign In With Google")
+                        .padding(.vertical, 15)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green)
+                        .cornerRadius(10)
+                        .foregroundColor(.white)
+                } else {
+                    ProgressView()
+                }
             })
             
             Button(action: {
@@ -57,6 +70,9 @@ struct LogInView: View {
             
             
         }.padding(.horizontal)
+            .alert(isPresented: $showingError) {
+            Alert(title: Text("Error"), message: Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later."), dismissButton: .default(Text("OK")))
+        }
         
     }
 }

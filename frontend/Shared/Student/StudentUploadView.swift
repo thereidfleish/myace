@@ -28,7 +28,7 @@ struct StudentUploadView: View {
                 //                    .padding([.horizontal, .top, .bottom])
                 
                 VStack(alignment: .leading) {
-                    Text("\(UserData.computeWelcome()) Reid!")
+                    Text("\(UserData.computeWelcome()) \(data.shared.display_name)")
                         .font(.title2)
                         .fontWeight(.heavy)
                         .foregroundColor(Color.green)
