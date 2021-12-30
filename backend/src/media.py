@@ -35,7 +35,7 @@ class AWS:
         self.cf_public_key_id = cf_public_key_id
         self.cf_private_key_file = cf_private_key_file
         self.cloudfront = boto3.client('cloudfront', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
-        self.mediaconvert = boto3.client('mediaconvert', endpoint_url='https://mqm13wgra.mediaconvert.us-east-2.amazonaws.com',
+        self.mediaconvert = boto3.client('mediaconvert', region_name=self.s3_region_name, endpoint_url=f'https://mqm13wgra.mediaconvert.{self.s3_region_name}.amazonaws.com',
                       aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
         # Invalidation requests that have not yet completed. Relevant to self.get_presigned_hls_url().
         # TODO: This could become problematic when serving multiple clients using the same class instance.

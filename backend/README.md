@@ -50,6 +50,7 @@ Response:
             "created": "{ISO 8601 formatted timestamp}",
             "display_title": "...",
             "stream_ready": true,
+            "bucket_id": 1
             "comments": [
                 {
                     "id": 1,
@@ -58,8 +59,7 @@ Response:
                     "text": "Tennis goals!!! LOML 😍"
                 },
                 ...
-            ],
-            "tags": [...]
+            ]
         }
         ...
     ]
@@ -81,6 +81,7 @@ Reponse:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "...",
     "stream_ready": true,
+    "bucket_id": 1,
     "comments": [
         {
             "id": 1,
@@ -88,9 +89,6 @@ Reponse:
             "author_id": 1,
             "text": "Tennis goals!!! LOML 😍"
         },
-        ...
-    ],
-    "tags": [
         ...
     ],
     "url": "www.something.m3u8"
@@ -101,13 +99,16 @@ Reponse:
 
 **POST /api/user/{user_id}/upload/**
 
-This route returns a presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. The **POST** request must contain the specified `fields`. After a successful upload, the client should request to convert the media to a streamable format.
+This route returns a presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. 
+The **POST** request must contain the specified `fields`. After a successful upload, the client should request to 
+convert the media to a streamable format. Note that the client must also specify a valid bucket id for the user.
 
 Request:
 ```json
 {
     "filename": "fullcourtstock.mp4",
-    "display_title": "My cool full court clip 😎"
+    "display_title": "My cool full court clip 😎",
+    "bucket_id": 1
 }
 ```
 
@@ -157,6 +158,7 @@ Response:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "{upload display title}",
     "stream_ready": true,
+    "bucket_id": 1,
     "comments": [
         {
             "id": 1,
@@ -164,9 +166,6 @@ Response:
             "author_id": 1,
             "text": "Tennis goals!!! LOML 😍"
         },
-        ...
-    ],
-    "tags": [
         ...
     ]
 }
@@ -199,14 +198,14 @@ Response:
 }
 ```
 
-## Tags
+## Buckets
 
-### Add a tag
+### Create a bucket
 
-**POST /api/upload/{upload_id}/tags/**
+**POST /api/user/{user_id}/buckets/**
 
-This route adds a tag with the specified name to a video. A new tag is only created in the database if it does
-not already exist.
+This route creates a bucket with the specified name and attaches it to the specified user. A user can have multiple
+buckets of the same name. A user must create at least one bucket before uploading a video.
 
 Request:
 ```json
@@ -215,47 +214,20 @@ Request:
 }
 ```
 
-TODO: return just serialized tag
-
 Response:
 ```json
 {
     "id": 1,
-    "display_title": "{upload title}",
-    "tags": [
-        {
-            "tid": 1,
-            "name": "backhand"
-        }
-    ]
+    "name": "Example Tag 1",
+    "user_id": 1
 }
 ```
 
-### Get all tags
+### Get bucket contents
 
-**GET /api/upload/{upload_id}/tags/**
+**GET /api/user/{user_id}/bucket/{bucket_id}/**
 
-This route gets all the tags for a video identified with vid.
-
-Request: N/A
-
-Response:
-```json
-{
-    "tags": [
-        {
-            "tid": 1,
-            "name": "backhand"
-        }
-    ]
-}
-```
-
-### Delete a tag
-
-**DELETE /api/upload/{upload_id}/tag/{tid}/**
-
-This route deletes a tag from a video. It does not delete the tag from the database, though.
+This route gets all the uploads for a given bucket attached to a given user.
 
 Request: N/A
 
@@ -263,7 +235,48 @@ Response:
 ```json
 {
     "id": 1,
-    "display_title": "{upload title}",
-    "tags": []
+    "name": "Example Tag 1",
+    "user_id": 1,
+    "uploads": [
+        {
+            "id": 1,
+            "created": "{ISO 8601 formatted timestamp}",
+            "display_title": "{upload display title}",
+            "stream_ready": true,
+            "bucket_id": 1,
+            "comments": [
+                {
+                    "id": 1,
+                    "created": "{ISO 8601 formatted timestamp}",
+                    "author_id": 1,
+                    "text": "Tennis goals!!! LOML 😍"
+                },
+                ...
+            ]
+        },
+        ...
+    ]
+}
+```
+
+### Get user's buckets
+
+**GET api/user/{user_id}/buckets/**
+
+This route gets all the buckets for a given user id.
+
+Request: N/A
+
+Response:
+```json
+{
+    "buckets": [
+        {
+            "id": 1,
+            "name": "Example Tag 1",
+            "user_id": 1
+        },
+        ...
+    ]
 }
 ```

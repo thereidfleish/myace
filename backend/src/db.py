@@ -3,16 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-tag_association_table = db.Table(
-    "tag_association",
-    db.Model.metadata, 
-    # datatypes of association columns are inferred
-    # primary keys prevent duplicate rows
-    db.Column("upload_id", db.ForeignKey("upload.id"), primary_key=True),
-    db.Column("tag_id", db.ForeignKey("tag.id"), primary_key=True)
-)
-
 # TODO: transition from exposing primary keys in routes to using UUIDs or IDENTITY or SERIAL
+
 
 # User Table
 class User(db.Model):
@@ -23,9 +15,11 @@ class User(db.Model):
     google_id = db.Column(db.String, nullable=False)
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
+    # 0 = player, 1 = coach
     type = db.Column(db.Integer, nullable=False) # Player vs coach...See API docs for interpretation
     uploads = db.relationship("Upload", cascade="delete")
     comments = db.relationship("Comment", cascade="delete")
+    buckets = db.relationship("Bucket", cascade="delete")
 
     # flask_sqlalchemy has an implicit constructor with column names
 
@@ -49,8 +43,8 @@ class Upload(db.Model):
     # Mediaconvert
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
-    # Tags
-    tags = db.relationship("Tag", secondary=tag_association_table)
+    # Bucket (each upload has to be created in a bucket)
+    bucket_id = db.Column(db.Integer, db.ForeignKey("bucket.id"), nullable=False)
     # Comments
     comments = db.relationship("Comment", cascade="delete")
 
@@ -66,8 +60,8 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
+            "bucket_id": self.bucket_id,
             "comments": [c.serialize(show_upload_id=False) for c in self.comments],
-            "tags": [t.serialize() for t in self.tags]
         }
 
 
@@ -92,14 +86,25 @@ class Comment(db.Model):
         return res
 
 
-# Tags Table
-class Tag(db.Model):
-    __tablename__ = "tag"
+# Bucket Table
+class Bucket(db.Model):
+    __tablename__ = "bucket"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    uploads = db.relationship("Upload", cascade="delete")
 
-    def serialize(self):
+    def serialize(self, aws):
         return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "user_id": self.user_id,
+            "uploads": [u.serialize(aws) for u in self.uploads]
+        }
+
+    def sub_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "user_id": self.user_id
         }

@@ -23,7 +23,8 @@ def test_upload():
     create_url_endpoint = "http://0.0.0.0:5000/api/user/1/upload/"
     body = {
         "filename": filename,
-        "display_title": "My cool full court clip 😎"
+        "display_title": "My cool full court clip 😎",
+        "bucket_id": 1
     }
     create_url_res = requests.post(url=create_url_endpoint, json=body)
     log_response(create_url_res)
