@@ -1,5 +1,3 @@
-⚠️  **Under construction**. Will be ready sometime 12/27 - 01/03 ⚠️
-
 # API Specification
 
 ## Authentication
