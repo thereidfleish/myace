@@ -37,7 +37,7 @@ G_CLIENT_ID = str(os.environ.get("G_CLIENT_ID")).strip()
 AWS_ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
 AWS_SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
 CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-CF_PRIVATE_KEY_FILE = './private_key.pem'
+CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE")).strip()
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
