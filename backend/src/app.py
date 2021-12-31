@@ -155,10 +155,10 @@ def create_upload_url(user_id):
         return failure_response("Invalid display title.", 400)
     bucket_id = body.get("bucket_id")
     if bucket_id is None:
-        return failure_response("Could not get bucket id.", 400)
+        return failure_response("Missing bucket id.")
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
-        return failure_response("Could not find the specified bucket.", 400)
+        return failure_response("Bucket not found.")
 
     # Create upload row
     new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id, bucket_id=bucket_id)
