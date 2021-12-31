@@ -5,7 +5,6 @@ import os
 
 from botocore.client import Config
 
-from dotenv import load_dotenv
 from flask import Flask
 from flask import request
 from werkzeug.utils import secure_filename
@@ -22,9 +21,6 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 app = Flask(__name__)
-
-# load environment variables
-load_dotenv()
 
 # constants
 ENV = "dev"

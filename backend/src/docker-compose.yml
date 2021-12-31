@@ -1,0 +1,32 @@
+# For development only
+# Compose automatically reads .env and populates containers with environment vars
+version: '1.0'
+
+services:
+
+  web:
+    build: . # build image from Dockerfile
+    command: python app.py
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:5000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - 5432:5432 # allows you to directly connect with psql instead of adminer
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
