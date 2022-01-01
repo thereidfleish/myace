@@ -6,7 +6,6 @@ services:
 
   web:
     build: . # build image from Dockerfile
-    command: python app.py
     restart: unless-stopped
     env_file:
       - .env
