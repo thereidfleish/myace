@@ -5,7 +5,6 @@ import os
 
 from botocore.client import Config
 
-from dotenv import load_dotenv
 from flask import Flask
 from flask import request
 from werkzeug.utils import secure_filename
@@ -23,9 +22,6 @@ from google.auth.transport import requests
 
 app = Flask(__name__)
 
-# load environment variables
-load_dotenv()
-
 # constants
 ENV = "dev"
 DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip()
@@ -37,7 +33,7 @@ G_CLIENT_ID = str(os.environ.get("G_CLIENT_ID")).strip()
 AWS_ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
 AWS_SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
 CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-CF_PRIVATE_KEY_FILE = './private_key.pem'
+CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE")).strip()
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
@@ -155,10 +151,10 @@ def create_upload_url(user_id):
         return failure_response("Invalid display title.", 400)
     bucket_id = body.get("bucket_id")
     if bucket_id is None:
-        return failure_response("Could not get bucket id.", 400)
+        return failure_response("Missing bucket id.")
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
-        return failure_response("Could not find the specified bucket.", 400)
+        return failure_response("Bucket not found.")
 
     # Create upload row
     new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id, bucket_id=bucket_id)
