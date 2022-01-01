@@ -46,6 +46,8 @@
 		25D13A72277A684700FFE2B3 /* MediaPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 25D13A71277A684700FFE2B3 /* MediaPicker */; };
 		25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
 		25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
+		592E5CCCD3A66482BF3E0BF7 /* Pods_AI_Tennis_Coach__iOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */; };
+		947694C06B316AF4DE3949A6 /* Pods_AI_Tennis_Coach__macOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +68,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AI_Tennis_Coach__macOS_.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AI_Tennis_Coach__iOS_.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2552DDA5277CC4490035EFB4 /* Data2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data2.swift; sourceTree = "<group>"; };
 		2552DDA8277CCCE00035EFB4 /* NetworkRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRequest.swift; sourceTree = "<group>"; };
 		2552DDAB277CCD750035EFB4 /* UserData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
@@ -92,6 +96,10 @@
 		25D13A6A277A594300FFE2B3 /* LogInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInView.swift; sourceTree = "<group>"; };
 		25D13A6D277A5E8100FFE2B3 /* StudentVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentVideoView.swift; sourceTree = "<group>"; };
 		25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewBucketView.swift; sourceTree = "<group>"; };
+		3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).release.xcconfig"; sourceTree = "<group>"; };
+		3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).debug.xcconfig"; sourceTree = "<group>"; };
+		4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).release.xcconfig"; sourceTree = "<group>"; };
+		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +108,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				25D13A72277A684700FFE2B3 /* MediaPicker in Frameworks */,
+				592E5CCCD3A66482BF3E0BF7 /* Pods_AI_Tennis_Coach__iOS_.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +116,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				947694C06B316AF4DE3949A6 /* Pods_AI_Tennis_Coach__macOS_.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,6 +145,8 @@
 				2558E2B82773BA270056DD17 /* Tests iOS */,
 				2558E2C42773BA270056DD17 /* Tests macOS */,
 				2558E2A92773BA270056DD17 /* Products */,
+				94EA81A041E0AA8B6A864CFF /* Pods */,
+				7B5301BE06911245A5C85E9D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -223,6 +235,27 @@
 			path = Authentication;
 			sourceTree = "<group>";
 		};
+		7B5301BE06911245A5C85E9D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */,
+				0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		94EA81A041E0AA8B6A864CFF /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */,
+				4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */,
+				B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */,
+				3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -230,9 +263,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2558E2D12773BA270056DD17 /* Build configuration list for PBXNativeTarget "AI Tennis Coach (iOS)" */;
 			buildPhases = (
+				D3763F78FF25AD933B87F525 /* [CP] Check Pods Manifest.lock */,
 				2558E2A42773BA270056DD17 /* Sources */,
 				2558E2A52773BA270056DD17 /* Frameworks */,
 				2558E2A62773BA270056DD17 /* Resources */,
+				27201D0F135EEC1B98FA99A5 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -250,6 +285,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2558E2D42773BA270056DD17 /* Build configuration list for PBXNativeTarget "AI Tennis Coach (macOS)" */;
 			buildPhases = (
+				4453E7F9F462A2518E01F13F /* [CP] Check Pods Manifest.lock */,
 				2558E2AA2773BA270056DD17 /* Sources */,
 				2558E2AB2773BA270056DD17 /* Frameworks */,
 				2558E2AC2773BA270056DD17 /* Resources */,
@@ -381,6 +417,70 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		27201D0F135EEC1B98FA99A5 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS)-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS)-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS)-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4453E7F9F462A2518E01F13F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AI Tennis Coach (macOS)-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D3763F78FF25AD933B87F525 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AI Tennis Coach (iOS)-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2558E2A42773BA270056DD17 /* Sources */ = {
@@ -576,6 +676,7 @@
 		};
 		2558E2D22773BA270056DD17 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -606,6 +707,7 @@
 		};
 		2558E2D32773BA270056DD17 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -637,6 +739,7 @@
 		};
 		2558E2D52773BA270056DD17 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -665,6 +768,7 @@
 		};
 		2558E2D62773BA270056DD17 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
