@@ -8,54 +8,44 @@
 import Foundation
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: [])
+    @Published var userData: UserData = UserData(shared: SharedData(id: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
-    private let host = "https://tennis-trainer.herokuapp.com"
+    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    
+    //    enum State {
+    //        case idle
+    //        case loading
+    //        case failed(Error)
+    //        case loaded(UserData)
+    //    }
+    //
+    //    @Published private(set) var state = State.idle
     
     // POST
     func authenticate(token: String, type: Int) async throws {
-        awaiting = true
         let req: AuthReq = AuthReq(token: token, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
-            
             throw NetworkError.failedEncode
         }
         
         let url = URL(string: "\(host)/api/user/authenticate/")!
-        
-        
-        //        let body = """
-        //            {
-        //                "token": "\(token)"
-        //            }
-        //            """
-        //        let finalBody = body.data(using: .utf8)
-        //        print(finalBody.)
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decodedResponse = try JSONDecoder().decode(SharedData.self, from: data)
-            print("UID: \(decodedResponse.id)")
-            userData.shared = decodedResponse
-        } catch {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
             
+            DispatchQueue.main.sync {
+                userData.shared = decodedResponse
+            }
+        } catch {
             throw NetworkError.failedDecode
         }
-        
-        //        let finalRequest = NetworkRequest(url: request)
-        //        finalRequest.execute { [weak self] (data) in
-        //            if let data = data {
-        //                self?.authenticationDecode(data)
-        //                print("done")
-        //            } else {
-        //                print("error in \(url.absoluteString)")
-        //            }
-        //        }
-        awaiting = false
     }
     
     // GET
@@ -64,8 +54,9 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            
-            if let decodedResponse = try? JSONDecoder().decode([Upload].self, from: data) {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            if let decodedResponse = try? decoder.decode([Upload].self, from: data) {
                 userData.uploads = decodedResponse
             }
         } catch {
@@ -80,12 +71,12 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            
-            if let decodedResponse = try? JSONDecoder().decode(Upload.self, from: data) {
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
                 return decodedResponse
             }
         } catch {
-            
             throw NetworkError.failedDecode
         }
         throw NetworkError.noReturn
@@ -110,7 +101,9 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decodedResponse = try JSONDecoder().decode(VideoRes.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(VideoRes.self, from: data)
             return decodedResponse
         } catch {
             
@@ -162,7 +155,9 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decodedResponse = try JSONDecoder().decode(Comment.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(Comment.self, from: data)
             for i in userData.uploads.indices {
                 if (userData.uploads[i].id == decodedResponse.upload_id) {
                     userData.uploads[i].comments.append(decodedResponse)
@@ -191,7 +186,9 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decodedResponse = try JSONDecoder().decode(Bucket.self, from: data)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(Bucket.self, from: data)
             userData.buckets.append(decodedResponse)
         } catch {
             
@@ -205,28 +202,38 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            
-            if let decodedResponse = try? JSONDecoder().decode(BucketContents.self, from: data) {
-                userData.bucketContents.append(decodedResponse)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(BucketContents.self, from: data)
+            print("Got given bucket!")
+            DispatchQueue.main.async {
+                self.userData.bucketContents = decodedResponse
+                print(self.userData.bucketContents)
             }
-        } catch {
             
+        } catch {
             throw NetworkError.failedDecode
         }
     }
     
     // GET
     func getBuckets(uid: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/buckets/")!
+        let url = URL(string: "\(host)/api/user/\(uid)/buckets")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             
-            if let decodedResponse = try? JSONDecoder().decode([Bucket].self, from: data) {
-                userData.buckets = decodedResponse
+            //print("JSON Data: \(data.description.data(using: .utf8)!.prettyPrintedJSONString)")
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let decodedResponse = try decoder.decode(BucketRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.buckets = decodedResponse.buckets
+                //self.state = .loaded(self.userData)
             }
-        } catch {
             
+        } catch {
+            //self.state = .failed(NetworkError.failedDecode)
             throw NetworkError.failedDecode
         }
     }
@@ -236,6 +243,16 @@ class NetworkController: ObservableObject {
         case failedEncode
         case failedDecode
         case noReturn
+    }
+}
+
+extension Data {
+    var prettyPrintedJSONString: NSString? { /// NSString gives us a nice sanitized debugDescription
+        guard let object = try? JSONSerialization.jsonObject(with: self, options: []),
+              let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
+              let prettyPrintedString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) else { return nil }
+        
+        return prettyPrintedString
     }
 }
 

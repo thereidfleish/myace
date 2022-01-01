@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LogInView: View {
-    @EnvironmentObject private var networkController: NetworkController
+    @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
     
@@ -22,32 +22,35 @@ struct LogInView: View {
             Button(action: {
                 Task {
                     do {
-                        try await networkController.authenticate(token: "test", type: 0)
+                        nc.awaiting = true
+                        try await nc.authenticate(token: "test", type: 0)
                     } catch {
                         print(error)
                         errorMessage = error.localizedDescription
-                        showingError.toggle()
+                        showingError = true
                     }
-                    networkController.awaiting = false
-                    print(networkController.userData.shared)
+                    nc.awaiting = false
+                    print(nc.userData.shared)
                 }
                 
                 
             }, label: {
-                if (!networkController.awaiting) {
+                if (nc.awaiting) {
+                    ProgressView()
+                } else if (showingError) {
+                    Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
+                } else {
                     Text("Sign In With Google")
                         .padding(.vertical, 15)
                         .frame(maxWidth: .infinity)
                         .background(Color.green)
                         .cornerRadius(10)
                         .foregroundColor(.white)
-                } else {
-                    ProgressView()
                 }
             })
             
             Button(action: {
-                networkController.userData.shared.type = 0
+                nc.userData.shared.type = 0
             }, label: {
                 Text("fake a student view for now lol")
                     .padding(.vertical, 15)
@@ -58,7 +61,7 @@ struct LogInView: View {
             })
             
             Button(action: {
-                networkController.userData.shared.type = 1
+                nc.userData.shared.type = 1
             }, label: {
                 Text("fake a coach view for now lol")
                     .padding(.vertical, 15)
@@ -70,10 +73,6 @@ struct LogInView: View {
             
             
         }.padding(.horizontal)
-            .alert(isPresented: $showingError) {
-            Alert(title: Text("Error"), message: Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later."), dismissButton: .default(Text("OK")))
-        }
-        
     }
 }
 
