@@ -16,7 +16,9 @@ struct UserData {
     
     var buckets: [Bucket]
     
-    var bucketContents: [BucketContents]
+    //var bucketContents: [BucketContents]
+    
+    var bucketContents: BucketContents
     
 //    enum FeedbackStatus {
 //        case awaiting
@@ -25,19 +27,7 @@ struct UserData {
 //    }
 //    
 //    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
-    
-//    mutating func authenticate(token: String) -> String {
-//        userType = 0
-//        uid = "hi"
-//        display_name = "Reid"
-//        email = "me@me.com"
-//        return ""
-//    }
-//
-//    func getAllUploads() -> String {
-//
-//        return ""
-//    }
+
     
     static func computeWelcome() -> String {
         let currentHour = Calendar.current.dateComponents([.hour], from: Date())
@@ -71,7 +61,11 @@ struct Upload: Codable {
     var stream_ready: Bool
     var bucket_id: Int
     var comments: [Comment]
-    var url: String
+    var url: String?
+}
+
+struct BucketRes: Codable {
+    var buckets: [Bucket]
 }
 
 struct Bucket: Codable {
@@ -89,7 +83,7 @@ struct BucketContents: Codable {
 
 struct Comment: Codable {
     var id: Int
-    var created: String
+    var created: Date
     var author_id: Int
     var upload_id: Int
     var text: String

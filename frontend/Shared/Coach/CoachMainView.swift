@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CoachMainView: View {
-    let data: UserData
+    
     @EnvironmentObject var coachInfo: CoachInfo
     
     var body: some View {

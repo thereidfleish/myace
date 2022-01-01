@@ -14,7 +14,7 @@ struct CoachStudentView: View {
     var body: some View {
         ScrollView {
             ForEach(coachInfo.strokes.indices, id: \.self) { i in
-                NavigationLink(destination: StudentUploadDetailView(name: coachInfo.strokes[i], student: false).navigationTitle(coachInfo.strokes[i]).navigationBarTitleDisplayMode(.inline))
+                NavigationLink(destination: StudentUploadDetailView(name: coachInfo.strokes[i], student: false, uid: "2", bucketID: "1").navigationTitle(coachInfo.strokes[i]).navigationBarTitleDisplayMode(.inline))
                 {
                     HStack {
                         VStack(alignment: .leading) {
