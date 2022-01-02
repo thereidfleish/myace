@@ -14,6 +14,7 @@ struct StudentUploadDetailView: View {
     @State private var showingFeedback = false
     @State private var showingVideo = false
     @State private var isShowingMediaPicker = false
+    @State private var isShowingCamera = false
     @State private var url: [URL] = []
     @State var name: String
     @State private var originalName = ""
@@ -99,6 +100,20 @@ struct StudentUploadDetailView: View {
                                     print(error)
                                     self.url = []
                                 }
+                            }
+                        Button(action: {
+                            isShowingCamera.toggle()
+                        }, label: {
+                            Text("Capture a Video")
+                                .padding(.vertical, 15)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .cornerRadius(10)
+                                .foregroundColor(.white)
+                        })
+                            .padding([.horizontal, .top, .bottom])
+                            .sheet(isPresented: $isShowingCamera) {
+                                CameraView()
                             }
                     }
                     
