@@ -44,16 +44,17 @@ import GoogleSignIn
 //    }
 //}
 
-//struct GoogleAuth: UIViewControllerRepresentable {
-//    func makeUIViewController(context: Context) -> some UIViewController {
-//        let vc = UIViewController()
-//        return vc
-//    }
-//
-//    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-//
-//    }
-//}
+struct GoogleAuthRepresentable: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> some UIViewController {
+        //let vc = UIViewController()
+        let vc = GoogleAuth.instance
+        return vc
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
+
+    }
+}
 
 class GoogleAuth: UIViewController {
     static var instance = GoogleAuth() // might want to somehow manage this instance's lifecycle to prevent it from being deallocated.
@@ -75,68 +76,74 @@ struct LogInView: View {
     var googleAuth = GoogleAuth.instance
     @EnvironmentObject var delegate: AppDelegate
     var body: some View {
-        VStack {
-            Text("AI Tennis Coach")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(Color.green)
-            
-            Button(action: {
-//                Task {
-//                    do {
-//                        nc.awaiting = true
-//                        try await nc.authenticate(token: "test", type: 0)
-//                    } catch {
-//                        print(error)
-//                        errorMessage = error.localizedDescription
-//                        showingError = true
-//                    }
-//                    nc.awaiting = false
-//                    print(nc.userData.shared)
-//                }
+        ZStack {
+            GoogleAuthRepresentable()
+            VStack {
+                Text("AI Tennis Coach")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color.green)
                 
-                signIn(withVC: googleAuth)
+                Button(action: {
+    //                Task {
+    //                    do {
+    //                        nc.awaiting = true
+    //                        try await nc.authenticate(token: "test", type: 0)
+    //                    } catch {
+    //                        print(error)
+    //                        errorMessage = error.localizedDescription
+    //                        showingError = true
+    //                    }
+    //                    nc.awaiting = false
+    //                    print(nc.userData.shared)
+    //                }
+                    
+                    signIn(withVC: googleAuth)
+                    
+                }, label: {
+                    if (nc.awaiting) {
+                        ProgressView()
+                    } else if (showingError) {
+                        Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
+                    } else {
+                        Text("Sign In With Google")
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                            .foregroundColor(.white)
+                    }
+                })
                 
-            }, label: {
-                if (nc.awaiting) {
-                    ProgressView()
-                } else if (showingError) {
-                    Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
-                } else {
-                    Text("Sign In With Google")
+                
+                Button(action: {
+                    nc.userData.shared.type = 0
+                }, label: {
+                    Text("fake a student view for now lol")
                         .padding(.vertical, 15)
                         .frame(maxWidth: .infinity)
                         .background(Color.green)
                         .cornerRadius(10)
                         .foregroundColor(.white)
-                }
-            })
+                })
+                
+                Button(action: {
+                    nc.userData.shared.type = 1
+                }, label: {
+                    Text("fake a coach view for now lol")
+                        .padding(.vertical, 15)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green)
+                        .cornerRadius(10)
+                        .foregroundColor(.white)
+                })
+                
+                
+            }.padding(.horizontal)
             
-            Button(action: {
-                nc.userData.shared.type = 0
-            }, label: {
-                Text("fake a student view for now lol")
-                    .padding(.vertical, 15)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green)
-                    .cornerRadius(10)
-                    .foregroundColor(.white)
-            })
-            
-            Button(action: {
-                nc.userData.shared.type = 1
-            }, label: {
-                Text("fake a coach view for now lol")
-                    .padding(.vertical, 15)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green)
-                    .cornerRadius(10)
-                    .foregroundColor(.white)
-            })
-            
-            
-        }.padding(.horizontal)
+        }
     }
+        
     
     
     
@@ -195,6 +202,7 @@ struct LogInView: View {
 
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
             print(response)
+            print("hello")
         }
         task.resume()
     }
