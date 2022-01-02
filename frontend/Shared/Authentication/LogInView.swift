@@ -73,6 +73,7 @@ struct LogInView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     private let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
+    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
     
@@ -194,7 +195,7 @@ struct LogInView: View {
         guard let authData = try? JSONSerialization.data(withJSONObject: json) else {
             return
         }
-        let url = URL(string: "https://tennis-trainer.herokuapp.com/api/user/authenticate/")!
+        let url = URL(string: "\(host)/api/user/authenticate/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
