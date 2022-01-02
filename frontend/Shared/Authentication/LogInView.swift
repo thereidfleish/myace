@@ -6,12 +6,74 @@
 //
 
 import SwiftUI
+import GoogleSignIn
+
+//class GoogleStuff: UIViewController, ObservableObject {
+//    static var shared = GoogleStuff()
+//    var googleSignIn = GIDSignIn.sharedInstance
+//    var googleId = ""
+//    var googleIdToken = ""
+//    var googleFirstName = ""
+//    var googleLastName = ""
+//    var googleEmail = ""
+//    var googleProfileURL = ""
+//
+//
+//
+//    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+//
+//        guard user != nil else {
+//            print("Uh oh. The user cancelled the Google login.")
+//            return
+//        }
+//
+//        print("TOKEN => \(user.authentication.idToken!)")
+//
+//
+//    }
+//
+//    func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
+//
+//        guard user != nil else {
+//            print("Uh oh. The user cancelled the Google login.")
+//            return
+//        }
+//
+//        print("TOKEN => \(user.authentication.idToken!)")
+//
+//    }
+//}
+
+//struct GoogleAuth: UIViewControllerRepresentable {
+//    func makeUIViewController(context: Context) -> some UIViewController {
+//        let vc = UIViewController()
+//        return vc
+//    }
+//
+//    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
+//
+//    }
+//}
+
+class GoogleAuth: UIViewController {
+    static var instance = GoogleAuth() // might want to somehow manage this instance's lifecycle to prevent it from being deallocated.
+    
+    
+    /*
+     Warning I keep getting when I attempt to authenticate that's probably relevant:
+     
+     AI Tennis Coach[85862:80222493] [Warning] Attempting to load the view of a view controller while it is deallocating is not allowed and may result in undefined behavior (<SFAuthenticationViewController: 0x7f826c845400>)
+
+     */
+}
 
 struct LogInView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
     
+    var googleAuth = GoogleAuth.instance
+    @EnvironmentObject var delegate: AppDelegate
     var body: some View {
         VStack {
             Text("AI Tennis Coach")
@@ -20,19 +82,20 @@ struct LogInView: View {
                 .foregroundColor(Color.green)
             
             Button(action: {
-                Task {
-                    do {
-                        nc.awaiting = true
-                        try await nc.authenticate(token: "test", type: 0)
-                    } catch {
-                        print(error)
-                        errorMessage = error.localizedDescription
-                        showingError = true
-                    }
-                    nc.awaiting = false
-                    print(nc.userData.shared)
-                }
+//                Task {
+//                    do {
+//                        nc.awaiting = true
+//                        try await nc.authenticate(token: "test", type: 0)
+//                    } catch {
+//                        print(error)
+//                        errorMessage = error.localizedDescription
+//                        showingError = true
+//                    }
+//                    nc.awaiting = false
+//                    print(nc.userData.shared)
+//                }
                 
+                signIn(withVC: googleAuth)
                 
             }, label: {
                 if (nc.awaiting) {
@@ -74,6 +137,69 @@ struct LogInView: View {
             
         }.padding(.horizontal)
     }
+    
+    
+    
+    let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
+    
+    func signIn(withVC vc: UIViewController) {
+      GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
+          guard error == nil else { return }
+          guard let user = user else { return }
+          
+          let emailAddress = user.profile?.email
+
+          let fullName = user.profile?.name
+          let givenName = user.profile?.givenName
+          let familyName = user.profile?.familyName
+          let profilePicUrl = user.profile?.imageURL(withDimension: 320)
+
+          if let uUserID = user.userID {
+              
+          } else {
+              print("Failed unwrapping of UserID")
+          }
+     
+//          user.authentication.do { authentication, error in
+//            guard error == nil else {
+//
+//                return
+//
+//            }
+//            guard let authentication = authentication else { return }
+//              print("hello")
+//              let idToken = authentication.idToken
+//              if let uIdToken = idToken {
+//                  self.tokenSignIn(idToken: uIdToken)
+//              } else {
+//                  print("Authentication Failed")
+//              }
+//
+//          }
+          
+      }
+    }
+    func tokenSignIn(idToken: String) {
+        let json: [String: Any] = ["token": idToken, "type": 0]
+        
+//        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
+//            return
+//        }
+        guard let authData = try? JSONSerialization.data(withJSONObject: json) else {
+            return
+        }
+        let url = URL(string: "https://tennis-trainer.herokuapp.com/api/user/authenticate/")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
+            print(response)
+        }
+        task.resume()
+    }
+   
+    
 }
 
 struct LogInView_Previews: PreviewProvider {
