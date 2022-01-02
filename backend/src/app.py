@@ -269,7 +269,7 @@ def create_bucket(user_id):
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.sub_serialize(), 201)
+    return success_response(bucket.serialize(aws=aws), 201)
 
 
 @app.route("/api/user/<int:user_id>/bucket/<int:bucket_id>/")
@@ -280,7 +280,7 @@ def get_uploads_in_bucket(user_id, bucket_id):
     elif bucket.user_id != user_id:
         return failure_response("User forbidden to access this bucket.", 403)
 
-    return success_response(bucket.serialize(aws=aws))
+    return success_response(bucket.serialize(aws=aws, show_uploads=True))
 
 
 @app.route("/api/user/<int:user_id>/buckets/")
@@ -289,7 +289,7 @@ def get_buckets(user_id):
     if user is None:
         return failure_response("User not found.")
 
-    return success_response({"buckets": [b.sub_serialize() for b in user.buckets]})
+    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
 
 
 #@app.route("/api/")
