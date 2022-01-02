@@ -151,7 +151,11 @@ struct LogInView: View {
     
     func signIn(withVC vc: UIViewController) {
       GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
-          guard error == nil else { return }
+          guard error == nil else {
+              print("hello")
+              return
+              
+          }
           guard let user = user else { return }
           
           let emailAddress = user.profile?.email
@@ -167,22 +171,21 @@ struct LogInView: View {
               print("Failed unwrapping of UserID")
           }
      
-//          user.authentication.do { authentication, error in
-//            guard error == nil else {
-//
-//                return
-//
-//            }
-//            guard let authentication = authentication else { return }
-//              print("hello")
-//              let idToken = authentication.idToken
-//              if let uIdToken = idToken {
-//                  self.tokenSignIn(idToken: uIdToken)
-//              } else {
-//                  print("Authentication Failed")
-//              }
-//
-//          }
+          user.authentication.do { authentication, error in
+            guard error == nil else {
+
+                return
+
+            }
+            guard let authentication = authentication else { return }
+              let idToken = authentication.idToken
+              if let uIdToken = idToken {
+                  self.tokenSignIn(idToken: uIdToken)
+              } else {
+                  print("Authentication Failed")
+              }
+
+          }
           
       }
     }
@@ -202,7 +205,6 @@ struct LogInView: View {
 
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
             print(response)
-            print("hello")
         }
         task.resume()
     }
