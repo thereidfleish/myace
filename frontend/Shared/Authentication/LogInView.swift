@@ -72,9 +72,10 @@ struct LogInView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
-    
+    private let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
     var googleAuth = GoogleAuth.instance
-    @EnvironmentObject var delegate: AppDelegate
+    //@EnvironmentObject var delegate: AppDelegate
+    
     var body: some View {
         ZStack {
             GoogleAuthRepresentable()
@@ -143,11 +144,6 @@ struct LogInView: View {
             
         }
     }
-        
-    
-    
-    
-    let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
     
     func signIn(withVC vc: UIViewController) {
       GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
