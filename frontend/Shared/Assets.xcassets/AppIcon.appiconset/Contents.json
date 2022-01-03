@@ -36,6 +36,12 @@
       "size" : "60x60"
     },
     {
+      "filename" : "TennisTrainerAppIcon.png",
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "size" : "60x60"
+    },
+    {
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
