@@ -89,7 +89,7 @@ struct NewBucketView: View {
                     if (awaiting) {
                         ProgressView()
                     } else if (showingError) {
-                        Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
+                        Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                     } else {
                         Text("Save and Close")
                             .foregroundColor(Color.green)

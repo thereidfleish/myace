@@ -6,10 +6,13 @@
 //
 
 import Foundation
+import UIKit
 
 struct UserData {
     // Shared data
     var shared: SharedData
+    
+    var profilePic: URL?
     
     // Student data
     var uploads: [Upload]
@@ -20,14 +23,14 @@ struct UserData {
     
     var bucketContents: BucketContents
     
-//    enum FeedbackStatus {
-//        case awaiting
-//        case read
-//        case unread
-//    }
-//    
-//    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
-
+    //    enum FeedbackStatus {
+    //        case awaiting
+    //        case read
+    //        case unread
+    //    }
+    //
+    //    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
+    
     
     static func computeWelcome() -> String {
         let currentHour = Calendar.current.dateComponents([.hour], from: Date())
@@ -44,6 +47,16 @@ struct UserData {
         else {
             return "Welcome,"
         }
+    }
+    
+    static func firstName(name: String) -> String {
+        let firstSpace = name.firstIndex(of: " ") ?? name.endIndex
+        let firstName = name[..<firstSpace]
+        return String(firstName)
+    }
+    
+    static func computeErrorMessage(errorMessage: String) -> String {
+        return "Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, log out/log in, or try again later."
     }
 }
 
@@ -80,6 +93,7 @@ struct BucketContents: Codable {
     var id: Int
     var name: String
     var user_id: Int
+    var last_modified: String?
     var uploads: [Upload]
 }
 

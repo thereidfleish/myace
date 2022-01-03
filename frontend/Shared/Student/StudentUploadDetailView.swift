@@ -31,7 +31,7 @@ struct StudentUploadDetailView: View {
             do {
                 awaiting = true
                 //try await bucketContents = nc.getBucketContents(uid: "2", bucketID: "\(bucketID)")
-                try await nc.getBucketContents(uid: "2", bucketID: "\(bucketID)")
+                try await nc.getBucketContents(uid: "\(nc.userData.shared.id)", bucketID: "\(bucketID)")
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -49,7 +49,7 @@ struct StudentUploadDetailView: View {
                     /*if (awaiting) {
                         ProgressView()
                     } else*/ if (showingError) {
-                        Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
+                        Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                     } else {
                         Text(nc.userData.bucketContents.name)
                         .font(.headline)

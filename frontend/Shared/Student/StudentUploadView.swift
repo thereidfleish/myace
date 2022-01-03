@@ -41,7 +41,7 @@ struct StudentUploadView: View {
                 if (awaiting) {
                     ProgressView()
                 } else if (showingError) {
-                    Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
+                    Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
                 
                     //                Button(action: {
@@ -57,7 +57,7 @@ struct StudentUploadView: View {
                     //                    .padding([.horizontal, .top, .bottom])
                     
                     VStack(alignment: .leading) {
-                        Text("\(UserData.computeWelcome()) \(nc.userData.shared.display_name)")
+                        Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
                             .font(.title2)
                             .fontWeight(.heavy)
                             .foregroundColor(Color.green)

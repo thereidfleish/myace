@@ -44,6 +44,17 @@ struct ContentView: View {
                     .tag(0)
             }
             
+            ProfileView()
+                .tabItem {
+                    VStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundColor(.green)
+                        Text("My Profile")
+                            .foregroundColor(.green)
+                    }
+                }
+                .tag(1)
+            
             
         }.accentColor(Color.green)
     }
