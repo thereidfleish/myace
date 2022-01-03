@@ -22,18 +22,7 @@ struct StudentUploadView: View {
                 awaiting = true
                 
                 //try await nc.authenticate(token: "test", type: nc.userData.shared.type)
-                try await nc.getBuckets(uid: "2")
-                
-//                for bucket in nc.userData.buckets {
-//                    try await bucketContents.append(nc.getBucketContents(uid: "2", bucketID: "\(bucket.id)"))
-//                }
-//
-//
-//
-//                // THE below may execute syncronously, which may be an issue
-//                for i in bucketContents.indices {
-//                    bucketContents[i].uploads.sort(by: {$0.created > $1.created})
-//                }
+                try await nc.getBuckets(uid: "\(nc.userData.shared.id)")
                 print("DONE!")
             } catch {
                 print(error)
@@ -74,12 +63,12 @@ struct StudentUploadView: View {
                             .foregroundColor(Color.green)
                             .padding(.horizontal)
                         
-                        ForEach(nc.userData.buckets.indices, id: \.self) { i in
-                            NavigationLink(destination: StudentUploadDetailView(name: nc.userData.buckets[i].name, student: true, uid: "2", bucketID: "\(nc.userData.buckets[i].id)").navigationTitle(nc.userData.buckets[i].name).navigationBarTitleDisplayMode(.inline))
+                        ForEach(nc.userData.buckets, id: \.id) { bucket in
+                            NavigationLink(destination: StudentUploadDetailView(name: bucket.name, student: true, uid: "\(nc.userData.shared.id)", bucketID: "\(bucket.id)").navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
                             {
                                 HStack {
                                     VStack(alignment: .leading) {
-                                        Text(nc.userData.buckets[i].name)
+                                        Text(bucket.name)
                                             .font(.title2)
                                             .fontWeight(.heavy)
                                             .foregroundColor(Color.white)
@@ -115,21 +104,13 @@ struct StudentUploadView: View {
                                             Image(systemName: "clock.fill")
                                                 .foregroundColor(.white)
                                                 .frame(width: 15)
-//                                            Text(nc.userData.buckets.count == bucketContents.count ? bucketContents[i].uploads.count > 0 ? bucketContents[i].uploads[0].created : "No uploads yet")
-//                                                .font(.subheadline)
-//                                                .foregroundColor(Color.white)
-//                                            Text(data.bucketContents[i].uploads.count > 0 ? data.bucketContents[i].uploads[0].created : "No uploads yet")
-//                                                .font(.subheadline)
-//                                                .foregroundColor(Color.white)
-//                                            Text(try nc.getBucketContents(uid: "2", bucketID: "\(data.bucketContents[i].id)").uploads.sorted(by: {$0.created > $1.created})[0].created)
-//                                                .font(.subheadline)
-//                                                .foregroundColor(Color.white)
-                                            Text("created date will go here")
+
+                                            Text(bucket.last_modified ?? "No uploads yet")
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.white)
-                                            Text("\(nc.userData.buckets[i].id)")
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.white)
+//                                            Text("\(nc.userData.buckets[i].id)")
+//                                                .font(.subheadline)
+//                                                .foregroundColor(Color.white)
                                         }
                                     }
                                     

@@ -48,7 +48,7 @@ struct UserData {
 }
 
 struct SharedData: Codable {
-    var id: String
+    var id: Int
     var display_name: String
     var email: String
     var type: Int // -1 == user not logged in, 0 == student, 1 == coach
@@ -72,7 +72,9 @@ struct Bucket: Codable {
     var id: Int
     var name: String
     var user_id: Int
+    var last_modified: String?
 }
+
 
 struct BucketContents: Codable {
     var id: Int

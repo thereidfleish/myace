@@ -8,7 +8,7 @@
 import Foundation
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
     private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
     
@@ -189,7 +189,10 @@ class NetworkController: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let decodedResponse = try decoder.decode(Bucket.self, from: data)
-            userData.buckets.append(decodedResponse)
+            DispatchQueue.main.sync {
+                userData.buckets.append(decodedResponse)
+            }
+            
         } catch {
             
             throw NetworkError.failedDecode

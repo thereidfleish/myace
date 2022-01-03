@@ -76,6 +76,7 @@ struct LogInView: View {
     private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
+    @State private var awaiting = false
     
     var body: some View {
         ZStack {
@@ -99,11 +100,10 @@ struct LogInView: View {
     //                    nc.awaiting = false
     //                    print(nc.userData.shared)
     //                }
-                    
+                    awaiting = true
                     signIn(withVC: googleAuth)
-                    
                 }, label: {
-                    if (nc.awaiting) {
+                    if (awaiting) {
                         ProgressView()
                     } else if (showingError) {
                         Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
@@ -150,6 +150,7 @@ struct LogInView: View {
       GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
           guard error == nil else {
               print("hello")
+              awaiting = false
               return
               
           }
@@ -163,7 +164,7 @@ struct LogInView: View {
           let profilePicUrl = user.profile?.imageURL(withDimension: 320)
 
           if let uUserID = user.userID {
-              
+              print(uUserID)
           } else {
               print("Failed unwrapping of UserID")
           }
@@ -202,7 +203,23 @@ struct LogInView: View {
 
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
             print(response)
+            print(data!.prettyPrintedJSONString)
+            
+            guard let data = data else {
+                    print("URLSession dataTask error:", error ?? "nil")
+                    return
+                }
+            
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            do {
+                let decodedResponse = try decoder.decode(SharedData.self, from: data)
+                nc.userData.shared = decodedResponse
+            } catch {
+                print("Error")
+            }
         }
+        awaiting = false
         task.resume()
     }
    
