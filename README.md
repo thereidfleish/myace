@@ -12,8 +12,9 @@ Tennis is a highly technical sport that requires more critical feedback than oth
 
 ### ⌛ Timeline
 
-- [ ] **01/03/22 - 01/10/22, Week 3** TBD
-- [ ] **12/27/21 - 01/03/22, Week 2** Frontend & backend integration
+- [ ] **01/10/22 - 01/17/22, Week 4** TBD
+- [ ] **01/03/22 - 01/10/22, Week 3** Player/coach interaction, user sessions, and domain setup
+- [x] **12/27/21 - 01/03/22, Week 2** Frontend & backend integration
 - [x] **12/20/21 - 12/27/21, Week 1** Ironing out the kinks
 
 ## The Future
