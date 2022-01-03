@@ -49,6 +49,16 @@
 		592E5CCCD3A66482BF3E0BF7 /* Pods_AI_Tennis_Coach__iOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */; };
 		947694C06B316AF4DE3949A6 /* Pods_AI_Tennis_Coach__macOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
+		9A95177027821E7B003276A2 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176927821E7A003276A2 /* FrameView.swift */; };
+		9A95177127821E7B003276A2 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176927821E7A003276A2 /* FrameView.swift */; };
+		9A95177427821E7B003276A2 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176B27821E7A003276A2 /* ErrorView.swift */; };
+		9A95177527821E7B003276A2 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176B27821E7A003276A2 /* ErrorView.swift */; };
+		9A95178627821F2F003276A2 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178127821F2F003276A2 /* CameraError.swift */; };
+		9A95178727821F2F003276A2 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178227821F2F003276A2 /* FrameManager.swift */; };
+		9A95178827821F2F003276A2 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178327821F2F003276A2 /* CameraManager.swift */; };
+		9A95178A27822095003276A2 /* MainCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178927822095003276A2 /* MainCameraView.swift */; };
+		9A95178C278227D9003276A2 /* CGImageExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178B278227D9003276A2 /* CGImageExtension.swift */; };
+		9A95178E278227E6003276A2 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95178D278227E6003276A2 /* ContentViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +113,14 @@
 		3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).debug.xcconfig"; sourceTree = "<group>"; };
 		4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).release.xcconfig"; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9A95176927821E7A003276A2 /* FrameView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameView.swift; sourceTree = "<group>"; };
+		9A95176B27821E7A003276A2 /* ErrorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
+		9A95178127821F2F003276A2 /* CameraError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
+		9A95178227821F2F003276A2 /* FrameManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
+		9A95178327821F2F003276A2 /* CameraManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		9A95178927822095003276A2 /* MainCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCameraView.swift; sourceTree = "<group>"; };
+		9A95178B278227D9003276A2 /* CGImageExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGImageExtension.swift; sourceTree = "<group>"; };
+		9A95178D278227E6003276A2 /* ContentViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -159,6 +177,10 @@
 		2558E2A02773BA260056DD17 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				9A95178027821F2F003276A2 /* Camera */,
+				9A95177C27821F2E003276A2 /* Extensions */,
+				9A95177E27821F2E003276A2 /* ViewModels */,
+				9A95176627821E67003276A2 /* CameraViews */,
 				9A95176427815E6F003276A2 /* AppDelegate.swift */,
 				25D13A69277A579F00FFE2B3 /* Authentication */,
 				258D41732773C3BC0030D437 /* Coach */,
@@ -260,6 +282,42 @@
 				3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		9A95176627821E67003276A2 /* CameraViews */ = {
+			isa = PBXGroup;
+			children = (
+				9A95176B27821E7A003276A2 /* ErrorView.swift */,
+				9A95176927821E7A003276A2 /* FrameView.swift */,
+				9A95178927822095003276A2 /* MainCameraView.swift */,
+			);
+			path = CameraViews;
+			sourceTree = "<group>";
+		};
+		9A95177C27821F2E003276A2 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				9A95178B278227D9003276A2 /* CGImageExtension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		9A95177E27821F2E003276A2 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				9A95178D278227E6003276A2 /* ContentViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		9A95178027821F2F003276A2 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				9A95178127821F2F003276A2 /* CameraError.swift */,
+				9A95178227821F2F003276A2 /* FrameManager.swift */,
+				9A95178327821F2F003276A2 /* CameraManager.swift */,
+			);
+			path = Camera;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -498,18 +556,26 @@
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				2552DDAC277CCD750035EFB4 /* UserData.swift in Sources */,
 				2552DDA6277CC4490035EFB4 /* Data2.swift in Sources */,
+				9A95178E278227E6003276A2 /* ContentViewModel.swift in Sources */,
 				25C65CE12777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				2552DDA9277CCCE00035EFB4 /* NetworkRequest.swift in Sources */,
 				258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
+				9A95178A27822095003276A2 /* MainCameraView.swift in Sources */,
+				9A95177027821E7B003276A2 /* FrameView.swift in Sources */,
 				258D41782773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				25D13A6E277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */,
 				25A036372778D5080090AC49 /* CoachStudentView.swift in Sources */,
+				9A95178827821F2F003276A2 /* CameraManager.swift in Sources */,
 				258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */,
 				25A036342778CE3F0090AC49 /* CoachInfo.swift in Sources */,
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				25C65CDE2777BB1500AF5BBE /* CoachMainView.swift in Sources */,
 				9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */,
+				9A95178727821F2F003276A2 /* FrameManager.swift in Sources */,
 				2558E2C92773BA270056DD17 /* AI_Tennis_CoachApp.swift in Sources */,
+				9A95177427821E7B003276A2 /* ErrorView.swift in Sources */,
+				9A95178627821F2F003276A2 /* CameraError.swift in Sources */,
+				9A95178C278227D9003276A2 /* CGImageExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,11 +587,13 @@
 				25D13A6C277A594300FFE2B3 /* LogInView.swift in Sources */,
 				25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
+				9A95177527821E7B003276A2 /* ErrorView.swift in Sources */,
 				2552DDA7277CC4490035EFB4 /* Data2.swift in Sources */,
 				25C65CE22777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				2552DDAA277CCCE00035EFB4 /* NetworkRequest.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
+				9A95177127821E7B003276A2 /* FrameView.swift in Sources */,
 				25D13A6F277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */,
 				25A036382778D5080090AC49 /* CoachStudentView.swift in Sources */,
 				258D41762773C3E00030D437 /* StudentUploadView.swift in Sources */,
@@ -689,16 +757,18 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				"INFOPLIST_KEY_NSCameraUsageDescription[arch=*]" = "$(PRODUCT_NAME) camera use";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -721,16 +791,18 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				"INFOPLIST_KEY_NSCameraUsageDescription[arch=*]" = "$(PRODUCT_NAME) camera use";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

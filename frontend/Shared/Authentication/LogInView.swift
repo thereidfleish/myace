@@ -57,15 +57,7 @@ struct GoogleAuthRepresentable: UIViewControllerRepresentable {
 }
 
 class GoogleAuth: UIViewController {
-    static var instance = GoogleAuth() // might want to somehow manage this instance's lifecycle to prevent it from being deallocated.
-    
-    
-    /*
-     Warning I keep getting when I attempt to authenticate that's probably relevant:
-     
-     AI Tennis Coach[85862:80222493] [Warning] Attempting to load the view of a view controller while it is deallocating is not allowed and may result in undefined behavior (<SFAuthenticationViewController: 0x7f826c845400>)
-
-     */
+    static var instance = GoogleAuth() 
 }
 
 struct LogInView: View {

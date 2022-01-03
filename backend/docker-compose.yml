@@ -1,11 +1,10 @@
 # For development only
 # Compose automatically reads .env and populates containers with environment vars
-version: '1.0'
 
 services:
 
   web:
-    build: . # build image from Dockerfile
+    build: ./src/ # build image from Dockerfile
     restart: unless-stopped
     env_file:
       - .env
