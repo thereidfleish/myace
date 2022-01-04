@@ -296,6 +296,10 @@ def get_buckets(user_id):
     return success_response({"buckets": [b.sub_serialize() for b in user.buckets]})
 
 
+@app.route("/health/")
+def health_check():
+    return success_response({"status": "OK"})
+
 #@app.route("/api/")
 def create_test_user():
     user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com", type=0)
