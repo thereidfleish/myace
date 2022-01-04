@@ -31,7 +31,7 @@ struct StudentUploadDetailView: View {
             do {
                 awaiting = true
                 //try await bucketContents = nc.getBucketContents(uid: "2", bucketID: "\(bucketID)")
-                try await nc.getBucketContents(uid: "\(nc.userData.shared.id)", bucketID: "\(bucketID)")
+                try await nc.getBucketContents(uid: "\(student ? nc.userData.shared.id : 4)", bucketID: "\(student ? bucketID : "9")")
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -42,6 +42,24 @@ struct StudentUploadDetailView: View {
         print("burh")
         print(awaiting)
     }
+    
+    func upload(fileURL: URL) {
+        Task {
+            do {
+                awaiting = true
+                //try await bucketContents = nc.getBucketContents(uid: "2", bucketID: "\(bucketID)")
+                try await nc.upload(display_title: "d", bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
+        }
+        awaiting = false
+        print("burh")
+        print(awaiting)
+    }
+
     
     var body: some View {
         ScrollView {
@@ -96,6 +114,7 @@ struct StudentUploadDetailView: View {
                                 case .success(let url):
                                     self.url = url
                                     print(url)
+                                    upload(fileURL: url[0])
                                 case .failure(let error):
                                     print(error)
                                     self.url = []
@@ -132,7 +151,7 @@ struct StudentUploadDetailView: View {
                             
                             
                             VStack(alignment: .leading) {
-                                Text(nc.userData.bucketContents.uploads[i].created)
+                                Text(nc.userData.bucketContents.uploads[i].created.formatted())
                                     .font(.title2)
                                     .fontWeight(.heavy)
                                     .foregroundColor(Color.green)
