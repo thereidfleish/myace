@@ -69,7 +69,7 @@ struct SharedData: Codable {
 
 struct Upload: Codable {
     var id: Int
-    var created: String
+    var created: Date
     var display_title: String
     var stream_ready: Bool
     var bucket_id: Int
@@ -85,7 +85,7 @@ struct Bucket: Codable {
     var id: Int
     var name: String
     var user_id: Int
-    var last_modified: String?
+    var last_modified: Date?
 }
 
 
@@ -93,7 +93,7 @@ struct BucketContents: Codable {
     var id: Int
     var name: String
     var user_id: Int
-    var last_modified: String?
+    var last_modified: Date?
     var uploads: [Upload]
 }
 
@@ -123,7 +123,7 @@ struct VideoReq: Codable {
 }
 
 struct VideoRes: Codable {
-    var id: String
+    var id: Int
     var url: String
     var fields: Field
 }

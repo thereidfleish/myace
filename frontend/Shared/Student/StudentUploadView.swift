@@ -105,7 +105,7 @@ struct StudentUploadView: View {
                                                 .foregroundColor(.white)
                                                 .frame(width: 15)
 
-                                            Text(bucket.last_modified ?? "No uploads yet")
+                                            Text(bucket.last_modified?.formatted() ?? "No uploads yet")
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.white)
 //                                            Text("\(nc.userData.buckets[i].id)")

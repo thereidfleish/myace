@@ -55,6 +55,17 @@ struct ContentView: View {
                 }
                 .tag(1)
             
+            CameraView()
+                .tabItem {
+                    VStack {
+                        Image(systemName: "camera.fill")
+                            .foregroundColor(.green)
+                        Text("Camera")
+                            .foregroundColor(.green)
+                    }
+                }
+                .tag(2)
+            
             
         }.accentColor(Color.green)
     }
