@@ -13,4 +13,5 @@ docker build -t tennistrainerprod:$version ./src \
        --region us-east-2 \
        --service-name tennistrainerapi \
        --label tennistrainer \
-       --image tennistrainerprod:$version
+       --image tennistrainerprod:$version \
+&& echo "Image pushed! To deploy, log into Lightsail, choose the latest image, and save and deploy."
