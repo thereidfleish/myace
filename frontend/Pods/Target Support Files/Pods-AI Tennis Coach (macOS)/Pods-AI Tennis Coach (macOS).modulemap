@@ -1,0 +1,6 @@
+framework module Pods_AI_Tennis_Coach__macOS_ {
+  umbrella header "Pods-AI Tennis Coach (macOS)-umbrella.h"
+
+  export *
+  module * { export * }
+}

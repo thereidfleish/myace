@@ -8,11 +8,28 @@
 import SwiftUI
 
 struct NewBucketView: View {
+    @EnvironmentObject private var nc: NetworkController
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
-    var defaultStrokes = ["Backhand Groundstroke", "Forehand Groundstroke", "Backhand Volley", "Forehand Volley", "Serve"]
-    
+    private var defaultStrokes = ["Backhand Groundstroke", "Forehand Groundstroke", "Backhand Volley", "Forehand Volley", "Serve"]
+    @State private var awaiting = false
+    @State private var showingError = false
+    @State private var errorMessage = ""
     @State private var name: String = ""
     
+    func add() {
+        Task {
+            do {
+                awaiting = true
+                try await nc.addBucket(userID: "\(nc.userData.shared.id)", name: name)
+                print("DONE!")
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
+            awaiting = false
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -66,11 +83,18 @@ struct NewBucketView: View {
                         .foregroundColor(Color.green)
                         .fontWeight(.bold)
                 }),trailing: Button(action: {
+                    add()
                     self.mode.wrappedValue.dismiss()
                 }, label: {
-                    Text("Save and Close")
-                        .foregroundColor(Color.green)
-                        .fontWeight(.bold)
+                    if (awaiting) {
+                        ProgressView()
+                    } else if (showingError) {
+                        Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+                    } else {
+                        Text("Save and Close")
+                            .foregroundColor(Color.green)
+                            .fontWeight(.bold)
+                    }
                 }))
         }
     }

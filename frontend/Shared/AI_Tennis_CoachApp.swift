@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 @main
 struct AI_Tennis_CoachApp: App {
     @StateObject private var networkController = NetworkController()

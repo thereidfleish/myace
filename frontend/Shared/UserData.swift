@@ -6,34 +6,31 @@
 //
 
 import Foundation
+import UIKit
 
 struct UserData {
     // Shared data
     var shared: SharedData
     
+    var profilePic: URL?
+    
     // Student data
     var uploads: [Upload]
     
-//    enum FeedbackStatus {
-//        case awaiting
-//        case read
-//        case unread
-//    }
-//    
-//    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
+    var buckets: [Bucket]
     
-//    mutating func authenticate(token: String) -> String {
-//        userType = 0
-//        uid = "hi"
-//        display_name = "Reid"
-//        email = "me@me.com"
-//        return ""
-//    }
-//
-//    func getAllUploads() -> String {
-//
-//        return ""
-//    }
+    //var bucketContents: [BucketContents]
+    
+    var bucketContents: BucketContents
+    
+    //    enum FeedbackStatus {
+    //        case awaiting
+    //        case read
+    //        case unread
+    //    }
+    //
+    //    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
+    
     
     static func computeWelcome() -> String {
         let currentHour = Calendar.current.dateComponents([.hour], from: Date())
@@ -51,28 +48,60 @@ struct UserData {
             return "Welcome,"
         }
     }
+    
+    static func firstName(name: String) -> String {
+        let firstSpace = name.firstIndex(of: " ") ?? name.endIndex
+        let firstName = name[..<firstSpace]
+        return String(firstName)
+    }
+    
+    static func computeErrorMessage(errorMessage: String) -> String {
+        return "Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, log out/log in, or try again later."
+    }
 }
 
 struct SharedData: Codable {
-    var id: String
+    var id: Int
     var display_name: String
     var email: String
     var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 }
 
 struct Upload: Codable {
-    var uploadID: Int
-    var dateCreated: String
-    var displayTitle: String
-    var streamReady: Bool
+    var id: Int
+    var created: String
+    var display_title: String
+    var stream_ready: Bool
+    var bucket_id: Int
     var comments: [Comment]
+    var url: String?
+}
+
+struct BucketRes: Codable {
+    var buckets: [Bucket]
+}
+
+struct Bucket: Codable {
+    var id: Int
+    var name: String
+    var user_id: Int
+    var last_modified: String?
+}
+
+
+struct BucketContents: Codable {
+    var id: Int
+    var name: String
+    var user_id: Int
+    var last_modified: String?
+    var uploads: [Upload]
 }
 
 struct Comment: Codable {
-    var commentID: Int
-    var dateCreated: String
-    var authorID: Int
-    var upload_id: String
+    var id: Int
+    var created: Date
+    var author_id: Int
+    var upload_id: Int
     var text: String
 }
 
@@ -90,24 +119,29 @@ struct AuthReq: Codable {
 struct VideoReq: Codable {
     var filename: String
     var display_title: String
+    var bucket_id: Int
 }
 
-//struct VideoRes: Codable {
-//    var id: String
-//    var url: String
-//    var fields: Field
-//}
+struct VideoRes: Codable {
+    var id: String
+    var url: String
+    var fields: Field
+}
 
-//struct Field: Codable {
-//    var key: String
-//    var x-amz-algorithm: String
-//    var x-amz-credential: String
-//    var x-amz-date: String
-//    var policy: String
-//    var x-amz-signature: String
-//}
+struct Field: Codable {
+    var key: String
+    var x_amz_algorithm: String
+    var x_amz_credential: String
+    var x_amz_date: String
+    var policy: String
+    var x_amz_signature: String
+}
 
 struct CommentReq: Codable {
     var author_id: String
     var text: String
+}
+
+struct BucketReq: Codable {
+    var name: String
 }

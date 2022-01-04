@@ -6,76 +6,6 @@
 	},
 	"item": [
 		{
-			"name": "Create upload",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "0.0.0.0:5000/api/user/1/upload/",
-					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
-					],
-					"port": "5000",
-					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Start conversion",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "0.0.0.0:5000/api/user/1/upload/9/convert/",
-					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
-					],
-					"port": "5000",
-					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
-						"9",
-						"convert",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Get all uploads",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
@@ -93,14 +23,10 @@
 					}
 				},
 				"url": {
-					"raw": "0.0.0.0:5000/api/user/1/uploads/",
+					"raw": "localhost/api/user/1/uploads/",
 					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
+						"localhost"
 					],
-					"port": "5000",
 					"path": [
 						"api",
 						"user",
@@ -130,20 +56,78 @@
 					}
 				},
 				"url": {
-					"raw": "0.0.0.0:5000/api/user/1/upload/6/",
+					"raw": "localhost/api/user/1/upload/1/",
 					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
+						"localhost"
 					],
-					"port": "5000",
 					"path": [
 						"api",
 						"user",
 						"1",
 						"upload",
-						"6",
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\",\n    \"bucket_id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/api/user/1/upload/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"1",
+						"upload",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start conversion",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/api/user/1/upload/9/convert/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"1",
+						"upload",
+						"9",
+						"convert",
 						""
 					]
 				}
@@ -165,14 +149,10 @@
 					}
 				},
 				"url": {
-					"raw": "0.0.0.0:5000/api/user/1/upload/1/",
+					"raw": "localhost/api/user/1/upload/1/",
 					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
+						"localhost"
 					],
-					"port": "5000",
 					"path": [
 						"api",
 						"user",
@@ -200,19 +180,88 @@
 					}
 				},
 				"url": {
-					"raw": "0.0.0.0:5000/api/upload/7/comment/",
+					"raw": "localhost/api/upload/7/comment/",
 					"host": [
-						"0",
-						"0",
-						"0",
-						"0"
+						"localhost"
 					],
-					"port": "5000",
 					"path": [
 						"api",
 						"upload",
 						"7",
 						"comment",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create bucket",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"backhand\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/api/user/1/buckets/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"1",
+						"buckets",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get bucket contents",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/api/user/1/bucket/1/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"1",
+						"bucket",
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user's buckets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/api/user/1/buckets/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"user",
+						"1",
+						"buckets",
 						""
 					]
 				}

@@ -1,5 +1,3 @@
-⚠️  **Under construction**. Will be ready sometime 12/27 - 01/03 ⚠️
-
 # API Specification
 
 ## Authentication
@@ -118,12 +116,12 @@ Response:
     "id": <upload id>,
     "url": "<upload url>",
     "fields": {
-        "key": "...", 
-        "x-amz-algorithm": "...",
-        "x-amz-credential": "...", 
-        "x-amz-date": "...", 
+        "key": "...",
+        "x_amz_algorithm": "...",
+        "x_amz_credential": "...",
+        "x_amz_date": "...",
         "policy": "...",
-        "x-amz-signature": "..."
+        "x_amz_signature": "..."
     }
 }
 ```
@@ -219,7 +217,7 @@ Response:
 {
     "id": 1,
     "name": "Example Tag 1",
-    "user_id": 1
+    "user_id": 1,
 }
 ```
 
@@ -227,7 +225,7 @@ Response:
 
 **GET /api/user/{user_id}/bucket/{bucket_id}/**
 
-This route gets all the uploads for a given bucket attached to a given user.
+This route gets all the uploads for a given bucket attached to a given user. If there are no uploads in this bucket, `last_modified` will be omitted.
 
 Request: N/A
 
@@ -237,6 +235,7 @@ Response:
     "id": 1,
     "name": "Example Tag 1",
     "user_id": 1,
+    "last_modified": "{ISO 8601 formatted timestamp}",
     "uploads": [
         {
             "id": 1,
@@ -263,7 +262,7 @@ Response:
 
 **GET api/user/{user_id}/buckets/**
 
-This route gets all the buckets for a given user id.
+This route gets all the buckets for a given user id. If there are no uploads in a bucket, `last_modified` will be omitted.
 
 Request: N/A
 
@@ -274,7 +273,8 @@ Response:
         {
             "id": 1,
             "name": "Example Tag 1",
-            "user_id": 1
+            "user_id": 1,
+            "last_modified": "{ISO 8601 formatted timestamp}"
         },
         ...
     ]

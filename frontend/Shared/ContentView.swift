@@ -16,7 +16,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selection) {
             if (networkController.userData.shared.type == 0) {
-                StudentUploadView(data: networkController.userData)
+                StudentUploadView()
                     .environmentObject(studentInfo)
                     .environmentObject(coachInfo)
                     .tabItem {
@@ -30,7 +30,7 @@ struct ContentView: View {
                     .tag(0)
             }
             else {
-                CoachMainView(data: networkController.userData)
+                CoachMainView()
                     .environmentObject(coachInfo)
                     .environmentObject(studentInfo)
                     .tabItem {
@@ -44,10 +44,23 @@ struct ContentView: View {
                     .tag(0)
             }
             
+            ProfileView()
+                .tabItem {
+                    VStack {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundColor(.green)
+                        Text("My Profile")
+                            .foregroundColor(.green)
+                    }
+                }
+                .tag(1)
+            
             
         }.accentColor(Color.green)
     }
 }
+
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
