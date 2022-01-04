@@ -116,12 +116,12 @@ Response:
     "id": <upload id>,
     "url": "<upload url>",
     "fields": {
-        "key": "...", 
-        "x-amz-algorithm": "...",
-        "x-amz-credential": "...", 
-        "x-amz-date": "...", 
+        "key": "...",
+        "x_amz_algorithm": "...",
+        "x_amz_credential": "...",
+        "x_amz_date": "...",
         "policy": "...",
-        "x-amz-signature": "..."
+        "x_amz_signature": "..."
     }
 }
 ```

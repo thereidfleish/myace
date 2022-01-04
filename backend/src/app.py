@@ -161,9 +161,16 @@ def create_upload_url(user_id):
     db.session.add(new_upload)
     db.session.commit()
 
-    # Create URL
+    # Create upload URL
     res = {'id': new_upload.id}
     urldata = aws.get_presigned_url_post(new_upload.id, filename)
+
+    # Replace hyphens in field names with underscores 
+    # because Swift cannot decode fields with hyphens
+    for old_key in list(urldata['fields']):
+        new_key = old_key.replace('-', '_')
+        urldata['fields'][new_key] = urldata['fields'].pop(old_key)
+
     res.update(urldata)
     return success_response(res, 201)
 
