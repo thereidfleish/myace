@@ -3,13 +3,14 @@ import datetime
 import json
 import os
 
+import media
+
 from botocore.client import Config
 
 from flask import Flask
 from flask import request
 from werkzeug.utils import secure_filename
-
-import media
+import flask_login
 
 from db import User
 from db import Upload
@@ -21,6 +22,9 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 app = Flask(__name__)
+
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
 
 # constants
 ENV = "dev"
@@ -55,10 +59,20 @@ def success_response(data={}, code=200):
 def failure_response(message, code=404):
     return json.dumps({"error": message}), code
 
+# Flask-Login callbacks
+@login_manager.user_loader
+def load_user(user_id):
+    # Return user object if user exists or None if DNE
+    user = User.query.filter_by(id=user_id).first()
+    return user
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return failure_response("User not authorized.", 401)
 
 # Routes
-@app.route("/api/user/authenticate/", methods=["POST"])
-def authenticate_user():
+@app.route("/api/user/login/", methods=["POST"])
+def login():
     body = json.loads(request.data)
 
     # Validate type
@@ -86,20 +100,31 @@ def authenticate_user():
 
         # Check if user exists
         user = User.query.filter_by(google_id=gid, type=user_type).first()
+        user_created = user == None
 
         if user is None:
             # User does not exist, add them.
             user = User(google_id=gid, display_name=display_name, email=email, type=user_type)
             db.session.add(user)
             db.session.commit()
-            return success_response(user.serialize(), 201)
 
-        return success_response(user.serialize(), 200)
+        # Begin user session
+        login_user(user, remember=True)
+
+        return success_response(user.serialize(), 201 if user_created else 200)
+
     except ValueError:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
 
 
+@app.route("/api/user/logout/", methods=["POST"])
+@flask_login.login_required
+def logout():
+    logout_user()
+    return success_response()
+
 @app.route("/api/user/<int:user_id>/uploads/")
+@flask_login.login_required
 def get_all_user_uploads(user_id):
     user = User.query.filter_by(id=user_id).first()
     if user is None:
@@ -111,6 +136,7 @@ def get_all_user_uploads(user_id):
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/")
+@flask_login.login_required
 def get_specific_user_upload(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -135,6 +161,7 @@ def get_specific_user_upload(user_id, upload_id):
 
 
 @app.route("/api/user/<int:user_id>/upload/", methods=['POST'])
+@flask_login.login_required
 def create_upload_url(user_id):
     user = User.query.filter_by(id=user_id).first()
 
@@ -176,6 +203,7 @@ def create_upload_url(user_id):
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/", methods=['PUT'])
+@flask_login.login_required
 def edit_upload(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -199,6 +227,7 @@ def edit_upload(user_id, upload_id):
 
 
 @app.route("/api/user/<int:user_id>/upload/<int:upload_id>/convert/", methods=['POST'])
+@flask_login.login_required
 def start_convert(user_id, upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -225,6 +254,7 @@ def start_convert(user_id, upload_id):
 
 
 @app.route("/api/upload/<int:upload_id>/comment/", methods=['POST'])
+@flask_login.login_required
 def create_comment(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -260,6 +290,7 @@ def create_comment(upload_id):
 
 
 @app.route("/api/user/<int:user_id>/buckets/", methods=['POST'])
+@flask_login.login_required
 def create_bucket(user_id):
     # Check of user exists
     user = User.query.filter_by(id=user_id).first()
@@ -280,6 +311,7 @@ def create_bucket(user_id):
 
 
 @app.route("/api/user/<int:user_id>/bucket/<int:bucket_id>/")
+@flask_login.login_required
 def get_uploads_in_bucket(user_id, bucket_id):
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
@@ -291,6 +323,7 @@ def get_uploads_in_bucket(user_id, bucket_id):
 
 
 @app.route("/api/user/<int:user_id>/buckets/")
+@flask_login.login_required
 def get_buckets(user_id):
     user = User.query.filter_by(id=user_id).first()
     if user is None:

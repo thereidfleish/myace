@@ -31,6 +31,24 @@ class User(db.Model):
             "type": self.type
         }
 
+    # Methods required by Flask-Login
+
+    def is_authenticated(self):
+        # If the user model is accessible then the user is authenticated
+        return True
+
+    def is_active(self):
+        # We don't support inactive/banned accounts
+        return True
+
+    def is_anonymous(self):
+        # We don't support anonymous users
+        return False
+
+    def get_id(self):
+        """:return: unicode representation of user ID"""
+        return str(self.id)
+
 
 # Upload Table
 class Upload(db.Model):
