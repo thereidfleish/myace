@@ -16,10 +16,8 @@ struct StudentUploadView: View {
     @State private var bucketContents: [BucketContents] = []
     @State private var awaiting = false
     @State var didAppear = false
-    @State var appearCount = 0
     
     func initialize() {
-        appearCount += 1
         if (!didAppear) {
             didAppear = true
             Task {
