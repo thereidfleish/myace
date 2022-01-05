@@ -20,7 +20,7 @@ def test_upload():
     filename = os.path.basename(path_to_file)
 
     print("Requesting presigned upload URL")
-    create_url_endpoint = "http://0.0.0.0:5000/api/user/1/upload/"
+    create_url_endpoint = "http://localhost/api/user/1/upload/"
     body = {
         "filename": filename,
         "display_title": "My cool full court clip 😎",
@@ -28,7 +28,7 @@ def test_upload():
     }
     create_url_res = requests.post(url=create_url_endpoint, json=body)
     log_response(create_url_res)
-    assert create_url_res.status_code == 200
+    assert create_url_res.status_code == 201
     create_url_res = create_url_res.json()
     id = create_url_res['id']
     print(f"The new post ID is:\n{id}")
@@ -36,6 +36,10 @@ def test_upload():
     print("Uploading file to presigned URL")
     with open(path_to_file, 'rb') as f:
         files = {'file': (filename, f)}
+        fields = create_url_res['fields']
+        for old_key in list(fields):
+            new_key = old_key.replace('_', '-')
+            fields[new_key] = fields.pop(old_key)
         upload_res = requests.post(create_url_res['url'], data=create_url_res['fields'], files=files)
         log_response(upload_res)
         assert upload_res.status_code == 204
