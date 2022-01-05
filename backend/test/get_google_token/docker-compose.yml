@@ -1,0 +1,9 @@
+# Setup development server on port 5000 to get Google OAuth tokens
+
+services:
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "5000:80"
