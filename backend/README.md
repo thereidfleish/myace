@@ -2,9 +2,11 @@
 
 ## Authentication
 
-**POST /api/user/authenticate/**
+### Login
 
-This route returns a user's information given a Google OAuth token. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
+**POST /login/**
+
+This route establishes a session given a Google OAuth token and returns a user. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
 
 - `type`:
   - 0: player
@@ -13,7 +15,7 @@ This route returns a user's information given a Google OAuth token. If the user 
 Request:
 ```json
 {
-    "token": "{Google ID Token}",
+    "token": "{Google OAuth Token}",
     "type": 0
 }
 ```
@@ -31,11 +33,40 @@ Response:
 }
 ```
 
+### Logout
+
+**POST /logout/**
+
+This route ends a user session. All sensitive routes will return `401` until the user's session is reestablished.
+
+Request: N/A
+
+Response: N/A
+
+### Get user
+
+**GET /user/**
+
+This route returns the user who is currently logged in.
+
+Request: N/A
+
+Response:
+
+```json
+{
+    "id": 1,
+    "display_name": "{User's display name}",
+    "email": "{User's email}",
+    "type": 0
+}
+```
+
 ## Uploads
 
 ### Get all uploads
 
-**GET /api/user/{user_id}/uploads/**
+**GET /uploads/**
 
 Request: N/A
 
@@ -48,7 +79,7 @@ Response:
             "created": "{ISO 8601 formatted timestamp}",
             "display_title": "...",
             "stream_ready": true,
-            "bucket_id": 1
+            "bucket_id": 1,
             "comments": [
                 {
                     "id": 1,
@@ -66,7 +97,7 @@ Response:
 
 ### Get a specific upload
 
-**GET /api/user/{user_id}/upload/{upload_id}/**
+**GET /uploads/{upload_id}/**
 
 This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist. If `stream_ready` is false, the `url` field will be omitted from the response.
 
@@ -95,11 +126,14 @@ Reponse:
 
 ### Upload a video
 
-**POST /api/user/{user_id}/upload/**
+**POST /uploads/**
 
-This route returns a presigned URL, which can be used to upload a video file directly to AWS using a **POST** request. 
-The **POST** request must contain the specified `fields`. After a successful upload, the client should request to 
-convert the media to a streamable format. Note that the client must also specify a valid bucket id for the user.
+This route returns a presigned URL, which must be used to upload a video file directly to AWS using a **POST** request.
+The **POST** request to the AWS `url` must contain the specified `fields`. Furthermore, all field names
+containing underscores within `fields`, such as `x_amz_date`, must be hyphenated (ex. `x-amz-date`) when uploading to AWS.
+After a successful upload, the client should request to convert the media to a streamable format.
+
+*TODO*: What happens if an upload fails?
 
 Request:
 ```json
@@ -128,7 +162,7 @@ Response:
 
 ### Begin converting upload to stream ready format
 
-**POST /api/user/{user_id}/upload/{upload_id}/convert/**
+**POST /uploads/{upload_id}/convert/**
 
 This route begins converting an upload into a streamable format.
 
@@ -140,7 +174,7 @@ Response: N/A
 
 ### Edit upload
 
-**PUT /api/user/{user_id}/upload/{upload_id}/**
+**PUT /uploads/{upload_id}/**
 
 Request:
 ```json
@@ -173,14 +207,13 @@ Response:
 
 ### Create a comment
 
-**POST /api/upload/{upload_id}/comment/**
+**POST /uploads/{upload_id}/comments/**
 
 This route posts a comment under a certain upload. As of now, the only user allowed to comment is the upload owner.
 
 Request:
 ```json
 {
-    "author_id": 1,
     "text": "Tennis goals!!! LOML 😍"
 }
 ```
@@ -200,9 +233,9 @@ Response:
 
 ### Create a bucket
 
-**POST /api/user/{user_id}/buckets/**
+**POST /buckets/**
 
-This route creates a bucket with the specified name and attaches it to the specified user. A user can have multiple
+This route creates a bucket with the specified name and attaches it to the logged in user. A user can have multiple
 buckets of the same name. A user must create at least one bucket before uploading a video.
 
 Request:
@@ -216,16 +249,16 @@ Response:
 ```json
 {
     "id": 1,
-    "name": "Example Tag 1",
+    "name": "{bucket name}",
     "user_id": 1,
 }
 ```
 
 ### Get bucket contents
 
-**GET /api/user/{user_id}/bucket/{bucket_id}/**
+**GET /buckets/{bucket_id}/**
 
-This route gets all the uploads for a given bucket attached to a given user. If there are no uploads in this bucket, `last_modified` will be omitted.
+This route gets all user uploads in a given bucket. If there are no uploads in this bucket, `last_modified` will be omitted.
 
 Request: N/A
 
@@ -233,7 +266,7 @@ Response:
 ```json
 {
     "id": 1,
-    "name": "Example Tag 1",
+    "name": "{bucket name}",
     "user_id": 1,
     "last_modified": "{ISO 8601 formatted timestamp}",
     "uploads": [
@@ -260,9 +293,9 @@ Response:
 
 ### Get user's buckets
 
-**GET api/user/{user_id}/buckets/**
+**GET /buckets/**
 
-This route gets all the buckets for a given user id. If there are no uploads in a bucket, `last_modified` will be omitted.
+This route gets every bucket associated with the user. If there are no uploads in a bucket, `last_modified` will be omitted.
 
 Request: N/A
 
@@ -272,7 +305,7 @@ Response:
     "buckets": [
         {
             "id": 1,
-            "name": "Example Tag 1",
+            "name": "{bucket name}",
             "user_id": 1,
             "last_modified": "{ISO 8601 formatted timestamp}"
         },

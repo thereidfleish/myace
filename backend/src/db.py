@@ -33,14 +33,17 @@ class User(db.Model):
 
     # Methods required by Flask-Login
 
+    @property
     def is_authenticated(self):
         # If the user model is accessible then the user is authenticated
         return True
 
+    @property
     def is_active(self):
         # We don't support inactive/banned accounts
         return True
 
+    @property
     def is_anonymous(self):
         # We don't support anonymous users
         return False
