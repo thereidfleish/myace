@@ -28,16 +28,17 @@ login_manager.init_app(app)
 
 # constants
 ENV = "dev"
-DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip()
-DB_NAME = str(os.environ.get("DB_NAME")).strip()
-DB_USERNAME = str(os.environ.get("DB_USERNAME")).strip()
-DB_PASSWORD = str(os.environ.get("DB_PASSWORD")).strip()
-DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip() # localhost or server URL
-G_CLIENT_ID = str(os.environ.get("G_CLIENT_ID")).strip()
-AWS_ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
-AWS_SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
-CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE")).strip()
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID").strip()
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY").strip()
+CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE").strip()
+CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID").strip()
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT").strip()
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT").strip()
+DB_NAME = os.environ.get("DB_NAME").strip()
+DB_PASSWORD = os.environ.get("DB_PASSWORD").strip()
+DB_USERNAME = os.environ.get("DB_USERNAME").strip()
+G_CLIENT_ID = os.environ.get("G_CLIENT_ID").strip()
+app.secret_key = os.environ.get("FLASK_SECRET_KEY").strip() or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
@@ -109,7 +110,7 @@ def login():
             db.session.commit()
 
         # Begin user session
-        login_user(user, remember=True)
+        flask_login.login_user(user, remember=True)
 
         return success_response(user.serialize(), 201 if user_created else 200)
 
@@ -120,7 +121,7 @@ def login():
 @app.route("/api/user/logout/", methods=["POST"])
 @flask_login.login_required
 def logout():
-    logout_user()
+    flask_login.logout_user()
     return success_response()
 
 @app.route("/api/user/<int:user_id>/uploads/")
