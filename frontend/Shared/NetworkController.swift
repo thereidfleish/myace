@@ -11,7 +11,11 @@ import Alamofire
 class NetworkController: ObservableObject {
     @Published var userData: UserData = UserData(shared: SharedData(id: -1, display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
-    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    @Published var progress: Progress = Progress()
+    @Published var uploading = false
+    @Published var uploadingStatus = ""
+    public let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    
     
     //    enum State {
     //        case idle
@@ -71,7 +75,9 @@ class NetworkController: ObservableObject {
         let url = URL(string: "\(host)/api/user/\(uid)/upload/\(uploadID)/")!
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print(data.prettyPrintedJSONString)
+            print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
@@ -84,126 +90,7 @@ class NetworkController: ObservableObject {
         //        return Upload(id: -1, created: "?", display_title: "?", stream_ready: false, bucket_id: -1, comments: [], url: "?")
     }
     
-    // POST
-    func upload(display_title: String, bucket_id: Int, uid: String, fileURL: URL) async throws {
-        let req: VideoReq = VideoReq(filename: fileURL.lastPathComponent, display_title: display_title, bucket_id: bucket_id)
-        
-        guard let encoded = try? JSONEncoder().encode(req) else {
-            throw NetworkError.failedEncode
-        }
-        
-        let url = URL(string: "\(host)/api/user/\(uid)/upload/")!
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            print(data.prettyPrintedJSONString)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(VideoRes.self, from: data)
-            try await uploadFields(url: decodedResponse.url, fields: decodedResponse.fields, fileURL: fileURL)
-        } catch {
-            
-            throw NetworkError.failedDecode
-        }
-    }
     
-    func uploadFields(url: String, fields: Field, fileURL: URL) async throws {
-        let videoData = try! Data(contentsOf: fileURL)
-        print(videoData)
-        
-        AF.upload(multipartFormData: { (multipartFormData) in
-            multipartFormData.append(fields.key.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "key")
-            multipartFormData.append(fields.x_amz_algorithm.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "x-amz-algorithm")
-            multipartFormData.append(fields.x_amz_credential.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "x-amz-credential")
-            multipartFormData.append(fields.x_amz_date.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "x-amz-date")
-            multipartFormData.append(fields.policy.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "policy")
-            multipartFormData.append(fields.x_amz_signature.data(using: String.Encoding.utf8, allowLossyConversion: false)!, withName: "x-amz-signature")
-            multipartFormData.append(videoData, withName: "file", fileName: fileURL.lastPathComponent)
-            
-        }, to: url)
-            .uploadProgress { progress in // main queue by default
-                print("Upload Progress: \(progress.fractionCompleted)")
-                print("Upload Estimated Time Remaining: \(String(describing: progress.estimatedTimeRemaining))")
-                print("Upload Total Unit count: \(progress.totalUnitCount)")
-                print("Upload Completed Unit Count: \(progress.completedUnitCount)")
-            }
-            .responseJSON(completionHandler: { response in
-                        if response.error != nil {
-                        } else {
-                            print("FINALY!!!!")
-                        }
-                    })
-        
-        //        guard let encoded = try? JSONEncoder().encode(fields) else {
-        //            throw NetworkError.failedEncode
-        //        }
-        //
-        //        let boundary = UUID().uuidString
-        //
-        //        var request = URLRequest(url: URL(string: url)!)
-        //        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        ////        request.setValue(fields.key, forHTTPHeaderField: "key")
-        ////        request.setValue(fields.x_amz_algorithm, forHTTPHeaderField: "x-amz-algorithm")
-        ////        request.setValue(fields.x_amz_credential, forHTTPHeaderField: "x-amz-credential")
-        ////        request.setValue(fields.x_amz_date, forHTTPHeaderField: "x-amz-date")
-        ////        request.setValue(fields.policy, forHTTPHeaderField: "policy")
-        ////        request.setValue(fields.x_amz_signature, forHTTPHeaderField: "x-amz-signature")
-        //        request.httpMethod = "POST"
-        //        request.httpBody = encoded
-        //        print("EEEEKE \(fileURL)")
-        //
-        //        do {
-        //            //let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
-        //            let task = URLSession.shared.uploadTask(with: request, fromFile: fileURL, completionHandler: {data, response, error in
-        //                if let data = data {
-        //                    print(data.prettyPrintedJSONString ?? "non!e")
-        //                    print("RESPONSE: \(response)")
-        //                } else {
-        //                    print("NOOOO")
-        //                }
-        //
-        //                print("RESPONSE: \(response.debugDescription)")
-        //                print("ERROR: \(error)")
-        //            })
-        //            task.resume()
-        //
-        ////            let decoder = JSONDecoder()
-        ////            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-        ////            let decodedResponse = try decoder.decode(VideoRes.self, from: data)
-        //        } catch {
-        //
-        //            throw NetworkError.failedDecode
-        //        }
-    }
-    
-    // POST - HOW THE HELL DO YOU DO A POST REQUEST WITHOUT SENDING ANYTHING???
-    func convert(uid: String, uploadID: String) async throws {
-        //        let req: VideoReq = VideoReq(filename: filename, display_title: display_title)
-        //
-        //        guard let encoded = try? JSONEncoder().encode(req) else {
-        //
-        //            throw NetworkError.failedEncode
-        //        }
-        //
-        //        let url = URL(string: "\(host)/api/user/\(uid)/upload/\(uploadID)/convert/")!
-        //
-        //        var request = URLRequest(url: url)
-        //        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        //        request.httpMethod = "POST"
-        //
-        //        do {
-        //            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-        //            let decodedResponse = try JSONDecoder().decode(VideoRes.self, from: data)
-        //            //print("Token: \(decodedResponse.token)")
-        //        } catch {
-        //
-        //            throw NetworkError.failedDecode
-        //        }
-    }
     
     // POST
     func addComment(uploadID: String, authorID: String, text: String) async throws {
@@ -275,10 +162,11 @@ class NetworkController: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketContents.self, from: data)
-            print("Got given bucket!")
-            DispatchQueue.main.async {
+            DispatchQueue.main.sync {
                 self.userData.bucketContents = decodedResponse
-                print(self.userData.bucketContents)
+                self.userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                print("Got given bucket in nc!")
+                //print(self.userData.bucketContents)
             }
             
         } catch {
@@ -293,17 +181,15 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             
-            print("JSON Data: \(data.prettyPrintedJSONString)")
+            //print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
             DispatchQueue.main.sync {
                 userData.buckets = decodedResponse.buckets
-                //self.state = .loaded(self.userData)
             }
             
         } catch {
-            //self.state = .failed(NetworkError.failedDecode)
             throw NetworkError.failedDecode
         }
     }

@@ -15,23 +15,33 @@ struct StudentUploadView: View {
     @State private var errorMessage = ""
     @State private var bucketContents: [BucketContents] = []
     @State private var awaiting = false
+    @State var didAppear = false
+    @State var appearCount = 0
     
     func initialize() {
-        Task {
-            do {
-                awaiting = true
+        appearCount += 1
+        if (!didAppear) {
+            didAppear = true
+            Task {
+                do {
+                    
+                    awaiting = true
+                    
+                    //try await nc.authenticate(token: "test", type: nc.userData.shared.type)
+                    try await nc.getBuckets(uid: "\(nc.userData.shared.id)")
+                    awaiting = false
+                    print("DONE!")
+                } catch {
+                    print(error)
+                    errorMessage = error.localizedDescription
+                    showingError = true
+                    awaiting = false
+                }
                 
-                //try await nc.authenticate(token: "test", type: nc.userData.shared.type)
-                try await nc.getBuckets(uid: "\(nc.userData.shared.id)")
-                print("DONE!")
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
+                print(nc.userData.buckets)
             }
-            awaiting = false
-            print(nc.userData.buckets)
         }
+        
     }
     
     var body: some View {
@@ -43,18 +53,6 @@ struct StudentUploadView: View {
                 } else if (showingError) {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
-                
-                    //                Button(action: {
-                    //
-                    //                }, label: {
-                    //                    Text("Create New Stroke")
-                    //                        .padding(.vertical, 15)
-                    //                        .frame(maxWidth: .infinity)
-                    //                        .background(Color.green)
-                    //                        .cornerRadius(10)
-                    //                        .foregroundColor(.white)
-                    //                })
-                    //                    .padding([.horizontal, .top, .bottom])
                     
                     VStack(alignment: .leading) {
                         Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
@@ -63,8 +61,8 @@ struct StudentUploadView: View {
                             .foregroundColor(Color.green)
                             .padding(.horizontal)
                         
-                        ForEach(nc.userData.buckets, id: \.id) { bucket in
-                            NavigationLink(destination: StudentUploadDetailView(name: bucket.name, student: true, uid: "\(nc.userData.shared.id)", bucketID: "\(bucket.id)").navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
+                        ForEach(nc.userData.buckets) { bucket in
+                            NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)").navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
                             {
                                 HStack {
                                     VStack(alignment: .leading) {
@@ -104,13 +102,13 @@ struct StudentUploadView: View {
                                             Image(systemName: "clock.fill")
                                                 .foregroundColor(.white)
                                                 .frame(width: 15)
-
+                                            
                                             Text(bucket.last_modified?.formatted() ?? "No uploads yet")
                                                 .font(.subheadline)
                                                 .foregroundColor(Color.white)
-//                                            Text("\(nc.userData.buckets[i].id)")
-//                                                .font(.subheadline)
-//                                                .foregroundColor(Color.white)
+                                            //                                            Text("\(nc.userData.buckets[i].id)")
+                                            //                                                .font(.subheadline)
+                                            //                                                .foregroundColor(Color.white)
                                         }
                                     }
                                     
@@ -137,8 +135,9 @@ struct StudentUploadView: View {
                 }
                 
             }.onAppear(perform: {initialize()})
-            .navigationTitle("Uploads"/*, displayMode: .inline*/)
+                .navigationTitle("Uploads"/*, displayMode: .inline*/)
                 .navigationBarItems(leading: Button(action: {
+                    didAppear = false
                     initialize()
                 }, label: {
                     Image(systemName: "arrow.clockwise.circle.fill")

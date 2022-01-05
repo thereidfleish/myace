@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import AVFoundation
 
 struct UserData {
     // Shared data
@@ -58,6 +59,20 @@ struct UserData {
     static func computeErrorMessage(errorMessage: String) -> String {
         return "Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, log out/log in, or try again later."
     }
+    
+    static func getThumbnailImage(forUrl url: URL) -> UIImage? {
+        let asset: AVAsset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+
+        do {
+            let thumbnailImage = try imageGenerator.copyCGImage(at: CMTimeMake(value: 1, timescale: 60), actualTime: nil)
+            return UIImage(cgImage: thumbnailImage)
+        } catch let error {
+            print(error)
+        }
+
+        return nil
+    }
 }
 
 struct SharedData: Codable {
@@ -67,7 +82,7 @@ struct SharedData: Codable {
     var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 }
 
-struct Upload: Codable {
+struct Upload: Codable, Identifiable {
     var id: Int
     var created: Date
     var display_title: String
@@ -81,7 +96,7 @@ struct BucketRes: Codable {
     var buckets: [Bucket]
 }
 
-struct Bucket: Codable {
+struct Bucket: Codable, Identifiable {
     var id: Int
     var name: String
     var user_id: Int

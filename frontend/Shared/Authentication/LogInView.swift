@@ -130,27 +130,27 @@ struct LogInView: View {
                 
                 Spacer()
                 
-//                Button(action: {
-//                    nc.userData.shared.type = 0
-//                }, label: {
-//                    Text("fake a student view for now lol")
-//                        .padding(.vertical, 15)
-//                        .frame(maxWidth: .infinity)
-//                        .background(Color.green)
-//                        .cornerRadius(10)
-//                        .foregroundColor(.white)
-//                })
-//
-//                Button(action: {
-//                    nc.userData.shared.type = 1
-//                }, label: {
-//                    Text("fake a coach view for now lol")
-//                        .padding(.vertical, 15)
-//                        .frame(maxWidth: .infinity)
-//                        .background(Color.green)
-//                        .cornerRadius(10)
-//                        .foregroundColor(.white)
-//                })
+                //                Button(action: {
+                //                    nc.userData.shared.type = 0
+                //                }, label: {
+                //                    Text("fake a student view for now lol")
+                //                        .padding(.vertical, 15)
+                //                        .frame(maxWidth: .infinity)
+                //                        .background(Color.green)
+                //                        .cornerRadius(10)
+                //                        .foregroundColor(.white)
+                //                })
+                //
+                //                Button(action: {
+                //                    nc.userData.shared.type = 1
+                //                }, label: {
+                //                    Text("fake a coach view for now lol")
+                //                        .padding(.vertical, 15)
+                //                        .frame(maxWidth: .infinity)
+                //                        .background(Color.green)
+                //                        .cornerRadius(10)
+                //                        .foregroundColor(.white)
+                //                })
                 
                 
             }.padding(.horizontal)
