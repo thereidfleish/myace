@@ -53,6 +53,7 @@ struct StudentFeedbackView: View {
                         VideoPlayer(player: AVPlayer(url:  URL(string: upload.url!)!))
                             .frame(height: 300)
                         
+                        
                         if (!showOnlyVideo) {
                             if (student) {
                                 Text(text)

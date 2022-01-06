@@ -64,8 +64,8 @@ struct LogInView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
-    private let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
-    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    private let signInConfig = GIDConfiguration.init(clientID: "530607482320-irblcmsai0p4dn8ocq9bmjv31jo1j3se.apps.googleusercontent.com")
+    private let host = "https://api.myace.ai"
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
     @State private var awaiting = true
@@ -161,7 +161,7 @@ struct LogInView: View {
     func signIn(withVC vc: UIViewController) {
         GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
             guard error == nil else {
-                print("hello")
+                print(error)
                 awaiting = false
                 return
                 
@@ -215,7 +215,7 @@ struct LogInView: View {
         guard let authData = try? JSONSerialization.data(withJSONObject: json) else {
             return
         }
-        let url = URL(string: "\(host)/api/user/authenticate/")!
+        let url = URL(string: "\(host)/login/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

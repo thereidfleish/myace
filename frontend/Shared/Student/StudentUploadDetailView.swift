@@ -74,7 +74,7 @@ struct StudentUploadDetailView: View {
             throw NetworkController.NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(nc.host)/api/user/\(uid)/upload/")!
+        let url = URL(string: "\(nc.host)/uploads/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -146,7 +146,7 @@ struct StudentUploadDetailView: View {
         //throw NetworkError.failedUpload
     }
     
-    // POST - HOW THE HELL DO YOU DO A POST REQUEST WITHOUT SENDING ANYTHING???
+    // POST
     func convert(uid: String, uploadID: String) async throws {
         print ("Beginning conversion of upload \(uploadID) for user #\(uid)")
         
@@ -156,7 +156,7 @@ struct StudentUploadDetailView: View {
             throw NetworkController.NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(nc.host)/api/user/\(uid)/upload/\(uploadID)/convert/")!
+        let url = URL(string: "\(nc.host)/uploads/\(uploadID)/convert/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

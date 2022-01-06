@@ -14,7 +14,7 @@ class NetworkController: ObservableObject {
     @Published var progress: Progress = Progress()
     @Published var uploading = false
     @Published var uploadingStatus = ""
-    public let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    public let host = "https://api.myace.ai"
     
     
     //    enum State {
@@ -55,7 +55,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getAllUploads(uid: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/uploads/")!
+        let url = URL(string: "\(host)/uploads/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
@@ -72,7 +72,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getUpload(uid: String, uploadID: String) async throws -> Upload {
-        let url = URL(string: "\(host)/api/user/\(uid)/upload/\(uploadID)/")!
+        let url = URL(string: "\(host)/uploads/\(uploadID)/")!
         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
@@ -101,7 +101,7 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/api/upload/\(uploadID)/comment/")!
+        let url = URL(string: "\(host)/uploads/\(uploadID)/comments/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -132,7 +132,7 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/api/user/\(userID)/buckets/")!
+        let url = URL(string: "\(host)/buckets/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -155,7 +155,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getBucketContents(uid: String, bucketID: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/bucket/\(bucketID)/")!
+        let url = URL(string: "\(host)/buckets/\(bucketID)/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
@@ -176,7 +176,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getBuckets(uid: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/buckets")!
+        let url = URL(string: "\(host)/buckets/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
