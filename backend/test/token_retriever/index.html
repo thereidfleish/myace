@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Why is this so goddamn complicated?? -->
+        <title>Token Retriever</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://accounts.google.com/gsi/client"></script>
+    </head>
+    <body>
+      <script>
+        function copyText(event) {
+            // copy text area
+            const text = document.getElementById("text");
+            navigator.clipboard.writeText(text.value).then((t) => {});
+            // change button text
+            const button = document.getElementById("copyBtn");
+            button.innerText = "Copied!"
+        }
+
+        function resetCopyBtnText() {
+            const button = document.getElementById("copyBtn");
+            button.innerText = "Copy"
+        }
+
+        function handleCredentialResponse(response) {
+            document.getElementById("responseDiv").innerHTML = "<h2>Your token is:</h2><textarea id='text'>" + response.credential + "</textarea><button id='copyBtn'></button>";
+            const button = document.getElementById("copyBtn");
+            button.addEventListener("click", copyText);
+            button.addEventListener("mouseout", resetCopyBtnText)
+            resetCopyBtnText()
+        }
+
+        window.onload = function () {
+            const clientID = "530607482320-hakvbmkmsicnmgveurhfr2s35qm3j32r.apps.googleusercontent.com"
+            google.accounts.id.initialize({
+                client_id: clientID,
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("buttonDiv"),
+                { theme: "outline", size: "large" }
+            );
+            google.accounts.id.prompt(); // also display the One Tap dialog
+            const clientIdP = document.getElementById("clientIdPar");
+            clientIdP.innerText = clientID
+        }
+    </script>
+    <div>
+            <h1>Retrieve your Google JSON Web Token (JWT)</h1>
+            <p>Using client ID:</p>
+            <p id="clientIdPar"></p>
+    </div>
+    <div id="buttonDiv"></div> 
+    <div id="responseDiv"></div> 
+    </body>
+</html>

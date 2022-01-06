@@ -16,11 +16,12 @@ def log_response(res):
 
 
 def test_upload():
+    # TODO: log in
     path_to_file = "./samplevids/fullcourtstock.mp4"
     filename = os.path.basename(path_to_file)
 
     print("Requesting presigned upload URL")
-    create_url_endpoint = "http://localhost/api/user/1/upload/"
+    create_url_endpoint = "http://localhost/uploads/"
     body = {
         "filename": filename,
         "display_title": "My cool full court clip 😎",
