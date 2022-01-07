@@ -1,8 +1,0 @@
-# Setup web server on port 5000 to retrieve Google OAuth tokens for testing
-
-services:
-  web:
-    build: token_retriever/
-    restart: unless-stopped
-    ports:
-      - "5000:80"
