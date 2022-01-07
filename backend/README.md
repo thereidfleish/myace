@@ -207,13 +207,14 @@ Response:
 
 ### Create a comment
 
-**POST /uploads/{upload_id}/comments/**
+**POST /comments/**
 
 This route posts a comment under a certain upload. As of now, the only user allowed to comment is the upload owner.
 
 Request:
 ```json
 {
+    "upload_id": 1,
     "text": "Tennis goals!!! LOML 😍"
 }
 ```
@@ -228,6 +229,17 @@ Response:
     "text": "Tennis goals!!! LOML 😍"
 }
 ```
+
+### Delete a comment
+
+**DELETE /comments/{comment_id}/**
+
+This route deletes a comment. Upload owners may delete all comments under their uploads, and comment authors may
+delete their comments.
+
+Request: N/A
+
+Response: N/A
 
 ## Buckets
 

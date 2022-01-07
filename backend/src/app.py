@@ -28,17 +28,17 @@ login_manager.init_app(app)
 
 # constants
 ENV = "dev"
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID").strip()
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY").strip()
-CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE").strip()
-CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID").strip()
-DB_ENDPOINT = os.environ.get("DB_ENDPOINT").strip()
-DB_ENDPOINT = os.environ.get("DB_ENDPOINT").strip()
-DB_NAME = os.environ.get("DB_NAME").strip()
-DB_PASSWORD = os.environ.get("DB_PASSWORD").strip()
-DB_USERNAME = os.environ.get("DB_USERNAME").strip()
-G_CLIENT_ID = os.environ.get("G_CLIENT_ID").strip()
-app.secret_key = os.environ.get("FLASK_SECRET_KEY").strip() or os.urandom(24)
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
+CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
+DB_NAME = os.environ.get("DB_NAME")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_USERNAME = os.environ.get("DB_USERNAME")
+G_CLIENT_ID = os.environ.get("G_CLIENT_ID")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
@@ -261,16 +261,19 @@ def edit_upload(upload_id):
 #     pass
 
 
-@app.route("/uploads/<int:upload_id>/comments/", methods=['POST'])
+@app.route("/comments/", methods=['POST'])
 @flask_login.login_required
-def create_comment(upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
-
-    if upload is None:
-        return failure_response("Upload not found.")
-
+def create_comment():
     # Check for valid fields
     body = json.loads(request.data)
+
+    # Check for valid upload
+    upload_id = body.get("upload_id")
+    if upload_id is None:
+        return failure_response("Missing upload ID.", 400)
+    upload = Upload.query.filter_by(id=upload_id).first()
+    if upload is None:
+        return failure_response("Upload not found.")
 
     # Check for valid author
     author = flask_login.current_user
@@ -290,6 +293,32 @@ def create_comment(upload_id):
     db.session.commit()
 
     return success_response(comment.serialize(), 201)
+
+
+@app.route("/comments/<int:comment_id>/", methods=['DELETE'])
+@flask_login.login_required
+def delete_comment(comment_id):
+    # Check for valid comment
+    comment = Comment.query.filter_by(id=comment_id).first()
+    if comment is None:
+        return failure_response("Comment not found.")
+
+    # Check that user is allowed to delete comment
+    # Upload owners can delete all comments under upload. Commenters can delete their comments.
+    user = flask_login.current_user
+    upload = Upload.query.filter_by(id=comment.upload_id).first()
+    upload_owner = user.id == upload.user_id
+    commenter = user.id == comment.author_id
+    if not (upload_owner or commenter):
+        return failure_response("User forbidden to delete comment.", 403)
+
+    # Delete
+    # Note that deleting like this respects the cascades defined at the ORM level
+    # Comment.query.filter_by(...).delete() does not respect cascades!
+    db.session.delete(comment)
+    db.session.commit()
+
+    return success_response(code=204)
 
 
 @app.route("/buckets/", methods=['POST'])

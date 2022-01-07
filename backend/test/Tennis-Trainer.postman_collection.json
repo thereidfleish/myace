@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "6906152f-1158-4bb8-8661-f4a390485247",
+		"_postman_id": "1370fc08-9c97-4e13-afba-8607076834d9",
 		"name": "Tennis-Trainer",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -229,6 +229,33 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
+					"raw": "{\n    \"upload_id\": 47,\n    \"text\": \"This is my new cool comment\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/comments/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"comments",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete comment",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
 					"raw": "{\n    \"text\": \"😡\"\n}",
 					"options": {
 						"raw": {
@@ -237,14 +264,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/uploads/48/comments/",
+					"raw": "localhost/comments/3/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"uploads",
-						"48",
 						"comments",
+						"3",
 						""
 					]
 				}
