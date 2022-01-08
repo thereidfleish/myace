@@ -8,10 +8,6 @@
 
 This route establishes a session given a Google OAuth token and returns a user. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
 
-- `type`:
-  - 0: player
-  - 1: coach
-
 Request:
 ```json
 {
@@ -19,6 +15,10 @@ Request:
     "type": 0
 }
 ```
+
+- `type`:
+  - 0: player
+  - 1: coach
 
 Response:
 - 200: User fetched.
@@ -262,7 +262,7 @@ Response:
 {
     "id": 1,
     "name": "{bucket name}",
-    "user_id": 1,
+    "user_id": 1
 }
 ```
 
@@ -325,3 +325,92 @@ Response:
     ]
 }
 ```
+
+## Friends
+
+### Search for users
+
+**GET /users?q=...**
+
+This route returns a list of users given a URL encoded query. The query could include names or usernames. TODO How to handle emails? How to search by ID?
+
+Request: N/A??
+
+Response: N/A???
+
+### Create a friend request
+
+**POST /friends/requests/**
+
+Request:
+```json
+{
+    "user_id": 1
+}
+```
+
+Response: ????????
+
+### Get all friend requests
+
+**GET /friends/requests/**
+
+This route gets all friend requests (incoming?? or outgoing??)
+
+Request: N/A
+
+Response: ????
+
+### Update friend request
+
+**PUT /friends/requests/{request_id}/**
+
+This route responds to an incoming friend request.
+
+Request:
+```json
+{
+    "status": "declined"
+}
+```
+
+- `status`: "accepted" | "declined"
+
+Response: ????
+
+### Delete friend request
+
+**DELETE /friends/requests/{request_id}/**
+
+Request: N/A
+
+Response: N/A
+
+### Get all friends
+
+**GET /friends/**
+
+Request: N/A
+
+Response:
+```json
+{
+    "friends": [
+        {
+            "id": 1,
+            "display_name": "{User's display name}",
+            "email": "{User's email}",
+            "type": 0
+        },
+        ...
+    ]
+}
+```
+
+### Remove friend
+
+**DELETE /friends/{user_id}/**
+
+Request: N/A
+
+Response: N/A

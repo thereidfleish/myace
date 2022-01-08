@@ -60,6 +60,7 @@ def success_response(data={}, code=200):
 def failure_response(message, code=404):
     return json.dumps({"error": message}), code
 
+
 # Flask-Login callbacks
 @login_manager.user_loader
 def load_user(user_id):
@@ -67,11 +68,18 @@ def load_user(user_id):
     user = User.query.filter_by(id=user_id).first()
     return user
 
+
 @login_manager.unauthorized_handler
 def unauthorized():
     return failure_response("User not authorized.", 401)
 
+
 # Routes
+@app.route("/health/")
+def health_check():
+    return success_response({"status": "OK"})
+
+
 @app.route("/login/", methods=["POST"])
 def login():
     body = json.loads(request.data)
@@ -359,10 +367,42 @@ def get_buckets():
     user = flask_login.current_user
     return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
 
+# TODO: get users by ID
 
-@app.route("/health/")
-def health_check():
-    return success_response({"status": "OK"})
+@app.route("/friends/requests/", methods=['POST'])
+@flask_login.login_required
+def create_friend_request():
+    pass
+
+
+@app.route("/friends/requests/")
+@flask_login.login_required
+def get_friend_requests():
+    pass
+
+
+@app.route("/friends/requests/<int:request_id>/", methods=['PUT'])
+@flask_login.login_required
+def update_friend_request(request_id):
+    pass
+
+
+@app.route("/friends/requests/<int:request_id>/", methods=['DELETE'])
+@flask_login.login_required
+def delete_friend_request(request_id):
+    pass
+
+
+@app.route("/friends/")
+@flask_login.login_required
+def get_all_friends(request_id):
+    pass
+
+
+@app.route("/friends/<int:user_id>/")
+@flask_login.login_required
+def remove_friend(user_id):
+    pass
 
 
 if __name__ == "__main__":
