@@ -1,6 +1,4 @@
-# 🎾 AI-Tennis Coach
-
-*TODO:* Find new name
+# 🎾 My Ace
 
 ## The Problem 
 
@@ -12,8 +10,9 @@ Tennis is a highly technical sport that requires more critical feedback than oth
 
 ### ⌛ Timeline
 
-- [ ] **01/10/22 - 01/17/22, Week 4** TBD
-- [ ] **01/03/22 - 01/10/22, Week 3** Player/coach interaction, user sessions, and domain setup
+- [ ] **01/17/22 - 01/24/22, Week 5** TBD
+- [ ] **01/10/22 - 01/17/22, Week 4** Usernames, user search, signed Cloudfront cookies, public/private profile content, deleting resources
+- [x] **01/03/22 - 01/10/22, Week 3** Player/coach interaction, user sessions, and domain setup
 - [x] **12/27/21 - 01/03/22, Week 2** Frontend & backend integration
 - [x] **12/20/21 - 12/27/21, Week 1** Ironing out the kinks
 
