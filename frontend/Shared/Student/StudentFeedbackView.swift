@@ -20,6 +20,7 @@ struct StudentFeedbackView: View {
     @State private var awaiting = true
     @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket_id: -1, comments: [], url: "")
     @State var didAppear = false
+    @State private var player = AVPlayer(url:  URL(string: "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8")!)
     
     func initialize() {
         if (!didAppear) {
@@ -29,6 +30,7 @@ struct StudentFeedbackView: View {
                     awaiting = true
                     print(uploadID)
                     try await upload = nc.getUpload(uid: "\(nc.userData.shared.id)", uploadID: uploadID)
+                    player = AVPlayer(url:  URL(string: upload.url!)!)
                     print("DONE!")
                     awaiting = false
                 } catch {
@@ -50,14 +52,20 @@ struct StudentFeedbackView: View {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
                     VStack(alignment: .leading) {
-                        VideoPlayer(player: AVPlayer(url:  URL(string: upload.url!)!))
+                        VideoPlayer(player: player)
                             .frame(height: 300)
                         
+                        Button("tap me!") {
+                            print(player.currentItem?.duration.seconds)
+                            print(player.currentTime().seconds)
+                        }
                         
                         if (!showOnlyVideo) {
                             if (student) {
                                 Text(text)
                                     .multilineTextAlignment(.leading)
+                                
+                                
                             }
                             else {
                                 
