@@ -340,6 +340,139 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Create friend request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/friends/requests/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						"requests",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all friend requests",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/friends/requests/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						"requests",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update incoming friend request",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"status\": \"accepted\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/friends/requests/1/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						"requests",
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete outgoing friend request",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost/friends/requests/2/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						"requests",
+						"2",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all friends",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/friends/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Remove friend",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost/friends/2/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"friends",
+						"2",
+						""
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
