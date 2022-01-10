@@ -13,6 +13,8 @@ from werkzeug.utils import secure_filename
 import flask_login
 
 from db import User
+from db import UserRelationship
+from db import RelationshipType
 from db import Upload
 from db import Comment
 from db import Bucket
@@ -367,42 +369,129 @@ def get_buckets():
     user = flask_login.current_user
     return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
 
-# TODO: get users by ID
+# TODO: get users by ID. Do we even want this route??
 
 @app.route("/friends/requests/", methods=['POST'])
 @flask_login.login_required
 def create_friend_request():
-    pass
+    user = flask_login.current_user
+
+    # Check for valid request body
+    body = json.loads(request.data)
+    friend_id = body.get("user_id")
+    if friend_id is None:
+        return failure_response("Could not get user ID from request body.", 400)
+    friend = User.query.filter_by(id=friend_id).first()
+    if friend is None:
+        return failure_response("User not found.")
+
+    # Check if user is allowed to create friend request
+    # TODO: add support for blocking users
+    if friend_id == user.id:
+        return failure_response("Cannot friend yourself.", 400)
+    if user.get_relationship_with(friend.id) is not None:
+        return failure_response("A relationship already exists with this user.", 400)
+
+    # Create friend request
+    relationship = UserRelationship(user_a_id=user.id, user_b_id=friend.id, type=RelationshipType.REQUESTED)
+    db.session.add(relationship)
+    db.session.commit()
+
+    return success_response(code=201)
 
 
 @app.route("/friends/requests/")
 @flask_login.login_required
 def get_friend_requests():
-    pass
+    user = flask_login.current_user
+    # A list of user IDs requesting to friend the current user
+    incoming_ids = [rel.user_a_id for rel in UserRelationship.query.filter_by(user_b_id=user.id, type=RelationshipType.REQUESTED)]
+    # A list of user IDs that the current user is requesting to friend
+    outgoing_ids = [rel.user_b_id for rel in UserRelationship.query.filter_by(user_a_id=user.id, type=RelationshipType.REQUESTED)]
+
+    # I believe we should serialize users in the response because their
+    # info is required for the end user to act on the friend request
+    res = {
+        "incoming": [db.session.query(User).get(id).serialize() for id in incoming_ids],
+        "outgoing": [db.session.query(User).get(id).serialize() for id in outgoing_ids]
+    }
+    return success_response(res)
 
 
-@app.route("/friends/requests/<int:request_id>/", methods=['PUT'])
+@app.route("/friends/requests/<int:other_user_id>/", methods=["PUT"])
 @flask_login.login_required
-def update_friend_request(request_id):
-    pass
+def update_incoming_friend_request(other_user_id):
+    user = flask_login.current_user
+
+    # Verify friend request exists
+    rel = user.get_relationship_with(other_user_id)
+    if rel is None or rel.type != RelationshipType.REQUESTED or rel.user_b_id != user.id:
+        return failure_response("Friend request not found.")
+
+    # Check for valid request body
+    body = json.loads(request.data)
+    status = body.get("status")
+    if status is None:
+        return failure_response("Could not get status from request body.", 400)
+
+    # Change relationship status
+    if status == 'accepted':
+        rel.set_type(RelationshipType.FRIENDS)
+    elif status == 'declined':
+        # Delete relationship
+        db.session.delete(rel)
+        db.session.commit()
+    else:
+        return failure_response("Invalid status.", 400)
+
+    return success_response(code=204)
 
 
-@app.route("/friends/requests/<int:request_id>/", methods=['DELETE'])
+@app.route("/friends/requests/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
-def delete_friend_request(request_id):
-    pass
+def delete_outgoing_friend_request(other_user_id):
+    user = flask_login.current_user
+
+    # Verify friend request exists
+    rel = user.get_relationship_with(other_user_id)
+    if rel is None or rel.type != RelationshipType.REQUESTED or rel.user_a_id != user.id:
+        return failure_response("Friend request not found.")
+
+    # Delete relationship
+    db.session.delete(rel)
+    db.session.commit()
+
+    return success_response(code=204)
 
 
 @app.route("/friends/")
 @flask_login.login_required
-def get_all_friends(request_id):
-    pass
+def get_all_friends():
+    user = flask_login.current_user
+    # The current user reached out first
+    friends_the_user_made = [rel.user_b_id for rel in UserRelationship.query.filter_by(user_a_id=user.id, type=RelationshipType.FRIENDS)]
+    # They reached out first
+    others_who_friended_user = [rel.user_a_id for rel in UserRelationship.query.filter_by(user_b_id=user.id, type=RelationshipType.FRIENDS)]
+    # Combine lists
+    friends = friends_the_user_made + others_who_friended_user
+    return success_response({"friends": [db.session.query(User).get(id).serialize() for id in friends]})
 
 
-@app.route("/friends/<int:user_id>/")
+@app.route("/friends/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
-def remove_friend(user_id):
-    pass
+def remove_friend(other_user_id):
+    user = flask_login.current_user
+
+    # Verify friendship exists
+    rel = user.get_relationship_with(other_user_id)
+    if rel is None or rel.type != RelationshipType.FRIENDS:
+        return failure_response("Friend not found.")
+
+    # Delete friendship 💔
+    db.session.delete(rel)
+    db.session.commit()
+
+    return success_response(code=204)
 
 
 if __name__ == "__main__":

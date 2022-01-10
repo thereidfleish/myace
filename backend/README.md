@@ -342,6 +342,9 @@ Response: N/A???
 
 **POST /friends/requests/**
 
+This route requests to friend a specified user. The current user cannot have an existing relationship status with the specified user.
+For example, requesting to friend someone who has already requested to friend you will yield an error.
+
 Request:
 ```json
 {
@@ -349,21 +352,38 @@ Request:
 }
 ```
 
-Response: ????????
+Response: N/A
 
 ### Get all friend requests
 
 **GET /friends/requests/**
 
-This route gets all friend requests (incoming?? or outgoing??)
+This route returns a list users associated with incoming and outgoing friend requests. An incoming friend is a
+user who has requested to friend you, and an outgoing friend is someone who you have requested to friend.
 
 Request: N/A
 
-Response: ????
+Response:
+```json
+{
+    "incoming": [
+        {
+            "id": 1,
+            "display_name": "{User's display name}",
+            "email": "{User's email}",
+            "type": 0
+        },
+        ...
+    ],
+    "outgoing": [
+        ...
+    ]
+}
+```
 
-### Update friend request
+### Update incoming friend request
 
-**PUT /friends/requests/{request_id}/**
+**PUT /friends/requests/{other_user_id}/**
 
 This route responds to an incoming friend request.
 
@@ -376,11 +396,11 @@ Request:
 
 - `status`: "accepted" | "declined"
 
-Response: ????
+Response: N/A
 
-### Delete friend request
+### Delete outgoing friend request
 
-**DELETE /friends/requests/{request_id}/**
+**DELETE /friends/requests/{other_user_id}/**
 
 Request: N/A
 
@@ -409,7 +429,7 @@ Response:
 
 ### Remove friend
 
-**DELETE /friends/{user_id}/**
+**DELETE /friends/{other_user_id}/**
 
 Request: N/A
 
