@@ -27,6 +27,7 @@ Response:
 ```json
 {
     "id": 1,
+    "username": "{User's username}",
     "display_name": "{User's display name}",
     "email": "{User's email}",
     "type": 0
@@ -43,9 +44,9 @@ Request: N/A
 
 Response: N/A
 
-### Get user
+### Get current user
 
-**GET /user/**
+**GET /users/me/**
 
 This route returns the user who is currently logged in.
 
@@ -56,6 +57,34 @@ Response:
 ```json
 {
     "id": 1,
+    "username": "{User's username}",
+    "display_name": "{User's display name}",
+    "email": "{User's email}",
+    "type": 0
+}
+```
+
+### Update current user
+
+**PUT /users/me/**
+
+This route edits the profile of the user who is currently logged in. All fields are optional.
+
+Request:
+
+```json
+{
+    "username": "{New username}",
+    "display_name": "{New display name}",
+}
+```
+
+Response:
+
+```json
+{
+    "id": 1,
+    "username": "{User's username}",
     "display_name": "{User's display name}",
     "email": "{User's email}",
     "type": 0
@@ -369,6 +398,7 @@ Response:
     "incoming": [
         {
             "id": 1,
+            "username": "{User's username}",
             "display_name": "{User's display name}",
             "email": "{User's email}",
             "type": 0
@@ -418,6 +448,7 @@ Response:
     "friends": [
         {
             "id": 1,
+            "username": "{User's username}",
             "display_name": "{User's display name}",
             "email": "{User's email}",
             "type": 0

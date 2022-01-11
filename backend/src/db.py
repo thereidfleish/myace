@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import datetime
 import enum
+import random
+import re
+import string
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -16,6 +19,11 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     google_id = db.Column(db.String, nullable=False)
+
+    # Matches all characters disallowed in usernames. Allow alphanumeric, underscores, & periods.
+    ILLEGAL_UNAME_PATTERN = r"[^\w\.]"
+    username = db.Column(db.String, nullable=False, unique=True)
+
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     # 0 = player, 1 = coach
@@ -24,11 +32,17 @@ class User(db.Model):
     comments = db.relationship("Comment", cascade="delete")
     buckets = db.relationship("Bucket", cascade="delete")
 
-    # flask_sqlalchemy has an implicit constructor with column names
+    def __init__(self, google_id, display_name, email, type):
+        self.google_id = google_id
+        self.username = self._generate_unique_username(display_name)
+        self.display_name = display_name
+        self.email = email
+        self.type = type
 
     def serialize(self):
         return {
             "id": self.id,
+            "username": self.username,
             "display_name": self.display_name,
             "email": self.email,
             "type": self.type
@@ -41,6 +55,27 @@ class User(db.Model):
             return a_to_b
         b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
         return b_to_a
+
+    @classmethod
+    def _generate_unique_username(cls, display_name: str) -> str:
+        """:return: a unique, legal username based off the user's display name"""
+        # Santitize user's display name to use as root of username
+        sanitized = re.sub(cls.ILLEGAL_UNAME_PATTERN, "", display_name).lower()
+        # If sanitized display name is empty, use 3 random characters
+        if sanitized == "":
+            sanitized = "".join(random.choice(string.ascii_lowercase) for _ in range(3))
+        # Add random digit
+        username = sanitized + random.choice(string.digits)
+        # Continue adding digits until unique
+        while not cls.is_username_unique(username):
+            username += random.choice(string.digits)
+        return username
+
+    @staticmethod
+    def is_username_unique(username: str) -> bool:
+        """:return: if a username is unique"""
+        return User.query.filter_by(username=username).first() is None
+
 
     # Methods required by Flask-Login
 

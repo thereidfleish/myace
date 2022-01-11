@@ -2,6 +2,7 @@
 import datetime
 import json
 import os
+import re
 
 import media
 
@@ -135,10 +136,46 @@ def logout():
     return success_response()
 
 
-@app.route("/user/")
+@app.route("/users/me/")
 @flask_login.login_required
-def get_user():
+def get_profile():
     return success_response(flask_login.current_user.serialize())
+
+
+@app.route("/users/me/", methods=['PUT'])
+@flask_login.login_required
+def edit_profile():
+    user = flask_login.current_user
+
+    body = json.loads(request.data)
+
+    # Update username if it changed
+    new_username = body.get("username")
+    if new_username is not None and user.username != new_username:
+        # Check for valid username
+        new_username = new_username.lower()
+        # Check username length
+        if len(new_username) <= 2:
+            return failure_response("Username must be at least 3 characters long.", 400)
+        # Check if username contains illegal characters
+        regexp = re.compile(User.ILLEGAL_UNAME_PATTERN)
+        illegal_match = regexp.search(new_username)
+        if illegal_match:
+            return failure_response(f"Username contains illegal character '{illegal_match.group(0)}'.", 400)
+        # Check if username exists
+        if not User.is_username_unique(new_username):
+            return failure_response(f"Username already exists.", 409)
+        user.username = new_username
+
+    # Update display name if it changed
+    new_display_name = body.get("display_name")
+    if new_display_name is not None and user.display_name != new_display_name:
+        if new_display_name.isspace():
+            return failure_response("Invalid display name.", 400)
+        user.display_name = new_display_name
+
+    db.session.commit()
+    return success_response(user.serialize())
 
 
 @app.route("/uploads/")
@@ -254,7 +291,7 @@ def edit_upload(upload_id):
 
     # Update title
     new_title = body.get("display_title")
-    if new_title is not None:
+    if new_title is not None and upload.display_title != new_title:
         if new_title.isspace():
             return failure_response("Invalid title.", 400)
         upload.display_title = new_title

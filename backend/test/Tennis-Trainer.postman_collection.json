@@ -60,17 +60,46 @@
 			"response": []
 		},
 		{
-			"name": "Get user",
+			"name": "Get current user",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost/user/",
+					"raw": "localhost/users/me/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"user",
+						"users",
+						"me",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update current user",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"tennis.lover.69__\",\n    \"display_name\": \"Mr. Tennis L0v3R 😎\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/users/me/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"users",
+						"me",
 						""
 					]
 				}
