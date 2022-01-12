@@ -300,6 +300,29 @@ def edit_upload(upload_id):
     return success_response(upload.serialize(aws))
 
 
+@app.route("/uploads/<int:upload_id>/", methods=['DELETE'])
+@flask_login.login_required
+def delete_upload(upload_id):
+
+    # Verify user and existence of upload.
+    upload = Upload.query.filter_by(id=upload_id).first()
+
+    if upload is None:
+        return failure_response("Upload not found in database.")
+
+    user = flask_login.current_user
+    if user.id != upload.user_id:
+        return failure_response("User forbidden to access upload.", 403)
+
+    # Delete upload
+    db.session.delete(upload)
+    found = aws.delete_uploads(upload_id)
+    db.session.commit()
+
+    # Alert client of inconsistency if present.
+    return success_response(code=204) if found else success_response(data={'message': 'Found entry in database but not in S3.'}, code=200)
+
+
 # TODO: autodetect S3 uploads
 # @app.route("/api/callback/s3upload/", methods=['POST'])
 # def upload_callback():

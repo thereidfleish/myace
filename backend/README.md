@@ -232,6 +232,25 @@ Response:
 }
 ```
 
+### Delete upload
+
+**DELETE /uploads/{upload_id}/**
+
+Note: Code 204 implies that the entry was found in both the database and the S3 bucket. Code 200 implies that it was
+found in the database but not the S3 bucket. The database entry is still deleted.
+
+Request: N/A
+
+Response:
+
+204: N/A
+
+200:
+```json
+{
+  "message": "Found entry in database but not in S3."
+}
+```
 ## Comments
 
 ### Create a comment
