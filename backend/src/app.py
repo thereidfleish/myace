@@ -5,11 +5,13 @@ import os
 import re
 
 import media
+from cookiesigner import CookieSigner
 
 from botocore.client import Config
 
 from flask import Flask
 from flask import request
+from flask import make_response
 from werkzeug.utils import secure_filename
 import flask_login
 
@@ -35,7 +37,7 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
 CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
-DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
+S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
 DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -201,17 +203,23 @@ def get_upload(upload_id):
         return failure_response("User forbidden to access upload.", 403)
 
     # Create response
-    res = upload.serialize(aws)
+    response = upload.serialize(aws)
 
     if upload.stream_ready:
-        # TODO: cache url in database to avoid expensive signing
-        expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-        url = aws.get_presigned_hls_url(upload_id, expire_date)
-        if url is None:
-            return failure_response("An error occurred when presigning the HLS URL.", 500)
-        res["url"] = url
+        signer = CookieSigner(aws=aws, expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID)
+        url = S3_CF_DOMAIN + "uploads/" + str(upload_id) + "/hls/"
+        cookies = signer.generate_signed_cookies(url=(url+"*"))
+        response['url'] = url + "index.m3u8"
+        response = make_response(response)
+        response.set_cookie(key='CloudFront-Policy', value=cookies['CloudFront-Policy'],
+                            domain=S3_CF_DOMAIN)
+        response.set_cookie(key='CloudFront-Signature', value=cookies['CloudFront-Signature'],
+                            domain=S3_CF_DOMAIN)
+        response.set_cookie(key='CloudFront-Key-Pair-Id', value=cookies['CloudFront-Key-Pair-Id'],
+                            domain=S3_CF_DOMAIN)
+        return response
 
-    return success_response(res)
+    return success_response(response)
 
 
 @app.route("/uploads/", methods=['POST'])

@@ -5,11 +5,11 @@ import base64
 import os
 
 
-def _generate_cookies(policy: tuple, signature: str, cloudfront_id: str) -> dict:
+def _generate_cookies(policy: tuple, signature: str, cf_key_id: str) -> dict:
     return {
         "CloudFront-Policy": policy,
         "CloudFront-Signature": signature,
-        "CloudFront-Key-Pair-Id": cloudfront_id
+        "CloudFront-Key-Pair-Id": cf_key_id
     }
 
 
@@ -19,10 +19,10 @@ def _replace_unsupported_chars(message: str) -> str:
 
 class CookieSigner:
 
-    def __init__(self, aws: AWS, expiration_in_hrs: int, cf_keypair_id: str):
+    def __init__(self, aws: AWS, expiration_in_hrs: int, cf_key_id: str):
         self.aws = aws
         self.expiration_in_hrs = expiration_in_hrs
-        self.__cf_keypair_id = cf_keypair_id
+        self.__cf_key_id = cf_key_id
         self.object_url_header = os.environ.get("S3_OBJECT_URL_HEADER")
 
     def __expiration_time(self) -> int:
@@ -54,8 +54,7 @@ class CookieSigner:
         sig_64 = _replace_unsupported_chars(str(base64.b64encode(sig_bytes), "utf-8"))
         return sig_64
 
-    def generate_signed_cookies(self, upload_id: int) -> dict:
-        url = self.object_url_header + str(upload_id) + "/*"
+    def generate_signed_cookies(self, url: str) -> dict:
         policy_json, policy64 = self.__generate_policy_cookie(url)
         signature = self.__generate_signature(policy_json)
-        return _generate_cookies(policy64, signature, self.__cf_keypair_id)
+        return _generate_cookies(policy64, signature, self.__cf_key_id)
