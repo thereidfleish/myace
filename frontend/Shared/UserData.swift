@@ -6,10 +6,14 @@
 //
 
 import Foundation
+import UIKit
+import AVFoundation
 
 struct UserData {
     // Shared data
     var shared: SharedData
+    
+    var profilePic: URL?
     
     // Student data
     var uploads: [Upload]
@@ -20,14 +24,14 @@ struct UserData {
     
     var bucketContents: BucketContents
     
-//    enum FeedbackStatus {
-//        case awaiting
-//        case read
-//        case unread
-//    }
-//    
-//    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
-
+    //    enum FeedbackStatus {
+    //        case awaiting
+    //        case read
+    //        case unread
+    //    }
+    //
+    //    var feedbacks: [FeedbackStatus] = [.awaiting, .unread, .read]
+    
     
     static func computeWelcome() -> String {
         let currentHour = Calendar.current.dateComponents([.hour], from: Date())
@@ -45,18 +49,42 @@ struct UserData {
             return "Welcome,"
         }
     }
+    
+    static func firstName(name: String) -> String {
+        let firstSpace = name.firstIndex(of: " ") ?? name.endIndex
+        let firstName = name[..<firstSpace]
+        return String(firstName)
+    }
+    
+    static func computeErrorMessage(errorMessage: String) -> String {
+        return "Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, log out/log in, or try again later."
+    }
+    
+    static func getThumbnailImage(forUrl url: URL) -> UIImage? {
+        let asset: AVAsset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+
+        do {
+            let thumbnailImage = try imageGenerator.copyCGImage(at: CMTimeMake(value: 1, timescale: 60), actualTime: nil)
+            return UIImage(cgImage: thumbnailImage)
+        } catch let error {
+            print(error)
+        }
+
+        return nil
+    }
 }
 
 struct SharedData: Codable {
-    var id: String
+    var id: Int
     var display_name: String
     var email: String
     var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 }
 
-struct Upload: Codable {
+struct Upload: Codable, Identifiable {
     var id: Int
-    var created: String
+    var created: Date
     var display_title: String
     var stream_ready: Bool
     var bucket_id: Int
@@ -68,16 +96,19 @@ struct BucketRes: Codable {
     var buckets: [Bucket]
 }
 
-struct Bucket: Codable {
+struct Bucket: Codable, Identifiable {
     var id: Int
     var name: String
     var user_id: Int
+    var last_modified: Date?
 }
+
 
 struct BucketContents: Codable {
     var id: Int
     var name: String
     var user_id: Int
+    var last_modified: Date?
     var uploads: [Upload]
 }
 
@@ -107,7 +138,7 @@ struct VideoReq: Codable {
 }
 
 struct VideoRes: Codable {
-    var id: String
+    var id: Int
     var url: String
     var fields: Field
 }

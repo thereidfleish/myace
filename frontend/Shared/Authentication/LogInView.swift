@@ -14,24 +14,26 @@ struct GoogleAuthRepresentable: UIViewControllerRepresentable {
         let vc = GoogleAuth.instance
         return vc
     }
-
+    
     func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-
+        
     }
 }
 
 class GoogleAuth: UIViewController {
-    static var instance = GoogleAuth() 
+    static var instance = GoogleAuth()
 }
 
 struct LogInView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
-    private let signInConfig = GIDConfiguration.init(clientID: "353843950130-ltob99bnq2pukci7m1qckaotg74f07m9.apps.googleusercontent.com")
-    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    private let signInConfig = GIDConfiguration.init(clientID: "530607482320-irblcmsai0p4dn8ocq9bmjv31jo1j3se.apps.googleusercontent.com")
+    private let host = "https://api.myace.ai"
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
+    @State private var awaiting = true
+    @AppStorage("type") private var typeSelection = -1
     
     var body: some View {
         ZStack {
@@ -41,60 +43,78 @@ struct LogInView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color.green)
+                    .padding(.top, 20)
+                    .onAppear(perform: {
+                        checkPreviousSignIn()
+                    })
                 
-                Button(action: {
-    //                Task {
-    //                    do {
-    //                        nc.awaiting = true
-    //                        try await nc.authenticate(token: "test", type: 0)
-    //                    } catch {
-    //                        print(error)
-    //                        errorMessage = error.localizedDescription
-    //                        showingError = true
-    //                    }
-    //                    nc.awaiting = false
-    //                    print(nc.userData.shared)
-    //                }
+                Spacer()
+                
+                if (awaiting) {
+                    ProgressView().padding()
+                } else if (showingError) {
+                    Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+                } else {
+                    Text("Are you a player or a coach?")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color.green)
                     
-                    signIn(withVC: googleAuth)
+                    Picker("Are you a player or a coach?", selection: $typeSelection) {
+                        Text("Player").tag(0)
+                        Text("Coach").tag(1)
+                    } .pickerStyle(.segmented)
                     
-                }, label: {
-                    if (nc.awaiting) {
-                        ProgressView()
-                    } else if (showingError) {
-                        Text("Error: \(errorMessage).  \(errorMessage.contains("0") ? "JSON Encode Error" : "JSON Decode Error").  Please check your internet connection, or try again later.").padding()
-                    } else {
+                    
+                    Button(action: {
+                        //                Task {
+                        //                    do {
+                        //                        nc.awaiting = true
+                        //                        try await nc.authenticate(token: "test", type: 0)
+                        //                    } catch {
+                        //                        print(error)
+                        //                        errorMessage = error.localizedDescription
+                        //                        showingError = true
+                        //                    }
+                        //                    nc.awaiting = false
+                        //                    print(nc.userData.shared)
+                        //                }
+                        awaiting = true
+                        signIn(withVC: googleAuth)
+                    }, label: {
                         Text("Sign In With Google")
                             .padding(.vertical, 15)
                             .frame(maxWidth: .infinity)
                             .background(Color.green)
                             .cornerRadius(10)
                             .foregroundColor(.white)
-                    }
-                })
+                            .opacity(typeSelection == -1 ? 0.75 : 1)
+                    }).disabled(typeSelection == -1)
+                }
                 
+                Spacer()
                 
-                Button(action: {
-                    nc.userData.shared.type = 0
-                }, label: {
-                    Text("fake a student view for now lol")
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                })
-                
-                Button(action: {
-                    nc.userData.shared.type = 1
-                }, label: {
-                    Text("fake a coach view for now lol")
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .foregroundColor(.white)
-                })
+                //                Button(action: {
+                //                    nc.userData.shared.type = 0
+                //                }, label: {
+                //                    Text("fake a student view for now lol")
+                //                        .padding(.vertical, 15)
+                //                        .frame(maxWidth: .infinity)
+                //                        .background(Color.green)
+                //                        .cornerRadius(10)
+                //                        .foregroundColor(.white)
+                //                })
+                //
+                //                Button(action: {
+                //                    nc.userData.shared.type = 1
+                //                }, label: {
+                //                    Text("fake a coach view for now lol")
+                //                        .padding(.vertical, 15)
+                //                        .frame(maxWidth: .infinity)
+                //                        .background(Color.green)
+                //                        .cornerRadius(10)
+                //                        .foregroundColor(.white)
+                //                })
                 
                 
             }.padding(.horizontal)
@@ -103,65 +123,106 @@ struct LogInView: View {
     }
     
     func signIn(withVC vc: UIViewController) {
-      GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
-          guard error == nil else {
-              print("hello")
-              return
-              
-          }
-          guard let user = user else { return }
-          
-          let emailAddress = user.profile?.email
-
-          let fullName = user.profile?.name
-          let givenName = user.profile?.givenName
-          let familyName = user.profile?.familyName
-          let profilePicUrl = user.profile?.imageURL(withDimension: 320)
-
-          if let uUserID = user.userID {
-              
-          } else {
-              print("Failed unwrapping of UserID")
-          }
-     
-          user.authentication.do { authentication, error in
+        GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
             guard error == nil else {
-
+                print(error)
+                awaiting = false
                 return
-
+                
+            }
+            guard let user = user else { return }
+            
+            //          let emailAddress = user.profile?.email
+            //
+            //          let fullName = user.profile?.name
+            //          let givenName = user.profile?.givenName
+            //          let familyName = user.profile?.familyName
+            //          let profilePicUrl = user.profile?.imageURL(withDimension: 320)
+            
+            if let uUserID = user.userID {
+                print(uUserID)
+            } else {
+                print("Failed unwrapping of UserID")
+            }
+            
+            authenticate(user: user)
+            
+        }
+    }
+    
+    func authenticate(user: GIDGoogleUser) {
+        nc.userData.profilePic = user.profile?.imageURL(withDimension: 320)
+        
+        user.authentication.do { authentication, error in
+            guard error == nil else {
+                
+                return
+                
             }
             guard let authentication = authentication else { return }
-              let idToken = authentication.idToken
-              if let uIdToken = idToken {
-                  self.tokenSignIn(idToken: uIdToken)
-              } else {
-                  print("Authentication Failed")
-              }
-
-          }
-          
-      }
+            let idToken = authentication.idToken
+            if let uIdToken = idToken {
+                self.tokenSignIn(idToken: uIdToken)
+            } else {
+                print("Authentication Failed")
+            }
+            
+        }
     }
+    
     func tokenSignIn(idToken: String) {
-        let json: [String: Any] = ["token": idToken, "type": 0]
+        let json: [String: Any] = ["token": idToken, "type": typeSelection]
         
-//        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
-//            return
-//        }
+        //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
+        //            return
+        //        }
         guard let authData = try? JSONSerialization.data(withJSONObject: json) else {
             return
         }
-        let url = URL(string: "\(host)/api/user/authenticate/")!
+        let url = URL(string: "\(host)/login/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
             print(response)
+            print(data!.prettyPrintedJSONString)
+            
+            guard let data = data else {
+                print("URLSession dataTask error:", error ?? "nil")
+                return
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            do {
+                let decodedResponse = try decoder.decode(SharedData.self, from: data)
+                nc.userData.shared = decodedResponse
+            } catch {
+                print("Error")
+                awaiting = false
+            }
         }
         task.resume()
     }
-   
+    
+    func checkPreviousSignIn() {
+        GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
+            if let error = error {
+                self.errorMessage = "error: \(error.localizedDescription)"
+            }
+            
+            if let user = user {
+                authenticate(user: user)
+            } else {
+                awaiting = false
+            }
+            
+        }
+        
+        //awaiting = false
+    }
+    
     
 }
 

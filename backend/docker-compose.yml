@@ -1,12 +1,10 @@
 # For development only
-# Compose automatically reads .env and populates containers with environment vars
-version: '1.0'
+# Compose automatically reads .env and allows you to use them like ${SO}
 
 services:
 
-  web:
-    build: . # build image from Dockerfile
-    command: python app.py
+  api:
+    build: src/ # build image from Dockerfile
     restart: unless-stopped
     env_file:
       - .env
@@ -30,3 +28,9 @@ services:
     restart: unless-stopped
     ports:
       - 8080:8080
+
+  token-retriever:
+    build: test/token_retriever/
+    restart: unless-stopped
+    ports:
+      - "5000:80"

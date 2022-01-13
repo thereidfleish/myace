@@ -1,10 +1,82 @@
 {
 	"info": {
-		"_postman_id": "6906152f-1158-4bb8-8661-f4a390485247",
+		"_postman_id": "1370fc08-9c97-4e13-afba-8607076834d9",
 		"name": "Tennis-Trainer",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"{{token}}\",\n    \"type\": 0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/login/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/logout/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"logout",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/user/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"user",
+						""
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "Get all uploads",
 			"protocolProfileBehavior": {
@@ -15,7 +87,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\"\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -23,14 +95,11 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/uploads/",
+					"raw": "localhost/uploads/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
 						"uploads",
 						""
 					]
@@ -48,7 +117,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\"\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -56,16 +125,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/upload/1/",
+					"raw": "localhost/uploads/48/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
-						"1",
+						"uploads",
+						"48",
 						""
 					]
 				}
@@ -79,7 +145,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\",\n    \"bucket_id\": 1\n}",
+					"raw": "{\n    \"filename\": \"fullcourtstock.mp4\",\n    \"display_title\": \"My cool full court clip🥴\",\n    \"bucket_id\": 2\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -87,15 +153,12 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/upload/",
+					"raw": "localhost/uploads/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
+						"uploads",
 						""
 					]
 				}
@@ -117,16 +180,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/upload/9/convert/",
+					"raw": "localhost/uploads/48/convert/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
-						"9",
+						"uploads",
+						"48",
 						"convert",
 						""
 					]
@@ -141,7 +201,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"display_title\": \"testie\"\n}",
+					"raw": "{\n    \"display_title\": \"this is my new cool title\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -149,16 +209,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/upload/1/",
+					"raw": "localhost/uploads/48/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
-						"upload",
-						"1",
+						"uploads",
+						"48",
 						""
 					]
 				}
@@ -172,7 +229,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"author_id\": 1,\n    \"text\": \"😡\"\n}",
+					"raw": "{\n    \"upload_id\": 47,\n    \"text\": \"This is my new cool comment\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -180,15 +237,40 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/upload/7/comment/",
+					"raw": "localhost/comments/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"upload",
-						"7",
-						"comment",
+						"comments",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete comment",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"text\": \"😡\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/comments/3/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"comments",
+						"3",
 						""
 					]
 				}
@@ -210,14 +292,11 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/api/user/1/buckets/",
+					"raw": "localhost/buckets/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
 						"buckets",
 						""
 					]
@@ -231,16 +310,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost/api/user/1/bucket/1/",
+					"raw": "localhost/buckets/2/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
-						"bucket",
-						"1",
+						"buckets",
+						"2",
 						""
 					]
 				}
@@ -253,14 +329,11 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost/api/user/1/buckets/",
+					"raw": "localhost/buckets/",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"api",
-						"user",
-						"1",
 						"buckets",
 						""
 					]

@@ -3,13 +3,14 @@ import datetime
 import json
 import os
 
+import media
+
 from botocore.client import Config
 
 from flask import Flask
 from flask import request
 from werkzeug.utils import secure_filename
-
-import media
+import flask_login
 
 from db import User
 from db import Upload
@@ -22,18 +23,22 @@ from google.auth.transport import requests
 
 app = Flask(__name__)
 
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+
 # constants
 ENV = "dev"
-DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip()
-DB_NAME = str(os.environ.get("DB_NAME")).strip()
-DB_USERNAME = str(os.environ.get("DB_USERNAME")).strip()
-DB_PASSWORD = str(os.environ.get("DB_PASSWORD")).strip()
-DB_ENDPOINT = str(os.environ.get("DB_ENDPOINT")).strip() # localhost or server URL
-G_CLIENT_ID = str(os.environ.get("G_CLIENT_ID")).strip()
-AWS_ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
-AWS_SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
-CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE")).strip()
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
+CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
+DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
+DB_NAME = os.environ.get("DB_NAME")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_USERNAME = os.environ.get("DB_USERNAME")
+G_CLIENT_ID = os.environ.get("G_CLIENT_ID")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
@@ -55,10 +60,20 @@ def success_response(data={}, code=200):
 def failure_response(message, code=404):
     return json.dumps({"error": message}), code
 
+# Flask-Login callbacks
+@login_manager.user_loader
+def load_user(user_id):
+    # Return user object if user exists or None if DNE
+    user = User.query.filter_by(id=user_id).first()
+    return user
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return failure_response("User not authorized.", 401)
 
 # Routes
-@app.route("/api/user/authenticate/", methods=["POST"])
-def authenticate_user():
+@app.route("/login/", methods=["POST"])
+def login():
     body = json.loads(request.data)
 
     # Validate type
@@ -86,38 +101,56 @@ def authenticate_user():
 
         # Check if user exists
         user = User.query.filter_by(google_id=gid, type=user_type).first()
+        user_created = user == None
 
         if user is None:
             # User does not exist, add them.
             user = User(google_id=gid, display_name=display_name, email=email, type=user_type)
             db.session.add(user)
             db.session.commit()
-            return success_response(user.serialize(), 201)
 
-        return success_response(user.serialize(), 200)
+        # Begin user session
+        flask_login.login_user(user, remember=True)
+
+        return success_response(user.serialize(), 201 if user_created else 200)
+
     except ValueError:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
 
 
-@app.route("/api/user/<int:user_id>/uploads/")
-def get_all_user_uploads(user_id):
-    user = User.query.filter_by(id=user_id).first()
-    if user is None:
-        return failure_response("User not found.")
+@app.route("/logout/", methods=["POST"])
+@flask_login.login_required
+def logout():
+    flask_login.logout_user()
+    return success_response()
+
+
+@app.route("/user/")
+@flask_login.login_required
+def get_user():
+    return success_response(flask_login.current_user.serialize())
+
+
+@app.route("/uploads/")
+@flask_login.login_required
+def get_all_uploads():
+    user = flask_login.current_user
 
     return success_response(
-        {"uploads": [u.serialize(aws) for u in Upload.query.filter_by(user_id=user_id)]}
+        {"uploads": [up.serialize(aws) for up in Upload.query.filter_by(user_id=user.id)]}
     )
 
 
-@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/")
-def get_specific_user_upload(user_id, upload_id):
+@app.route("/uploads/<int:upload_id>/")
+@flask_login.login_required
+def get_upload(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
         return failure_response("Upload not found.")
 
-    if user_id != upload.user_id:
+    user = flask_login.current_user
+    if user.id != upload.user_id:
         return failure_response("User forbidden to access upload.", 403)
 
     # Create response
@@ -134,12 +167,10 @@ def get_specific_user_upload(user_id, upload_id):
     return success_response(res)
 
 
-@app.route("/api/user/<int:user_id>/upload/", methods=['POST'])
-def create_upload_url(user_id):
-    user = User.query.filter_by(id=user_id).first()
-
-    if user is None:
-        return failure_response("User not found.")
+@app.route("/uploads/", methods=['POST'])
+@flask_login.login_required
+def create_upload_url():
+    user = flask_login.current_user
 
     # Check for valid fields
     body = json.loads(request.data)
@@ -155,27 +186,58 @@ def create_upload_url(user_id):
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
         return failure_response("Bucket not found.")
+    elif user.id != bucket.user_id:
+        return failure_response("User forbidden to access bucket.", 403)
 
     # Create upload row
-    new_upload = Upload(filename=filename, display_title=display_title, user_id=user_id, bucket_id=bucket_id)
+    new_upload = Upload(filename=filename, display_title=display_title, user_id=user.id, bucket_id=bucket_id)
     db.session.add(new_upload)
     db.session.commit()
 
-    # Create URL
+    # Create upload URL
     res = {'id': new_upload.id}
     urldata = aws.get_presigned_url_post(new_upload.id, filename)
+
+    # Replace hyphens in field names with underscores 
+    # because Swift cannot decode fields with hyphens
+    for old_key in list(urldata['fields']):
+        new_key = old_key.replace('-', '_')
+        urldata['fields'][new_key] = urldata['fields'].pop(old_key)
+
     res.update(urldata)
     return success_response(res, 201)
 
 
-@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/", methods=['PUT'])
-def edit_upload(user_id, upload_id):
+@app.route("/uploads/<int:upload_id>/convert/", methods=['POST'])
+@flask_login.login_required
+def start_convert(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
         return failure_response("Upload not found.")
 
-    if user_id != upload.user_id:
+    user = flask_login.current_user
+    if user.id != upload.user_id:
+        return failure_response("User forbidden to access upload.", 403)
+
+    # create convert job
+    convert_job_id = aws.create_mediaconvert_job(upload_id, upload.filename)
+    upload.mediaconvert_job_id = convert_job_id
+    db.session.commit()
+
+    return success_response()
+
+
+@app.route("/uploads/<int:upload_id>/", methods=['PUT'])
+@flask_login.login_required
+def edit_upload(upload_id):
+    upload = Upload.query.filter_by(id=upload_id).first()
+
+    if upload is None:
+        return failure_response("Upload not found.")
+
+    user = flask_login.current_user
+    if user.id != upload.user_id:
         return failure_response("User forbidden to access upload.", 403)
 
     body = json.loads(request.data)
@@ -191,24 +253,6 @@ def edit_upload(user_id, upload_id):
     return success_response(upload.serialize(aws))
 
 
-@app.route("/api/user/<int:user_id>/upload/<int:upload_id>/convert/", methods=['POST'])
-def start_convert(user_id, upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
-
-    if upload is None:
-        return failure_response("Upload not found.")
-
-    if user_id != upload.user_id:
-        return failure_response("User forbidden to access upload.", 403)
-
-    # create convert job
-    convert_job_id = aws.create_mediaconvert_job(upload_id, upload.filename)
-    upload.mediaconvert_job_id = convert_job_id
-    db.session.commit()
-
-    return success_response()
-
-
 # TODO: autodetect S3 uploads
 # @app.route("/api/callback/s3upload/", methods=['POST'])
 # def upload_callback():
@@ -217,26 +261,25 @@ def start_convert(user_id, upload_id):
 #     pass
 
 
-@app.route("/api/upload/<int:upload_id>/comment/", methods=['POST'])
-def create_comment(upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
-
-    if upload is None:
-        return failure_response("Upload not found.")
-
+@app.route("/comments/", methods=['POST'])
+@flask_login.login_required
+def create_comment():
     # Check for valid fields
     body = json.loads(request.data)
 
+    # Check for valid upload
+    upload_id = body.get("upload_id")
+    if upload_id is None:
+        return failure_response("Missing upload ID.", 400)
+    upload = Upload.query.filter_by(id=upload_id).first()
+    if upload is None:
+        return failure_response("Upload not found.")
+
     # Check for valid author
-    author_id = body.get("author_id")
-    if author_id is None:
-        return failure_response("Missing author ID.", 400)
-    author = User.query.filter_by(id=author_id).first()
-    if author is None:
-        return failure_response("Author not found.")
+    author = flask_login.current_user
     # Check if user is allowed to comment
     # TODO: allow coaches to comment
-    if author_id != upload.user_id:
+    if author.id != upload.user_id:
         return failure_response("User forbidden to comment on upload.", 403)
 
     # Check for valid text
@@ -245,19 +288,43 @@ def create_comment(upload_id):
         return failure_response("Invalid comment text.", 400)
 
     # Create comment row
-    comment = Comment(author_id=author_id, upload_id=upload_id, text=text)
+    comment = Comment(author_id=author.id, upload_id=upload_id, text=text)
     db.session.add(comment)
     db.session.commit()
 
     return success_response(comment.serialize(), 201)
 
 
-@app.route("/api/user/<int:user_id>/buckets/", methods=['POST'])
-def create_bucket(user_id):
-    # Check of user exists
-    user = User.query.filter_by(id=user_id).first()
-    if user is None:
-        return failure_response("User does not exist.")
+@app.route("/comments/<int:comment_id>/", methods=['DELETE'])
+@flask_login.login_required
+def delete_comment(comment_id):
+    # Check for valid comment
+    comment = Comment.query.filter_by(id=comment_id).first()
+    if comment is None:
+        return failure_response("Comment not found.")
+
+    # Check that user is allowed to delete comment
+    # Upload owners can delete all comments under upload. Commenters can delete their comments.
+    user = flask_login.current_user
+    upload = Upload.query.filter_by(id=comment.upload_id).first()
+    upload_owner = user.id == upload.user_id
+    commenter = user.id == comment.author_id
+    if not (upload_owner or commenter):
+        return failure_response("User forbidden to delete comment.", 403)
+
+    # Delete
+    # Note that deleting like this respects the cascades defined at the ORM level
+    # Comment.query.filter_by(...).delete() does not respect cascades!
+    db.session.delete(comment)
+    db.session.commit()
+
+    return success_response(code=204)
+
+
+@app.route("/buckets/", methods=['POST'])
+@flask_login.login_required
+def create_bucket():
+    user = flask_login.current_user
 
     # Get name from request body
     body = json.loads(request.data)
@@ -265,39 +332,37 @@ def create_bucket(user_id):
     if name is None:
         return failure_response("Could not get bucket name from request body.", 400)
 
-    bucket = Bucket(user_id=user_id, name=name)
+    # Create the bucket
+    bucket = Bucket(user_id=user.id, name=name)
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.sub_serialize(), 201)
+    return success_response(bucket.serialize(aws=aws), 201)
 
 
-@app.route("/api/user/<int:user_id>/bucket/<int:bucket_id>/")
-def get_uploads_in_bucket(user_id, bucket_id):
+@app.route("/buckets/<int:bucket_id>/")
+@flask_login.login_required
+def get_uploads_in_bucket(bucket_id):
+    user = flask_login.current_user
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
         return failure_response("Bucket not found.")
-    elif bucket.user_id != user_id:
+    elif bucket.user_id != user.id:
         return failure_response("User forbidden to access this bucket.", 403)
 
-    return success_response(bucket.serialize(aws=aws))
+    return success_response(bucket.serialize(aws=aws, show_uploads=True))
 
 
-@app.route("/api/user/<int:user_id>/buckets/")
-def get_buckets(user_id):
-    user = User.query.filter_by(id=user_id).first()
-    if user is None:
-        return failure_response("User not found.")
-
-    return success_response({"buckets": [b.sub_serialize() for b in user.buckets]})
+@app.route("/buckets/")
+@flask_login.login_required
+def get_buckets():
+    user = flask_login.current_user
+    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
 
 
-#@app.route("/api/")
-def create_test_user():
-    user = User(google_id="testGID", display_name="Foo Bar", email="ilovetennis@gmail.com", type=0)
-    db.session.add(user)
-    db.session.commit()
-    return success_response(user.serialize())
+@app.route("/health/")
+def health_check():
+    return success_response({"status": "OK"})
 
 
 if __name__ == "__main__":

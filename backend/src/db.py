@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -31,12 +31,33 @@ class User(db.Model):
             "type": self.type
         }
 
+    # Methods required by Flask-Login
+
+    @property
+    def is_authenticated(self):
+        # If the user model is accessible then the user is authenticated
+        return True
+
+    @property
+    def is_active(self):
+        # We don't support inactive/banned accounts
+        return True
+
+    @property
+    def is_anonymous(self):
+        # We don't support anonymous users
+        return False
+
+    def get_id(self):
+        """:return: unicode representation of user ID"""
+        return str(self.id)
+
 
 # Upload Table
 class Upload(db.Model):
     __tablename__ = 'upload'
     id = db.Column(db.Integer, primary_key=True)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
@@ -71,7 +92,7 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     upload_id = db.Column(db.Integer, db.ForeignKey("upload.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     text = db.Column(db.String, nullable=False)
 
     def serialize(self, show_upload_id=True):
@@ -94,17 +115,22 @@ class Bucket(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     uploads = db.relationship("Upload", cascade="delete")
 
-    def serialize(self, aws):
-        return {
+    def serialize(self, aws, show_uploads=False):
+        res = {
             "id": self.id,
             "name": self.name,
             "user_id": self.user_id,
-            "uploads": [u.serialize(aws) for u in self.uploads]
         }
+        last_modified = self.__get_last_modified()
+        if last_modified is not None:
+            res["last_modified"] = last_modified
+        if show_uploads:
+            res["uploads"] = [u.serialize(aws) for u in self.uploads]
+        return res
 
-    def sub_serialize(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "user_id": self.user_id
-        }
+    def __get_last_modified(self) -> datetime.datetime:
+        """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
+        most_recent = Upload.query.filter_by(bucket_id=self.id).order_by(Upload.created.desc()).first()
+        if most_recent is None:
+            return None
+        return most_recent.created.isoformat()

@@ -6,11 +6,16 @@
 //
 
 import Foundation
+import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
-    private let host = "https://tennistrainerapi.2h4barifgg1uc.us-east-2.cs.amazonlightsail.com"
+    @Published var progress: Progress = Progress()
+    @Published var uploading = false
+    @Published var uploadingStatus = ""
+    public let host = "https://api.myace.ai"
+    
     
     //    enum State {
     //        case idle
@@ -37,7 +42,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(SharedData.self, from: data)
             
             DispatchQueue.main.sync {
@@ -50,12 +55,12 @@ class NetworkController: ObservableObject {
     
     // GET
     func getAllUploads(uid: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/uploads/")!
+        let url = URL(string: "\(host)/uploads/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode([Upload].self, from: data) {
                 userData.uploads = decodedResponse
             }
@@ -67,12 +72,14 @@ class NetworkController: ObservableObject {
     
     // GET
     func getUpload(uid: String, uploadID: String) async throws -> Upload {
-        let url = URL(string: "\(host)/api/user/\(uid)/upload/\(uploadID)/")!
+        let url = URL(string: "\(host)/uploads/\(uploadID)/")!
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print(data.prettyPrintedJSONString)
+            print(response)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
                 return decodedResponse
             }
@@ -83,60 +90,7 @@ class NetworkController: ObservableObject {
         //        return Upload(id: -1, created: "?", display_title: "?", stream_ready: false, bucket_id: -1, comments: [], url: "?")
     }
     
-    // POST - NEED TO FIX THE VIDEORES STRUCT CUZ IT HAS "-" IN SPEC INSTEAD OF "_"
-    func upload(filename: String, display_title: String, bucket_id: Int, uid: String) async throws -> VideoRes {
-        let req: VideoReq = VideoReq(filename: filename, display_title: display_title, bucket_id: bucket_id)
-        
-        guard let encoded = try? JSONEncoder().encode(req) else {
-            
-            throw NetworkError.failedEncode
-            //            return VideoRes(id: "?", url: "?", fields: Field(key: "", x_amz_algorithm: "", x_amz_credential: "", x_amz_date: "", policy: "", x_amz_signature: ""))
-        }
-        
-        let url = URL(string: "\(host)/api/user/\(uid)/upload/")!
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            let decodedResponse = try decoder.decode(VideoRes.self, from: data)
-            return decodedResponse
-        } catch {
-            
-            throw NetworkError.failedDecode
-        }
-        throw NetworkError.noReturn
-        //        return VideoRes(id: "?", url: "?", fields: Field(key: "", x_amz_algorithm: "", x_amz_credential: "", x_amz_date: "", policy: "", x_amz_signature: ""))
-    }
     
-    // POST - HOW THE HELL DO YOU DO A POST REQUEST WITHOUT SENDING ANYTHING???
-    func convert(uid: String, uploadID: String) async throws {
-        //        let req: VideoReq = VideoReq(filename: filename, display_title: display_title)
-        //
-        //        guard let encoded = try? JSONEncoder().encode(req) else {
-        //
-        //            throw NetworkError.failedEncode
-        //        }
-        //
-        //        let url = URL(string: "\(host)/api/user/\(uid)/upload/\(uploadID)/convert/")!
-        //
-        //        var request = URLRequest(url: url)
-        //        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        //        request.httpMethod = "POST"
-        //
-        //        do {
-        //            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-        //            let decodedResponse = try JSONDecoder().decode(VideoRes.self, from: data)
-        //            //print("Token: \(decodedResponse.token)")
-        //        } catch {
-        //
-        //            throw NetworkError.failedDecode
-        //        }
-    }
     
     // POST
     func addComment(uploadID: String, authorID: String, text: String) async throws {
@@ -147,7 +101,7 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/api/upload/\(uploadID)/comment/")!
+        let url = URL(string: "\(host)/uploads/\(uploadID)/comments/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -156,7 +110,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
             for i in userData.uploads.indices {
                 if (userData.uploads[i].id == decodedResponse.upload_id) {
@@ -178,7 +132,7 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/api/user/\(userID)/buckets/")!
+        let url = URL(string: "\(host)/buckets/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -187,9 +141,12 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Bucket.self, from: data)
-            userData.buckets.append(decodedResponse)
+            DispatchQueue.main.sync {
+                userData.buckets.append(decodedResponse)
+            }
+            
         } catch {
             
             throw NetworkError.failedDecode
@@ -198,17 +155,18 @@ class NetworkController: ObservableObject {
     
     // GET
     func getBucketContents(uid: String, bucketID: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/bucket/\(bucketID)/")!
+        let url = URL(string: "\(host)/buckets/\(bucketID)/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketContents.self, from: data)
-            print("Got given bucket!")
-            DispatchQueue.main.async {
+            DispatchQueue.main.sync {
                 self.userData.bucketContents = decodedResponse
-                print(self.userData.bucketContents)
+                self.userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                print("Got given bucket in nc!")
+                //print(self.userData.bucketContents)
             }
             
         } catch {
@@ -218,22 +176,20 @@ class NetworkController: ObservableObject {
     
     // GET
     func getBuckets(uid: String) async throws {
-        let url = URL(string: "\(host)/api/user/\(uid)/buckets")!
+        let url = URL(string: "\(host)/buckets/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             
-            //print("JSON Data: \(data.description.data(using: .utf8)!.prettyPrintedJSONString)")
+            //print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
             DispatchQueue.main.sync {
                 userData.buckets = decodedResponse.buckets
-                //self.state = .loaded(self.userData)
             }
             
         } catch {
-            //self.state = .failed(NetworkError.failedDecode)
             throw NetworkError.failedDecode
         }
     }
@@ -243,7 +199,24 @@ class NetworkController: ObservableObject {
         case failedEncode
         case failedDecode
         case noReturn
+        case failedUpload
     }
+}
+
+extension DateFormatter {
+    static let iso8601Full: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.timeZone = .current
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+    static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
 }
 
 extension Data {
@@ -259,7 +232,7 @@ extension Data {
 //private extension NetworkController {
 //    func authenticationDecode(_ JSONdata: Data) {
 //        let decoder = JSONDecoder()
-//        decoder.dateDecodingStrategy = .iso8601
+//        decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
 //        let response: SharedData = (try? decoder.decode(SharedData.self, from: JSONdata)) ?? SharedData(userType: -1, uid: "", display_name: "", email: "")
 //        userData.shared = response
 //    }
