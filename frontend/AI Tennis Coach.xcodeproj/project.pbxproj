@@ -50,6 +50,7 @@
 		25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
 		592E5CCCD3A66482BF3E0BF7 /* Pods_AI_Tennis_Coach__iOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */; };
 		947694C06B316AF4DE3949A6 /* Pods_AI_Tennis_Coach__macOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */; };
+		9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34C02790B21A00FAC339 /* CameraViewWithVideoCapture.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 		9A95177027821E7B003276A2 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176927821E7A003276A2 /* FrameView.swift */; };
 		9A95177127821E7B003276A2 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176927821E7A003276A2 /* FrameView.swift */; };
@@ -115,6 +116,7 @@
 		3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).release.xcconfig"; sourceTree = "<group>"; };
 		3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).debug.xcconfig"; sourceTree = "<group>"; };
 		4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).release.xcconfig"; sourceTree = "<group>"; };
+		9A2C34C02790B21A00FAC339 /* CameraViewWithVideoCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewWithVideoCapture.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9A95176927821E7A003276A2 /* FrameView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameView.swift; sourceTree = "<group>"; };
 		9A95176B27821E7A003276A2 /* ErrorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 		2558E2A02773BA260056DD17 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				9A2C34BF2790B07D00FAC339 /* CameraVideoCapture */,
 				9A95178027821F2F003276A2 /* Camera */,
 				9A95177C27821F2E003276A2 /* Extensions */,
 				9A95177E27821F2E003276A2 /* ViewModels */,
@@ -286,6 +289,14 @@
 				3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		9A2C34BF2790B07D00FAC339 /* CameraVideoCapture */ = {
+			isa = PBXGroup;
+			children = (
+				9A2C34C02790B21A00FAC339 /* CameraViewWithVideoCapture.swift */,
+			);
+			path = CameraVideoCapture;
 			sourceTree = "<group>";
 		};
 		9A95176627821E67003276A2 /* CameraViews */ = {
@@ -556,6 +567,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2552DDAF277CCDA40035EFB4 /* NetworkController.swift in Sources */,
+				9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */,
 				25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				2552DDAC277CCD750035EFB4 /* UserData.swift in Sources */,
