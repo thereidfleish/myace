@@ -45,7 +45,7 @@ class AWS:
         #       A possible fix would be accumulating invalidation request IDs in a local var rather than member
         self.__invalidation_ids = []
 
-    def __rsa_sign(self, message):
+    def rsa_sign(self, message):
         """Sign a message with self.cf_private_key_file.
 
         :return: The signed message
