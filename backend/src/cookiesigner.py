@@ -1,0 +1,61 @@
+from media import AWS
+import time
+import json
+import base64
+import os
+
+
+def _generate_cookies(policy: tuple, signature: str, cloudfront_id: str) -> dict:
+    return {
+        "CloudFront-Policy": policy,
+        "CloudFront-Signature": signature,
+        "CloudFront-Key-Pair-Id": cloudfront_id
+    }
+
+
+def _replace_unsupported_chars(message: str) -> str:
+    return message.replace("+", "-").replace("=", "_").replace("/", "~")
+
+
+class CookieSigner:
+
+    def __init__(self, aws: AWS, expiration_in_hrs: int, cf_keypair_id: str):
+        self.aws = aws
+        self.expiration_in_hrs = expiration_in_hrs
+        self.__cf_keypair_id = cf_keypair_id
+        self.object_url_header = os.environ.get("S3_OBJECT_URL_HEADER")
+
+    def __expiration_time(self) -> int:
+        return int(time.time()) + (self.expiration_in_hrs * 3600)
+
+    def __generate_policy_cookie(self, url: str) -> tuple:
+        policy_dict = {
+            "Statement": [
+                {
+                    "Resource": url,
+                    "Condition": {
+                        "DateLessThan": {
+                            "AWS:EpochTime": self.__expiration_time()
+                        }
+                    }
+                }
+            ]
+        }
+
+        # Using separators=(',', ':') removes seperator whitespace
+        policy_json = json.dumps(policy_dict, separators=(",", ":"))
+
+        policy_64 = str(base64.b64encode(policy_json.encode("utf-8")), "utf-8")
+        policy_64 = _replace_unsupported_chars(policy_64)
+        return policy_json, policy_64
+
+    def __generate_signature(self, policy: json) -> str:
+        sig_bytes = self.aws.rsa_sign(policy.encode('utf-8'))
+        sig_64 = _replace_unsupported_chars(str(base64.b64encode(sig_bytes), "utf-8"))
+        return sig_64
+
+    def generate_signed_cookies(self, upload_id: int) -> dict:
+        url = self.object_url_header + str(upload_id) + "/*"
+        policy_json, policy64 = self.__generate_policy_cookie(url)
+        signature = self.__generate_signature(policy_json)
+        return _generate_cookies(policy64, signature, self.__cf_keypair_id)
