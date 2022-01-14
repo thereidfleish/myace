@@ -12,7 +12,7 @@ struct ContentView: View {
     @StateObject var studentInfo = StudentInfo()
     @StateObject var coachInfo = CoachInfo()
     @EnvironmentObject private var networkController: NetworkController
-    
+    @StateObject var camera = CameraCapture()
     var body: some View {
         TabView(selection: $selection) {
             if (networkController.userData.shared.type == 0) {
@@ -55,7 +55,33 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            CameraView()
+            //CameraView()
+            ZStack {
+                //CameraCaptureRepresentable()
+                CamPreviewView(camera: camera)
+                    .ignoresSafeArea()
+                VStack {
+                    Spacer()
+                    Button(action: camera.startCapture, label: {
+                        ZStack {
+                            
+                            if camera.movieOutput.isRecording == false {
+                                Circle()
+                                .fill(Color.red)
+                                .frame(width: 65, height: 65)
+                            }
+                            else {
+                                Rectangle()
+                                .fill(Color.red)
+                                .frame(width: 20, height: 20)
+                            }
+                            Circle()
+                                .stroke(Color.white, lineWidth: 2)
+                                .frame(width: 75, height: 75)
+                        }
+                    })
+                }
+            }
                 .tabItem {
                     VStack {
                         Image(systemName: "camera.fill")
