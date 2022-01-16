@@ -124,10 +124,10 @@ struct StudentUploadView: View {
                                 .padding(.horizontal)
                                 .shadow(radius: 5)
                             }
+                        }
+                            
                         }.sheet(isPresented: $showingNewBucketView) {
                             NewBucketView()
-                            
-                        }
                         
                     }
                 }

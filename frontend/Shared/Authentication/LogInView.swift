@@ -161,7 +161,7 @@ struct LogInView: View {
     func signIn(withVC vc: UIViewController) {
         GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
             guard error == nil else {
-                print(error)
+                print(error.debugDescription)
                 awaiting = false
                 return
                 
@@ -208,6 +208,7 @@ struct LogInView: View {
     
     func tokenSignIn(idToken: String) {
         let json: [String: Any] = ["token": idToken, "type": typeSelection]
+        print(idToken)
         
         //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
         //            return
@@ -223,6 +224,8 @@ struct LogInView: View {
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
             print(response)
             print(data!.prettyPrintedJSONString)
+            print("NO \(error.debugDescription)")
+            
             
             guard let data = data else {
                 print("URLSession dataTask error:", error ?? "nil")

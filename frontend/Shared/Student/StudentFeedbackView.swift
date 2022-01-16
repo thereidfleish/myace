@@ -30,7 +30,9 @@ struct StudentFeedbackView: View {
                     awaiting = true
                     print(uploadID)
                     try await upload = nc.getUpload(uid: "\(nc.userData.shared.id)", uploadID: uploadID)
+                    //try await nc.getUpload2(url: upload.url!)
                     player = AVPlayer(url:  URL(string: upload.url!)!)
+                    print(upload.url!)
                     print("DONE!")
                     awaiting = false
                 } catch {
