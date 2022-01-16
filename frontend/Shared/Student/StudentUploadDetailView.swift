@@ -31,6 +31,8 @@ struct StudentUploadDetailView: View {
     @State private var uploading = false
     @State private var uploadingStatus = ""
     @State private var progressPercent = ""
+    @State private var showsUploadAlert = false
+    @State private var uploadName = ""
     
     func initialize() {
         Task {
@@ -51,12 +53,12 @@ struct StudentUploadDetailView: View {
         }
     }
     
-    func uploadInit(fileURL: URL) {
+    func uploadInit(fileURL: URL, uploadName: String) {
         Task {
             do {
                 uploading = true
                 uploadingStatus = "Uploading..."
-                try await upload(display_title: "d", bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
+                try await upload(display_title: uploadName, bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -231,13 +233,60 @@ struct StudentUploadDetailView: View {
                                     case .success(let url):
                                         self.url = url
                                         print(url)
-                                        uploadInit(fileURL: url[0])
+                                        showsUploadAlert = true
+                                        //uploadInit(fileURL: url[0])
                                     case .failure(let error):
                                         print(error)
                                         self.url = []
                                     }
                                 }
-                            
+                                   .sheet(isPresented: $showsUploadAlert) {
+                                       VStack {
+                                           Text("Set Video Name")
+                                               .font(.largeTitle)
+                                               .fontWeight(.bold)
+                                               .foregroundColor(.green)
+                                               .padding([.top, .leading, .trailing])
+                                           TextField("Sample Video Name", text: $uploadName)
+                                               .padding([.top, .leading, .trailing])
+                                           Spacer()
+                                           Image("testimage")
+                                               .frame(maxWidth: .infinity, maxHeight: 500)
+                                               .cornerRadius(10)
+                                               .shadow(radius: 5)
+                                           Spacer()
+                                           Spacer()
+                                           HStack {
+                                               Button(action: {
+                                                   showsUploadAlert = false
+                                               }, label: {
+                                                   Text("Cancel")                            .padding(.vertical, 15)
+                                                       .frame(maxWidth: .infinity)
+                                                       .background(.white)
+                                                       .cornerRadius(10)
+                                                       .foregroundColor(.green)
+                                                       .overlay(
+                                                           RoundedRectangle(cornerRadius: 10)
+                                                               .stroke(Color.green, lineWidth: 2)
+                                                        )
+                                               })
+                                               Spacer()
+                                               Button(action: {
+                                                   uploadInit(fileURL: url[0], uploadName: uploadName)
+                                                   showsUploadAlert = false
+                                               }, label: {
+                                                   Text("Upload")
+                                                       .padding(.vertical, 15)
+                                                       .frame(maxWidth: .infinity)
+                                                       .background(Color.green)
+                                                       .cornerRadius(10)
+                                                       .foregroundColor(.white)
+                                               })
+                                           }
+                                           .padding([.top, .leading, .trailing])
+                                       }
+                 
+                                   }
                             Button(action: {
                                 isShowingCamera.toggle()
                             }, label: {
@@ -251,6 +300,7 @@ struct StudentUploadDetailView: View {
                                 .padding([.horizontal, .top, .bottom])
                                 .sheet(isPresented: $isShowingCamera) {
                                     CameraView()
+
                                 }
                         }
                         
