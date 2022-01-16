@@ -34,26 +34,52 @@ struct CamPreviewView: UIViewRepresentable {
     }
 }
 
-class VideoPlayback: UIViewController {
+struct VideoPlaybackView: UIViewRepresentable {
+    @ObservedObject var vp : VideoPlayback
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: UIScreen.main.bounds)
+        vp.viewDidLoad()
+        view.layer.addSublayer(vp.avPlayerLayer)
+        return view
+    }
 
+    func updateUIView(_ uiView: UIView, context: Context) {
+        
+    }
+}
+
+class VideoPlayback: UIViewController, ObservableObject {
+    static var instance : VideoPlayback?
     let avPlayer = AVPlayer()
     var avPlayerLayer: AVPlayerLayer!
 
-    var videoURL: URL!
+    var videoURL: URL?
     //connect this to your uiview in storyboard
     // @IBOutlet weak var videoView: UIView!
 
+    static func getInstance() -> VideoPlayback {
+        if let safeInstance = instance {
+            return safeInstance
+        }
+        else {
+            instance = VideoPlayback()
+            return instance!
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        print("helloooooooo")
         avPlayerLayer = AVPlayerLayer(player: avPlayer)
         avPlayerLayer.frame = view.bounds
         avPlayerLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
         // videoView.layer.insertSublayer(avPlayerLayer, at: 0)
     
         view.layoutIfNeeded()
-    
-        let playerItem = AVPlayerItem(url: videoURL as URL)
+        guard let videoURLSafe = videoURL else {
+            return
+        }
+        let playerItem = AVPlayerItem(url: videoURLSafe as URL)
         avPlayer.replaceCurrentItem(with: playerItem)
     
         avPlayer.play()
@@ -257,6 +283,7 @@ class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputReco
     func capture(_ captureOutput: AVCaptureFileOutput!, didStartRecordingToOutputFileAt fileURL: URL!, fromConnections connections: [Any]!) {
     
     }
+    
 
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
     
@@ -271,8 +298,11 @@ class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputReco
             PHPhotoLibrary.shared().performChanges({
                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoRecorded)
             })
-            performSegue(withIdentifier: "showVideo", sender: videoRecorded)
-        
+            //performSegue(withIdentifier: "showVideo", sender: videoRecorded)
+            
+            // Will work on video playback later. Leaving the code here for now.
+            //VideoPlayback.getInstance().videoURL = videoRecorded
+            
         }
     
     }

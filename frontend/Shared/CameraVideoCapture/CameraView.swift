@@ -8,12 +8,14 @@
 import SwiftUI
 
 struct CameraView: View {
-    @StateObject var camera = CameraCapture()
+    @ObservedObject var camera = CameraCapture()
+    @ObservedObject var vp = VideoPlayback.getInstance()
     @State var isRecording = false
     var body: some View {
         ZStack {
             CamPreviewView(camera: camera)
                 .ignoresSafeArea()
+
             VStack {
                 Spacer()
                 Button(action: {
@@ -37,6 +39,14 @@ struct CameraView: View {
                     }
                 })
             }
+            if vp.videoURL != nil {
+                ZStack {
+                    Text("Hello")
+                    VideoPlaybackView(vp: vp)
+                        .ignoresSafeArea()
+                }
+            }
+                
         }
         
     }
