@@ -251,6 +251,7 @@ struct StudentUploadDetailView: View {
                                 .padding([.horizontal, .top, .bottom])
                                 .sheet(isPresented: $isShowingCamera) {
                                     CameraView()
+
                                 }
                         }
                         

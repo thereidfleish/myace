@@ -8,42 +8,6 @@
 import SwiftUI
 import GoogleSignIn
 
-//class GoogleStuff: UIViewController, ObservableObject {
-//    static var shared = GoogleStuff()
-//    var googleSignIn = GIDSignIn.sharedInstance
-//    var googleId = ""
-//    var googleIdToken = ""
-//    var googleFirstName = ""
-//    var googleLastName = ""
-//    var googleEmail = ""
-//    var googleProfileURL = ""
-//
-//
-//
-//    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
-//
-//        guard user != nil else {
-//            print("Uh oh. The user cancelled the Google login.")
-//            return
-//        }
-//
-//        print("TOKEN => \(user.authentication.idToken!)")
-//
-//
-//    }
-//
-//    func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
-//
-//        guard user != nil else {
-//            print("Uh oh. The user cancelled the Google login.")
-//            return
-//        }
-//
-//        print("TOKEN => \(user.authentication.idToken!)")
-//
-//    }
-//}
-
 struct GoogleAuthRepresentable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> some UIViewController {
         //let vc = UIViewController()

@@ -12,7 +12,6 @@ struct ContentView: View {
     @StateObject var studentInfo = StudentInfo()
     @StateObject var coachInfo = CoachInfo()
     @EnvironmentObject private var networkController: NetworkController
-    
     var body: some View {
         TabView(selection: $selection) {
             if (networkController.userData.shared.type == 0) {
