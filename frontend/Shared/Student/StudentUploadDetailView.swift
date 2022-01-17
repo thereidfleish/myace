@@ -12,6 +12,7 @@ import Alamofire
 struct StudentUploadDetailView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingFeedback = false
+    @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     
     // Settings for the Feedback/Video view
     @State private var showOnlyVideo = false
@@ -241,49 +242,46 @@ struct StudentUploadDetailView: View {
                                     }
                                 }
                                    .sheet(isPresented: $showsUploadAlert) {
-                                       VStack {
-                                           Text("Set Video Name")
-                                               .font(.largeTitle)
-                                               .fontWeight(.bold)
-                                               .foregroundColor(.green)
-                                               .padding([.top, .leading, .trailing])
-                                           TextField("Sample Video Name", text: $uploadName)
-                                               .padding([.top, .leading, .trailing])
-                                           Spacer()
-                                           Image("testimage")
-                                               .frame(maxWidth: .infinity, maxHeight: 500)
-                                               .cornerRadius(10)
-                                               .shadow(radius: 5)
-                                           Spacer()
-                                           Spacer()
-                                           HStack {
-                                               Button(action: {
-                                                   showsUploadAlert = false
-                                               }, label: {
-                                                   Text("Cancel")                            .padding(.vertical, 15)
-                                                       .frame(maxWidth: .infinity)
-                                                       .background(.white)
+                                       NavigationView {
+                                               VStack {
+                                                   TextField("My Video", text: $uploadName)
+                                                       .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                       //.padding([.top, .leading, .trailing])
+                                                   Spacer()
+                                                   Image("testimage")
+                                                       .resizable()
+                                                       .scaledToFill()
+                                                       .frame(maxWidth: 300, maxHeight: 300)
                                                        .cornerRadius(10)
-                                                       .foregroundColor(.green)
-                                                       .overlay(
-                                                           RoundedRectangle(cornerRadius: 10)
-                                                               .stroke(Color.green, lineWidth: 2)
-                                                        )
-                                               })
-                                               Spacer()
-                                               Button(action: {
-                                                   uploadInit(fileURL: url[0], uploadName: uploadName)
-                                                   showsUploadAlert = false
-                                               }, label: {
-                                                   Text("Upload")
-                                                       .padding(.vertical, 15)
-                                                       .frame(maxWidth: .infinity)
-                                                       .background(Color.green)
-                                                       .cornerRadius(10)
-                                                       .foregroundColor(.white)
-                                               })
-                                           }
-                                           .padding([.top, .leading, .trailing])
+                                                       .shadow(radius: 5)
+                                                       
+                                                   
+                                                   Spacer()
+                                                   
+                                                   Button(action: {
+                                                       showsUploadAlert = false
+                                                       uploadInit(fileURL: url[0], uploadName: uploadName)
+                                                       
+                                                   }, label: {
+                                                       Text("Upload")
+                                                           .padding(.vertical, 15)
+                                                           .frame(maxWidth: .infinity)
+                                                           .background(Color.green)
+                                                           .cornerRadius(10)
+                                                           .foregroundColor(.white)
+                                                           //.padding([.top, .leading, .trailing])
+                                                   })
+                                                   
+                                               }.padding()
+                                                   .navigationTitle("Set Video Title")
+                                                       .navigationBarItems(leading: Button(action: {
+                                                           showsUploadAlert = false
+                                                       }, label: {
+                                                           Text("Cancel")
+                                                               .foregroundColor(Color.green)
+                                                               .fontWeight(.bold)
+                                                   }))
+                                           
                                        }
                  
                                    }
@@ -319,7 +317,7 @@ struct StudentUploadDetailView: View {
                                             .shadow(radius: 5)
                                     }
                                     
-                                }
+                                }.disabled(!upload.stream_ready)
                                 
                                 //                                 Button(action: {
                                 //                                     showingFeedback.toggle()
@@ -340,9 +338,13 @@ struct StudentUploadDetailView: View {
                                 //                                 }
                                 
                                 VStack(alignment: .leading) {
-                                    Text(upload.created.formatted())
-                                        .font(.title2)
+                                    Text(upload.display_title)
+                                        .font(.headline)
                                         .fontWeight(.heavy)
+                                        .foregroundColor(Color.green)
+                                    
+                                    Text(upload.created.formatted())
+                                        .font(.subheadline)
                                         .foregroundColor(Color.green)
                                     
                                     Text("\(upload.id)")
