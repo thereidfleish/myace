@@ -181,6 +181,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketContents.self, from: data)
