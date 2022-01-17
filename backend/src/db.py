@@ -1,4 +1,11 @@
+# Allow forward declaration type hints
+from __future__ import annotations
+
 import datetime
+import enum
+import random
+import re
+import string
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -10,9 +17,13 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'user'
 
-    # Local User ID and Google Account ID combine to make primary key.
     id = db.Column(db.Integer, primary_key=True)
     google_id = db.Column(db.String, nullable=False)
+
+    # Matches all characters disallowed in usernames. Allow alphanumeric, underscores, & periods.
+    ILLEGAL_UNAME_PATTERN = r"[^\w\.]"
+    username = db.Column(db.String, nullable=False, unique=True)
+
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     # 0 = player, 1 = coach
@@ -21,15 +32,50 @@ class User(db.Model):
     comments = db.relationship("Comment", cascade="delete")
     buckets = db.relationship("Bucket", cascade="delete")
 
-    # flask_sqlalchemy has an implicit constructor with column names
+    def __init__(self, google_id, display_name, email, type):
+        self.google_id = google_id
+        self.username = self._generate_unique_username(display_name)
+        self.display_name = display_name
+        self.email = email
+        self.type = type
 
     def serialize(self):
         return {
             "id": self.id,
+            "username": self.username,
             "display_name": self.display_name,
             "email": self.email,
             "type": self.type
         }
+
+    def get_relationship_with(self, other_user_id: int) -> UserRelationship | None:
+        """:return: a relationship with another user, or None if DNE"""
+        a_to_b = db.session.query(UserRelationship).get((self.id, other_user_id))
+        if a_to_b is not None:
+            return a_to_b
+        b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
+        return b_to_a
+
+    @classmethod
+    def _generate_unique_username(cls, display_name: str) -> str:
+        """:return: a unique, legal username based off the user's display name"""
+        # Santitize user's display name to use as root of username
+        sanitized = re.sub(cls.ILLEGAL_UNAME_PATTERN, "", display_name).lower()
+        # If sanitized display name is empty, use 3 random characters
+        if sanitized == "":
+            sanitized = "".join(random.choice(string.ascii_lowercase) for _ in range(3))
+        # Add random digit
+        username = sanitized + random.choice(string.digits)
+        # Continue adding digits until unique
+        while not cls.is_username_unique(username):
+            username += random.choice(string.digits)
+        return username
+
+    @staticmethod
+    def is_username_unique(username: str) -> bool:
+        """:return: if a username is unique"""
+        return User.query.filter_by(username=username).first() is None
+
 
     # Methods required by Flask-Login
 
@@ -53,6 +99,41 @@ class User(db.Model):
         return str(self.id)
 
 
+@enum.unique
+class RelationshipType(enum.Enum):
+    # user A has a pending friend request to user B
+    REQUESTED = enum.auto()
+    # user A and B are mutual friends
+    FRIENDS = enum.auto()
+    # user A has blocked user B
+    A_BLOCKED_B = enum.auto()
+    B_BLOCKED_A = enum.auto()
+    # both users have blocked each other
+    MUTUAL_BLOCKED = enum.auto()
+
+
+# User relationship association object
+class UserRelationship(db.Model):
+    __tablename__ = 'user_relationship'
+    # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
+    # However, a duplicate relationship can still be exist if the user IDs are reversed.
+    # This must never happen.
+    user_a_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
+    user_b_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
+    # Stores enum variable names as strings in DB. For now I think this is OK
+    # bc it provides readability while only slightly compromising disk space.
+    type = db.Column(db.Enum(RelationshipType), nullable=False)
+    # The datetime of the last type change. Interpreted differently depending
+    # on the type. Ex. if type is FRIENDS then means 'when users became friends'
+    last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
+
+    def set_type(self, type: RelationshipType):
+        """Change and commit the relationship type"""
+        self.type = type
+        self.last_changed = datetime.datetime.utcnow()
+        db.session.commit()
+
+
 # Upload Table
 class Upload(db.Model):
     __tablename__ = 'upload'
@@ -70,12 +151,12 @@ class Upload(db.Model):
     comments = db.relationship("Comment", cascade="delete")
 
     def serialize(self, aws):
+        # Check stream_ready
         if not self.stream_ready and self.mediaconvert_job_id is not None:
             status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
             if status == 'COMPLETE':
                 self.stream_ready = True
-            print("fetching status. status=" + status)
-            db.session.commit()
+                db.session.commit()
         return {
             "id": self.id,
             "created": self.created.isoformat(),

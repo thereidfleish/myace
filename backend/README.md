@@ -8,10 +8,6 @@
 
 This route establishes a session given a Google OAuth token and returns a user. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
 
-- `type`:
-  - 0: player
-  - 1: coach
-
 Request:
 ```json
 {
@@ -20,6 +16,10 @@ Request:
 }
 ```
 
+- `type`:
+  - 0: player
+  - 1: coach
+
 Response:
 - 200: User fetched.
 - 201: User created.
@@ -27,6 +27,7 @@ Response:
 ```json
 {
     "id": 1,
+    "username": "{User's username}",
     "display_name": "{User's display name}",
     "email": "{User's email}",
     "type": 0
@@ -43,9 +44,9 @@ Request: N/A
 
 Response: N/A
 
-### Get user
+### Get current user
 
-**GET /user/**
+**GET /users/me/**
 
 This route returns the user who is currently logged in.
 
@@ -56,6 +57,34 @@ Response:
 ```json
 {
     "id": 1,
+    "username": "{User's username}",
+    "display_name": "{User's display name}",
+    "email": "{User's email}",
+    "type": 0
+}
+```
+
+### Update current user
+
+**PUT /users/me/**
+
+This route edits the profile of the user who is currently logged in. All fields are optional.
+
+Request:
+
+```json
+{
+    "username": "{New username}",
+    "display_name": "{New display name}",
+}
+```
+
+Response:
+
+```json
+{
+    "id": 1,
+    "username": "{User's username}",
     "display_name": "{User's display name}",
     "email": "{User's email}",
     "type": 0
@@ -203,6 +232,25 @@ Response:
 }
 ```
 
+### Delete upload
+
+**DELETE /uploads/{upload_id}/**
+
+Note: Code 204 implies that the entry was found in both the database and the S3 bucket. Code 200 implies that it was
+found in the database but not the S3 bucket. The database entry is still deleted.
+
+Request: N/A
+
+Response:
+
+204: N/A
+
+200:
+```json
+{
+  "message": "Found entry in database but not in S3."
+}
+```
 ## Comments
 
 ### Create a comment
@@ -262,7 +310,7 @@ Response:
 {
     "id": 1,
     "name": "{bucket name}",
-    "user_id": 1,
+    "user_id": 1
 }
 ```
 
@@ -325,3 +373,114 @@ Response:
     ]
 }
 ```
+
+## Friends
+
+### Search for users
+
+**GET /users?q=...**
+
+This route returns a list of users given a URL encoded query. The query could include names or usernames. TODO How to handle emails? How to search by ID?
+
+Request: N/A??
+
+Response: N/A???
+
+### Create a friend request
+
+**POST /friends/requests/**
+
+This route requests to friend a specified user. The current user cannot have an existing relationship status with the specified user.
+For example, requesting to friend someone who has already requested to friend you will yield an error.
+
+Request:
+```json
+{
+    "user_id": 1
+}
+```
+
+Response: N/A
+
+### Get all friend requests
+
+**GET /friends/requests/**
+
+This route returns a list users associated with incoming and outgoing friend requests. An incoming friend is a
+user who has requested to friend you, and an outgoing friend is someone who you have requested to friend.
+
+Request: N/A
+
+Response:
+```json
+{
+    "incoming": [
+        {
+            "id": 1,
+            "username": "{User's username}",
+            "display_name": "{User's display name}",
+            "email": "{User's email}",
+            "type": 0
+        },
+        ...
+    ],
+    "outgoing": [
+        ...
+    ]
+}
+```
+
+### Update incoming friend request
+
+**PUT /friends/requests/{other_user_id}/**
+
+This route responds to an incoming friend request.
+
+Request:
+```json
+{
+    "status": "declined"
+}
+```
+
+- `status`: "accepted" | "declined"
+
+Response: N/A
+
+### Delete outgoing friend request
+
+**DELETE /friends/requests/{other_user_id}/**
+
+Request: N/A
+
+Response: N/A
+
+### Get all friends
+
+**GET /friends/**
+
+Request: N/A
+
+Response:
+```json
+{
+    "friends": [
+        {
+            "id": 1,
+            "username": "{User's username}",
+            "display_name": "{User's display name}",
+            "email": "{User's email}",
+            "type": 0
+        },
+        ...
+    ]
+}
+```
+
+### Remove friend
+
+**DELETE /friends/{other_user_id}/**
+
+Request: N/A
+
+Response: N/A

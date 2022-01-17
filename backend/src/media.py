@@ -45,7 +45,7 @@ class AWS:
         #       A possible fix would be accumulating invalidation request IDs in a local var rather than member
         self.__invalidation_ids = []
 
-    def __rsa_sign(self, message):
+    def rsa_sign(self, message):
         """Sign a message with self.cf_private_key_file.
 
         :return: The signed message
@@ -211,6 +211,42 @@ class AWS:
         status = response['Job']['Status']
         return status
 
+    def delete_uploads(self, *upload_ids: int) -> bool:
+        """Delete videos with listed upload_ids from S3.
+
+        :param upload_ids: upload_ids of the videos to be deleted.
+        :return: True if objects matching the upload_id were found (and most likely deleted), False if nothing was found
+        """
+
+        found = False
+        # We must use a paginator since AWS will only send the first 1000 objects using list objects.
+        paginator = self.s3.get_paginator('list_objects')
+
+        # Paginate for each upload id.
+        for upload_id in upload_ids:
+            pages = paginator.paginate(Bucket=self.s3_bucket_name, Prefix=f'uploads/{upload_id}/')
+
+            delete_keys = dict(Objects=[])
+            # For each object in the contents of the paginator, append it to our list of deleted keys.
+            for item in pages.search('Contents'):
+                if item is None:
+                    return False
+                delete_keys['Objects'].append(dict(Key=item['Key']))
+
+                # Since delete_objects also has a cap at 1000, execute when we reach this cap.
+                if len(delete_keys['Objects']) >= 1000:
+                    self.s3.delete_objects(Bucket=self.s3_bucket_name, Delete=delete_keys)
+                    delete_keys = dict(Objects=[])
+                    found = True
+
+            # Delete all remaining objects
+            if len(delete_keys['Objects']):
+                self.s3.delete_objects(Bucket=self.s3_bucket_name, Delete=delete_keys)
+                found = True
+
+            return found
+
+
 def main() -> None:
     from dotenv import load_dotenv
     # load environment variables
@@ -219,7 +255,7 @@ def main() -> None:
     ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
     SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
     CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-    CF_PRIVATE_KEY_FILE = './private_key.pem'
+    CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE"))
     aws = AWS(ACCESS_KEY_ID, SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
 
     # Reset the playlist files
