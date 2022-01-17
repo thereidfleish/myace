@@ -37,6 +37,7 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
 CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
+S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
 S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
 DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
@@ -104,9 +105,9 @@ def login():
     try:
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), G_CLIENT_ID)
 
-        gid = idinfo["sub"]
-        email = idinfo["email"]
-        display_name = idinfo["name"]
+        gid = idinfo.get("sub")
+        email = idinfo.get("email")
+        display_name = idinfo.get("name")
 
         if gid is None or email is None or display_name is None:
             return failure_response("Could not retrieve required fields (Google Account ID, email, and name) from"
@@ -114,7 +115,7 @@ def login():
 
         # Check if user exists
         user = User.query.filter_by(google_id=gid, type=user_type).first()
-        user_created = user == None
+        user_created = user is None
 
         if user is None:
             # User does not exist, add them.
@@ -207,19 +208,24 @@ def get_upload(upload_id):
 
     if upload.stream_ready:
         signer = CookieSigner(aws=aws, expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID)
-        url = S3_CF_DOMAIN + "uploads/" + str(upload_id) + "/hls/"
+        url = "https://" + S3_CF_SUBDOMAIN + "." + S3_CF_DOMAIN + "/uploads/" + str(upload_id) + "/hls/"
         cookies = signer.generate_signed_cookies(url=(url+"*"))
         response['url'] = url + "index.m3u8"
         response = make_response(response)
         response.set_cookie(key='CloudFront-Policy', value=cookies['CloudFront-Policy'],
-                            domain=S3_CF_DOMAIN)
+                            domain=S3_CF_DOMAIN, secure=True)
         response.set_cookie(key='CloudFront-Signature', value=cookies['CloudFront-Signature'],
-                            domain=S3_CF_DOMAIN)
+                            domain=S3_CF_DOMAIN, secure=True)
         response.set_cookie(key='CloudFront-Key-Pair-Id', value=cookies['CloudFront-Key-Pair-Id'],
-                            domain=S3_CF_DOMAIN)
+                            domain=S3_CF_DOMAIN, secure=True)
         return response
 
     return success_response(response)
+
+
+@app.route("/host/")
+def get_host():
+    return request.host_url
 
 
 @app.route("/uploads/", methods=['POST'])
