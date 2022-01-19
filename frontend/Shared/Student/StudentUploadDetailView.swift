@@ -190,9 +190,7 @@ struct StudentUploadDetailView: View {
                         Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                     } else {
                         Text("Edit Name")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
+                            .bucketTextInternalStyle()
                             .padding([.top, .leading, .trailing])
                         
                         HStack {
@@ -219,9 +217,7 @@ struct StudentUploadDetailView: View {
                         }.padding(.horizontal)
                         
                         Text("Videos")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
+                            .bucketTextInternalStyle()
                             .padding([.top, .leading, .trailing])
                         
                         if (student) {
@@ -275,11 +271,7 @@ struct StudentUploadDetailView: View {
                                                                    
                                                                }, label: {
                                                                    Text("Upload")
-                                                                       .padding(.vertical, 15)
-                                                                       .frame(maxWidth: .infinity)
-                                                                       .background(Color.green)
-                                                                       .cornerRadius(10)
-                                                                       .foregroundColor(.white)
+                                                                       .buttonStyle()
                                                                    //.padding([.top, .leading, .trailing])
                                                                })
                                                                
@@ -300,11 +292,7 @@ struct StudentUploadDetailView: View {
                                     isShowingCamera.toggle()
                                 }, label: {
                                     Text("Capture a Video")
-                                        .padding(.vertical, 15)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color.green)
-                                        .cornerRadius(10)
-                                        .foregroundColor(.white)
+                                        .buttonStyle()
                                 })
                                     .sheet(isPresented: $isShowingCamera) {
                                         CameraView()
@@ -351,8 +339,7 @@ struct StudentUploadDetailView: View {
                                 
                                 VStack(alignment: .leading) {
                                     Text(upload.display_title == "" ? "Untitled" : upload.display_title)
-                                        .font(.headline)
-                                        .fontWeight(.heavy)
+                                        .videoInfoStyle()
                                         .foregroundColor(Color.green)
                                     
                                     Text(upload.created.formatted())
@@ -425,22 +412,16 @@ struct StudentUploadDetailView: View {
         if (uploading) {
             VStack(alignment: .leading) {
                 Text(uploadingStatus)
-                    .font(.title2)
-                    .fontWeight(.heavy)
+                    .bucketNameStyle()
                     .foregroundColor(Color.white)
                 
                 Text(progressPercent)
-                    .font(.headline)
-                    .fontWeight(.heavy)
+                    .videoInfoStyle()
                     .foregroundColor(Color.white)
                 
             }
-            .padding()
+            .navigationLinkStyle()
             .frame(width: 400)
-            .background(Color.green)
-            .cornerRadius(10)
-            .padding(.horizontal)
-            .shadow(radius: 5)
             .allowsHitTesting(false)
             
         }

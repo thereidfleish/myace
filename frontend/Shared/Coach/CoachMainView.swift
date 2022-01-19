@@ -16,8 +16,7 @@ struct CoachMainView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     Text("\(UserData.computeWelcome()) Reid!")
-                        .font(.title2)
-                        .fontWeight(.heavy)
+                        .bucketNameStyle()
                         .foregroundColor(Color.green)
                         .padding(.horizontal)
                     
@@ -27,8 +26,7 @@ struct CoachMainView: View {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(coachInfo.studentNames[i])
-                                        .font(.title2)
-                                        .fontWeight(.heavy)
+                                        .bucketNameStyle()
                                         .foregroundColor(Color.white)
                                     
                                     HStack {
@@ -37,14 +35,11 @@ struct CoachMainView: View {
                                             .frame(width: 15)
                                         if (coachInfo.numNewVideos[i] == 0) {
                                             Text("\(coachInfo.numNewVideos[i]) New Uploads")
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.white)
+                                                .bucketTextExternalStyle()
                                         }
                                         else {
                                             Text("*\(coachInfo.numNewVideos[i]) New Uploads")
-                                                .font(.subheadline)
-                                                .bold()
-                                                .foregroundColor(Color.white)
+                                                .unreadBucketTextExternalStyle()
                                         }
                                         
                                     }
@@ -54,8 +49,7 @@ struct CoachMainView: View {
                                             .foregroundColor(.white)
                                             .frame(width: 15)
                                         Text(coachInfo.modifyDates[i])
-                                            .font(.subheadline)
-                                            .foregroundColor(Color.white)
+                                            .bucketTextExternalStyle() 
                                     }
                                 }
                                 
@@ -67,11 +61,7 @@ struct CoachMainView: View {
                                     .foregroundColor(Color.white)
                                     .frame(width: 20, height: 20)
                             }
-                            .padding()
-                            .background(Color.green)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                            .shadow(radius: 5)
+                            .navigationLinkStyle()
                         }
                     }
                 }
