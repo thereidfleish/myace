@@ -56,6 +56,8 @@
 		9A2C34C32792065900FAC339 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34C22792065900FAC339 /* CameraView.swift */; };
 		9A2C34C52793CF4900FAC339 /* TextAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34C42793CF4900FAC339 /* TextAlert.swift */; };
 		9A2C34C62793CF4900FAC339 /* TextAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34C42793CF4900FAC339 /* TextAlert.swift */; };
+		9A2C34CB2798CF8F00FAC339 /* Styles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34CA2798CF8F00FAC339 /* Styles.swift */; };
+		9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34CA2798CF8F00FAC339 /* Styles.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -115,6 +117,7 @@
 		9A2C34C02790B21A00FAC339 /* CameraViewWithVideoCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraViewWithVideoCapture.swift; sourceTree = "<group>"; };
 		9A2C34C22792065900FAC339 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		9A2C34C42793CF4900FAC339 /* TextAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextAlert.swift; sourceTree = "<group>"; };
+		9A2C34CA2798CF8F00FAC339 /* Styles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Styles.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -189,6 +192,7 @@
 				2552DDAE277CCDA40035EFB4 /* NetworkController.swift */,
 				2558E2A32773BA270056DD17 /* Assets.xcassets */,
 				9A2C34C42793CF4900FAC339 /* TextAlert.swift */,
+				9A2C34CA2798CF8F00FAC339 /* Styles.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -527,6 +531,7 @@
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				2552DDAC277CCD750035EFB4 /* UserData.swift in Sources */,
 				2552DDA6277CC4490035EFB4 /* Data2.swift in Sources */,
+				9A2C34CB2798CF8F00FAC339 /* Styles.swift in Sources */,
 				25C65CE12777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				2552DDA9277CCCE00035EFB4 /* NetworkRequest.swift in Sources */,
 				2519DB322798C9C600A91759 /* SearchView.swift in Sources */,
@@ -559,6 +564,7 @@
 				2552DDAA277CCCE00035EFB4 /* NetworkRequest.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
+				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				25D13A6F277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */,
 				25A036382778D5080090AC49 /* CoachStudentView.swift in Sources */,
 				258D41762773C3E00030D437 /* StudentUploadView.swift in Sources */,
@@ -723,7 +729,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
@@ -759,7 +765,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";

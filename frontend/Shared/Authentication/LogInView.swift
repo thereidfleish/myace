@@ -56,9 +56,7 @@ struct LogInView: View {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
                     Text("Are you a player or a coach?")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color.green)
+                        .bucketTextInternalStyle()
                     
                     Picker("Are you a player or a coach?", selection: $typeSelection) {
                         Text("Player").tag(0)
@@ -83,11 +81,7 @@ struct LogInView: View {
                         signIn(withVC: googleAuth)
                     }, label: {
                         Text("Sign In With Google")
-                            .padding(.vertical, 15)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(10)
-                            .foregroundColor(.white)
+                            .buttonStyle()
                             .opacity(typeSelection == -1 ? 0.75 : 1)
                     }).disabled(typeSelection == -1)
                 }

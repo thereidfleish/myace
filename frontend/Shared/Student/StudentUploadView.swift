@@ -54,8 +54,7 @@ struct StudentUploadView: View {
                     
                     VStack(alignment: .leading) {
                         Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
-                            .font(.title2)
-                            .fontWeight(.heavy)
+                            .bucketNameStyle()
                             .foregroundColor(Color.green)
                             .padding(.horizontal)
                         
@@ -65,8 +64,7 @@ struct StudentUploadView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text(bucket.name)
-                                            .font(.title2)
-                                            .fontWeight(.heavy)
+                                            .bucketNameStyle()
                                             .foregroundColor(Color.white)
                                         
                                         HStack {
@@ -74,8 +72,7 @@ struct StudentUploadView: View {
                                                 .foregroundColor(Color.white)
                                                 .frame(width: 15)
                                             Text("Trainer names will go here")
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.white)
+                                                .bucketTextExternalStyle()
                                         }
                                         
                                         HStack {
@@ -84,14 +81,11 @@ struct StudentUploadView: View {
                                                 .frame(width: 15)
                                             if (/*studentInfo.numFeedback[i]*/ 0 == 0) {
                                                 Text(/*"\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(Color.white)
+                                                    .bucketTextExternalStyle()
                                             }
                                             else {
                                                 Text(/*"*\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                                    .font(.subheadline)
-                                                    .bold()
-                                                    .foregroundColor(Color.white)
+                                                    .unreadBucketTextExternalStyle()
                                             }
                                             
                                         }
@@ -102,8 +96,7 @@ struct StudentUploadView: View {
                                                 .frame(width: 15)
                                             
                                             Text(bucket.last_modified?.formatted() ?? "No uploads yet")
-                                                .font(.subheadline)
-                                                .foregroundColor(Color.white)
+                                                .bucketTextExternalStyle()
                                             //                                            Text("\(nc.userData.buckets[i].id)")
                                             //                                                .font(.subheadline)
                                             //                                                .foregroundColor(Color.white)
@@ -118,11 +111,7 @@ struct StudentUploadView: View {
                                         .foregroundColor(Color.white)
                                         .frame(width: 20, height: 20)
                                 }
-                                .padding()
-                                .background(Color.green)
-                                .cornerRadius(10)
-                                .padding(.horizontal)
-                                .shadow(radius: 5)
+                                .navigationLinkStyle()
                             }
                         }
                             

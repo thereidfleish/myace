@@ -36,9 +36,7 @@ struct NewBucketView: View {
             ScrollView {
                 VStack(alignment: .leading) {
                     Text("Choose from a default stroke or add a custom stroke")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                        .bucketTextInternalStyle()
                     
                     Menu {
                         ForEach(defaultStrokes, id: \.self) { stroke in
@@ -48,17 +46,11 @@ struct NewBucketView: View {
                         }
                     } label: {
                         Text("Choose from a default stroke")
-                            .padding(.vertical, 15)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(10)
-                            .foregroundColor(.white)
+                            .buttonStyle()
                     }
                     
                     Text("Name")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                        .bucketTextInternalStyle()
                         .padding(.top)
                     
                     HStack {

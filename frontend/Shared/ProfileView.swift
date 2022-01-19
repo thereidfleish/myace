@@ -18,9 +18,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading) {
                     
                     Text(nc.userData.shared.type == 0 ? "Player" : "Coach")
-                        .font(.headline)
-                        .fontWeight(.heavy)
-                        .foregroundColor(Color.green)
+                        .profileInfoStyle()
                     
                     HStack {
                         AsyncImage(url: nc.userData.profilePic) { image in
@@ -36,24 +34,19 @@ struct ProfileView: View {
                         HStack {
                             VStack {
                                 Text("42")
-                                    .font(.headline)
-                                    .fontWeight(.heavy)
+                                    .videoInfoStyle()
                                     .foregroundColor(Color.green)
                                 Text("Videos")
-                                    .font(.subheadline)
-                                    .foregroundColor(Color.green)
+                                    .profileTextStyle()
                             }
                             
                             Spacer()
                             
                             VStack {
                                 Text("69")
-                                    .font(.headline)
-                                    .fontWeight(.heavy)
-                                    .foregroundColor(Color.green)
+                                    .profileInfoStyle()
                                 Text("Friends")
-                                    .font(.subheadline)
-                                    .foregroundColor(Color.green)
+                                    .profileTextStyle()
                             }
                         }
                         .padding(.horizontal)
@@ -62,13 +55,10 @@ struct ProfileView: View {
                     
                     
                     Text(nc.userData.shared.display_name)
-                        .font(.headline)
-                        .fontWeight(.heavy)
-                        .foregroundColor(Color.green)
+                        .profileInfoStyle()
                     
                     Text("The users will be able to write a description of themselves here, like on Instagram.")
-                        .font(.subheadline)
-                        .foregroundColor(Color.green)
+                        .profileTextStyle()
                     
                     
                     Spacer()
