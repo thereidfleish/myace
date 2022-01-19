@@ -189,17 +189,20 @@ struct StudentUploadDetailView: View {
                     } else if (showingError) {
                         Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                     } else {
-                        Text(nc.userData.bucketContents.name)
+                        Text("Edit Name")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.green)
                             .padding([.top, .leading, .trailing])
-                            .onAppear(perform: {print("fgg")})
                         
                         HStack {
-                            TextField("Name", text: $name)
+                            TextField("Edit Name", text: $name)
                                 .autocapitalization(.none)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.green, lineWidth: 3)
+                                )
                                 .onAppear(perform: {
                                     self.originalName = name
                                 })
@@ -215,91 +218,100 @@ struct StudentUploadDetailView: View {
                                 .disabled(name == originalName)
                         }.padding(.horizontal)
                         
+                        Text("Videos")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                            .padding([.top, .leading, .trailing])
+                        
                         if (student) {
-                            Button(action: {
-                                isShowingMediaPicker.toggle()
-                            }, label: {
-                                Text("Upload New Video")
-                                    .padding(.vertical, 15)
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.green)
-                                    .cornerRadius(10)
-                                    .foregroundColor(.white)
-                            }).disabled(uploading)
-                                .padding([.horizontal, .top, .bottom])
-                                .mediaImporter(isPresented: $isShowingMediaPicker,
-                                               allowedMediaTypes: .all,
-                                               allowsMultipleSelection: false) { result in
-                                    switch result {
-                                    case .success(let url):
-                                        self.url = url
-                                        print(url)
-                                        showsUploadAlert = true
-                                        //uploadInit(fileURL: url[0])
-                                    case .failure(let error):
-                                        print(error)
-                                        self.url = []
+                            HStack {
+                                Button(action: {
+                                    isShowingMediaPicker.toggle()
+                                }, label: {
+                                    Text("Upload Video")
+                                        .padding(.vertical, 15)
+                                        .frame(maxWidth: .infinity)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.green, lineWidth: 3)
+                                        )
+                                        .foregroundColor(.green)
+                                }).disabled(uploading)
+                                    .mediaImporter(isPresented: $isShowingMediaPicker,
+                                                   allowedMediaTypes: .all,
+                                                   allowsMultipleSelection: false) { result in
+                                        switch result {
+                                        case .success(let url):
+                                            self.url = url
+                                            print(url)
+                                            showsUploadAlert = true
+                                            //uploadInit(fileURL: url[0])
+                                        case .failure(let error):
+                                            print(error)
+                                            self.url = []
+                                        }
                                     }
-                                }
-                                   .sheet(isPresented: $showsUploadAlert) {
-                                       NavigationView {
-                                               VStack {
-                                                   TextField("My Video", text: $uploadName)
-                                                       .textFieldStyle(RoundedBorderTextFieldStyle())
-                                                       //.padding([.top, .leading, .trailing])
-                                                   Spacer()
-                                                   Image("testimage")
-                                                       .resizable()
-                                                       .scaledToFill()
-                                                       .frame(maxWidth: 300, maxHeight: 300)
-                                                       .cornerRadius(10)
-                                                       .shadow(radius: 5)
+                                                   .sheet(isPresented: $showsUploadAlert) {
+                                                       NavigationView {
+                                                           VStack {
+                                                               TextField("My Video", text: $uploadName)
+                                                                   .textFieldStyle(RoundedBorderTextFieldStyle())
+                                                               //.padding([.top, .leading, .trailing])
+                                                               Spacer()
+                                                               Image("testimage")
+                                                                   .resizable()
+                                                                   .scaledToFill()
+                                                                   .frame(maxWidth: 300, maxHeight: 300)
+                                                                   .cornerRadius(10)
+                                                                   .shadow(radius: 5)
+                                                               
+                                                               
+                                                               Spacer()
+                                                               
+                                                               Button(action: {
+                                                                   showsUploadAlert = false
+                                                                   uploadInit(fileURL: url[0], uploadName: uploadName)
+                                                                   
+                                                               }, label: {
+                                                                   Text("Upload")
+                                                                       .padding(.vertical, 15)
+                                                                       .frame(maxWidth: .infinity)
+                                                                       .background(Color.green)
+                                                                       .cornerRadius(10)
+                                                                       .foregroundColor(.white)
+                                                                   //.padding([.top, .leading, .trailing])
+                                                               })
+                                                               
+                                                           }.padding()
+                                                               .navigationTitle("Set Video Title")
+                                                               .navigationBarItems(leading: Button(action: {
+                                                                   showsUploadAlert = false
+                                                               }, label: {
+                                                                   Text("Cancel")
+                                                                       .foregroundColor(Color.green)
+                                                                       .fontWeight(.bold)
+                                                               }))
+                                                           
+                                                       }
                                                        
-                                                   
-                                                   Spacer()
-                                                   
-                                                   Button(action: {
-                                                       showsUploadAlert = false
-                                                       uploadInit(fileURL: url[0], uploadName: uploadName)
-                                                       
-                                                   }, label: {
-                                                       Text("Upload")
-                                                           .padding(.vertical, 15)
-                                                           .frame(maxWidth: .infinity)
-                                                           .background(Color.green)
-                                                           .cornerRadius(10)
-                                                           .foregroundColor(.white)
-                                                           //.padding([.top, .leading, .trailing])
-                                                   })
-                                                   
-                                               }.padding()
-                                                   .navigationTitle("Set Video Title")
-                                                       .navigationBarItems(leading: Button(action: {
-                                                           showsUploadAlert = false
-                                                       }, label: {
-                                                           Text("Cancel")
-                                                               .foregroundColor(Color.green)
-                                                               .fontWeight(.bold)
-                                                   }))
-                                           
-                                       }
-                 
-                                   }
-                            Button(action: {
-                                isShowingCamera.toggle()
-                            }, label: {
-                                Text("Capture a Video")
-                                    .padding(.vertical, 15)
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.green)
-                                    .cornerRadius(10)
-                                    .foregroundColor(.white)
-                            })
-                                .padding([.horizontal, .top, .bottom])
-                                .sheet(isPresented: $isShowingCamera) {
-                                    CameraView()
-
-                                }
+                                                   }
+                                Button(action: {
+                                    isShowingCamera.toggle()
+                                }, label: {
+                                    Text("Capture a Video")
+                                        .padding(.vertical, 15)
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.green)
+                                        .cornerRadius(10)
+                                        .foregroundColor(.white)
+                                })
+                                    .sheet(isPresented: $isShowingCamera) {
+                                        CameraView()
+                                        
+                                    }
+                                
+                            }.padding([.horizontal, .bottom])
                         }
                         
                         ForEach(nc.userData.bucketContents.uploads) { upload in
@@ -338,7 +350,7 @@ struct StudentUploadDetailView: View {
                                 //                                 }
                                 
                                 VStack(alignment: .leading) {
-                                    Text(upload.display_title)
+                                    Text(upload.display_title == "" ? "Untitled" : upload.display_title)
                                         .font(.headline)
                                         .fontWeight(.heavy)
                                         .foregroundColor(Color.green)
