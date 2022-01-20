@@ -77,6 +77,7 @@ struct UserData {
 
 struct SharedData: Codable {
     var id: Int
+    var username: String
     var display_name: String
     var email: String
     var type: Int // -1 == user not logged in, 0 == student, 1 == coach
@@ -129,6 +130,11 @@ struct Tag: Codable {
 struct AuthReq: Codable {
     var token: String
     var type: Int
+}
+
+struct UpdateUserReq: Codable {
+    var username: String
+    var display_name: String
 }
 
 struct VideoReq: Codable {

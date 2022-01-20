@@ -19,6 +19,19 @@ struct button: ViewModifier {
     }
 }
 
+/* General button style */
+struct textField: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .autocapitalization(.none)
+            .padding(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.green, lineWidth: 3)
+            )
+    }
+}
+
 /* Used in bucket folders and student folders */
 struct navigationLink: ViewModifier {
     func body(content: Content) -> some View {
@@ -100,6 +113,9 @@ struct profileInfo: ViewModifier {
 extension View {
     func buttonStyle() -> some View {
         modifier(button())
+    }
+    func textFieldStyle() -> some View {
+        modifier(textField())
     }
     func navigationLinkStyle() -> some View {
         modifier(navigationLink())
