@@ -203,12 +203,7 @@ struct StudentUploadDetailView: View {
                         
                         HStack {
                             TextField("Edit Name", text: $name)
-                                .autocapitalization(.none)
-                                .padding(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.green, lineWidth: 3)
-                                )
+                                .textFieldStyle()
                                 .onAppear(perform: {
                                     self.originalName = name
                                 })

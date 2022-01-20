@@ -180,7 +180,8 @@ struct LogInView: View {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
-            print(response)
+            print(response.debugDescription)
+            
             print(data!.prettyPrintedJSONString)
             print("NO \(error.debugDescription)")
             
@@ -195,6 +196,12 @@ struct LogInView: View {
             do {
                 let decodedResponse = try decoder.decode(SharedData.self, from: data)
                 nc.userData.shared = decodedResponse
+                
+                // Handle the new user
+                if (response.debugDescription.contains("Status Code: 201")) {
+                    nc.newUser = true
+                }
+
             } catch {
                 print("Error")
                 awaiting = false

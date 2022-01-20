@@ -70,7 +70,7 @@ struct ProfileView: View {
                 }.padding(.horizontal)
                 
                 
-            }.navigationTitle("thereidfleish")
+            }.navigationTitle(nc.userData.shared.username)
                 .navigationBarItems(leading: Button(action: {
                     GIDSignIn.sharedInstance.signOut()
                     nc.userData.shared.type = -1

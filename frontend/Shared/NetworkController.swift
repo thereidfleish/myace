@@ -9,13 +9,12 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
     @Published var progress: Progress = Progress()
     @Published var uploading = false
     @Published var uploadingStatus = ""
-    @Published var uploadURL: URL = URL(fileURLWithPath: "")
-    @Published var uploadURLSaved: Bool = false
+    @Published var newUser = false
     public let host = "https://api.myace.ai"
     
     
@@ -48,6 +47,35 @@ class NetworkController: ObservableObject {
             let decodedResponse = try decoder.decode(SharedData.self, from: data)
             
             DispatchQueue.main.sync {
+                userData.shared = decodedResponse
+            }
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // DELETE
+    func updateCurrentUser(username: String, displayName: String) async throws {
+        let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/users/me/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        
+        do {
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(data.prettyPrintedJSONString)
+            print(response)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            if let decodedResponse = try? decoder.decode(SharedData.self, from: data) {
+                print(data.prettyPrintedJSONString)
+                print(response)
                 userData.shared = decodedResponse
             }
         } catch {
@@ -117,8 +145,6 @@ class NetworkController: ObservableObject {
         } catch {
             throw NetworkError.failedDecode
         }
-
-        
     }
     
     

@@ -30,7 +30,6 @@ struct StudentFeedbackView: View {
                     awaiting = true
                     print(uploadID)
                     try await upload = nc.getUpload(uid: "\(nc.userData.shared.id)", uploadID: uploadID)
-                    //try await nc.getUpload2(url: upload.url!)
                     player = AVPlayer(url:  URL(string: upload.url!)!)
                     print(upload.url!)
                     print("DONE!")
@@ -49,83 +48,69 @@ struct StudentFeedbackView: View {
         
         Task {
             do {
-                print(uploadID)
+                awaiting = true
                 try await nc.deleteUpload(uploadID: uploadID)
                 self.mode.wrappedValue.dismiss()
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
                 showingError = true
+                awaiting = false
             }
         }
     }
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                if (awaiting) {
-                    ProgressView()
-                } else if (showingError) {
-                    Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
-                } else {
-                    VStack(alignment: .leading) {
-                        VideoPlayer(player: player)
-                            .frame(height: 300)
-                        
-                        Button("tap me!") {
-                            print(player.currentItem?.duration.seconds)
-                            print(player.currentTime().seconds)
+        ScrollView {
+            if (awaiting) {
+                ProgressView()
+            } else if (showingError) {
+                Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+            } else {
+                VStack(alignment: .center) {
+                    VideoPlayer(player: player)
+                        .frame(height: 300)
+                    
+                    Button("tap me!") {
+                        print(player.currentItem?.duration.seconds)
+                        print(player.currentTime().seconds)
+                    }
+                    
+                    if (!showOnlyVideo) {
+                        if (student) {
+                            Text(text)
+                                .multilineTextAlignment(.leading)
                         }
-                        
-                        
-                        Button("no tap me instead!") {
-                            delete()
+                        else {
+                            
+                            Text("Unsaved changes")
+                                .font(.footnote)
+                                .foregroundColor(Color.red)
+                            
+                            TextEditor(text: $text)
+                                .padding(1)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .stroke(Color.gray, lineWidth: 1)
+                                )
+                                .frame(minHeight: UIScreen.screenHeight - 200)
+                            
                         }
-                        
-                        if (!showOnlyVideo) {
-                            if (student) {
-                                Text(text)
-                                    .multilineTextAlignment(.leading)
-                                
-                                
-                            }
-                            else {
-                                
-                                Text("Unsaved changes")
-                                    .font(.footnote)
-                                    .foregroundColor(Color.red)
-                                
-                                TextEditor(text: $text)
-                                    .padding(1)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 5)
-                                            .stroke(Color.gray, lineWidth: 1)
-                                    )
-                                    .frame(minHeight: UIScreen.screenHeight - 200)
-                                
-                            }
-                        }
-                        
-                    }.padding(.horizontal)
-                }
-            }.onAppear(perform: {
-                initialize()
-            })
-                //.navigationTitle("Feedback")
-                .navigationBarItems(trailing: student ? Button(action: {
-                    self.mode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Close")
-                        .foregroundColor(Color.green)
-                        .fontWeight(.bold)
-                }) : Button(action: {
-                    self.mode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Save and Close")
-                        .foregroundColor(Color.green)
-                        .fontWeight(.bold)
-                }))
-        }
+                    }
+                    
+                    Button(action: {
+                        delete()
+                    }, label: {
+                        Text("Delete Video")
+                            .foregroundColor(.red)
+                    })
+                    
+                }.padding(.horizontal)
+            }
+        }.onAppear(perform: {
+            initialize()
+        })
+        
         
     }
 }
