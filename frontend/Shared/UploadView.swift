@@ -24,56 +24,94 @@ struct UploadView: View {
     var uploadInCurrentBucket: Bool
     @State var bucketID: String
     
+    func computeBucketName() -> String {
+        for bucket in nc.userData.buckets {
+            if (bucket.id == Int(bucketID)) {
+                return "The video will be uploaded into \"\(bucket.name)\""
+            }
+        }
+        return "Choose a stroke to upload the video into"
+    }
     
     var body: some View {
         NavigationView {
-            VStack {
-                TextField("My Video", text: $uploadName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                if (!uploadInCurrentBucket) {
-                    Text("Choose a bucket")
+            ScrollView {
+                VStack(alignment: .leading) {
+                    Text("Set Video Title")
                         .bucketTextInternalStyle()
-                    Picker("None Selected", selection: $bucketID) {
-                        ForEach(nc.userData.buckets) {
-                            //Text(String($0.id))
-                            Text($0.name).tag($0.id)
+                    
+                    TextField("My Video", text: $uploadName)
+                        .textFieldStyle()
+                    
+                    //if (!uploadInCurrentBucket) {
+                    //                    Text("Choose a bucket")
+                    //                        .bucketTextInternalStyle()
+                    //                    Picker("None Selected", selection: $bucketID) {
+                    //                        ForEach(nc.userData.buckets) {
+                    //                            //Text(String($0.id))
+                    //                            Text($0.name).tag($0.id)
+                    //                        }
+                    //                    }
+                    //}
+                    //.pickerStyle(.)
+                    
+                    Text(computeBucketName())
+                        .padding(.top)
+                        .bucketTextInternalStyle()
+                    
+                    if (!uploading) {
+                        Menu {
+                            ForEach(nc.userData.buckets) { bucket in
+                                Button(bucketID == "\(bucket.id)" ? "🎾 \(bucket.name)" : bucket.name) {
+                                    bucketID = "\(bucket.id)"
+                                }
+                            }
+                        } label: {
+                            Text("Choose A Stroke")
+                                .buttonStyle()
                         }
+                    } else {
+                        ProgressView()
                     }
-                }
-                //.pickerStyle(.)
-                
-                Spacer()
-                
-                VideoPlayer(player: AVPlayer(url: url[0]))
-                    .frame(height: 300)
-                
-                Spacer()
-                
-                Button(action: {
-                    uploadInit(fileURL: url[0], uploadName: uploadName)
-                }, label: {
-                    Text("Upload")
-                        .buttonStyle()
-                    //.padding([.top, .leading, .trailing])
-                })
-                Text(uploadingStatus)
-                    .bucketNameStyle()
-                    .foregroundColor(Color.green)
-                
-                Text(progressPercent)
-                    .videoInfoStyle()
-                    .foregroundColor(Color.green)
-                
-            }.padding()
-                .navigationTitle("Set Video Title")
-                .navigationBarItems(leading: Button(action: {
-                    self.mode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Cancel")
+                    
+                    Text("Preview Video")
+                        .padding(.top)
+                        .bucketTextInternalStyle()
+                    
+                    VideoPlayer(player: AVPlayer(url: url[0]))
+                        .frame(height: 300)
+                    
+                    if (!uploading) {
+                        Button(action: {
+                            uploadInit(fileURL: url[0], uploadName: uploadName)
+                        }, label: {
+                            Text("Upload")
+                                .buttonStyle()
+                                .opacity(bucketID == "" ? 0.5 : 1)
+                        }).disabled(bucketID == "")
+                    } else {
+                        ProgressView()
+                    }
+                    
+                    
+                    Text(uploadingStatus)
+                        .bucketNameStyle()
                         .foregroundColor(Color.green)
-                        .fontWeight(.bold)
-                }))
+                    
+                    Text(progressPercent)
+                        .videoInfoStyle()
+                        .foregroundColor(Color.green)
+                    
+                }.padding()
+                    .navigationTitle("Upload Video")
+                    .navigationBarItems(leading: Button(action: {
+                        self.mode.wrappedValue.dismiss()
+                    }, label: {
+                        Text("Cancel")
+                            .foregroundColor(Color.green)
+                            .fontWeight(.bold)
+                    }))
+            }
             
         }
         
@@ -85,7 +123,7 @@ struct UploadView: View {
                 uploading = true
                 uploadingStatus = "Uploading..."
                 print(bucketID)
-                try await upload(display_title: uploadName, bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
+                try await upload(display_title: uploadName == "" ? "My Video" : uploadName, bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -137,7 +175,8 @@ struct UploadView: View {
             
             
         } catch {
-            
+            self.uploading = false
+            self.uploadingStatus = "Upload Failed :("
             throw NetworkController.NetworkError.failedDecode
         }
     }

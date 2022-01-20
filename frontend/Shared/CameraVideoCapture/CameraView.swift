@@ -41,7 +41,7 @@ struct CameraView: View {
                 })
             }
             .sheet(isPresented: $nc.uploadURLSaved) {
-                UploadView(url: [nc.uploadURL], uploadInCurrentBucket: false, bucketID: "9")
+                UploadView(url: [nc.uploadURL], uploadInCurrentBucket: false, bucketID: "")
             }
             /*
             if vp.videoURL != nil {

@@ -14,6 +14,8 @@ class NetworkController: ObservableObject {
     @Published var progress: Progress = Progress()
     @Published var uploading = false
     @Published var uploadingStatus = ""
+    @Published var uploadURL: URL = URL(fileURLWithPath: "")
+     @Published var uploadURLSaved: Bool = false
     @Published var newUser = false
     public let host = "https://api.myace.ai"
     
