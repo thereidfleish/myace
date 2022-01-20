@@ -160,3 +160,7 @@ struct CommentReq: Codable {
 struct BucketReq: Codable {
     var name: String
 }
+
+struct DeleteUploadRes: Codable {
+    var message: String
+}

@@ -93,25 +93,31 @@ class NetworkController: ObservableObject {
         //        return Upload(id: -1, created: "?", display_title: "?", stream_ready: false, bucket_id: -1, comments: [], url: "?")
     }
     
-    // GET
-    func getUpload2(url: String) async throws {
-        let url = URL(string: url)!
+    // DELETE
+    func deleteUpload(uploadID: String) async throws {
+        let url = URL(string: "\(host)/uploads/\(uploadID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
-                print(data)
+            if let decodedResponse = try? decoder.decode(DeleteUploadRes.self, from: data) {
+                
+                print(data.prettyPrintedJSONString)
+                print(response)
             }
         } catch {
             throw NetworkError.failedDecode
         }
-        throw NetworkError.noReturn
+
+        
     }
-    
     
     
     // POST

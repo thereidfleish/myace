@@ -45,6 +45,21 @@ struct StudentFeedbackView: View {
         }
     }
     
+    func delete()  {
+        
+        Task {
+            do {
+                print(uploadID)
+                try await nc.deleteUpload(uploadID: uploadID)
+                self.mode.wrappedValue.dismiss()
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -60,6 +75,11 @@ struct StudentFeedbackView: View {
                         Button("tap me!") {
                             print(player.currentItem?.duration.seconds)
                             print(player.currentTime().seconds)
+                        }
+                        
+                        
+                        Button("no tap me instead!") {
+                            delete()
                         }
                         
                         if (!showOnlyVideo) {
@@ -109,6 +129,7 @@ struct StudentFeedbackView: View {
         
     }
 }
+
 
 extension UIScreen{
     static let screenWidth = UIScreen.main.bounds.size.width
