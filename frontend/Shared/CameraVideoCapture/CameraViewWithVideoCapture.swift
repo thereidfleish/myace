@@ -11,8 +11,11 @@ import Photos
 
 struct CamPreviewView: UIViewRepresentable {
     @ObservedObject var camera : CameraCapture
+    @EnvironmentObject private var nc: NetworkController
     func makeUIView(context: Context) -> UIView {
         let view = UIView(frame: UIScreen.main.bounds)
+        
+        camera.nc = nc
         
         camera.previewLayer = AVCaptureVideoPreviewLayer(session: camera.captureSession)
         camera.previewLayer.frame = view.frame
@@ -33,9 +36,9 @@ struct CamPreviewView: UIViewRepresentable {
         
     }
 }
-
+/*
 struct VideoPlaybackView: UIViewRepresentable {
-    @ObservedObject var vp : VideoPlayback
+    //@ObservedObject var vp : VideoPlayback
     func makeUIView(context: Context) -> UIView {
         let view = UIView(frame: UIScreen.main.bounds)
         vp.viewDidLoad()
@@ -47,44 +50,45 @@ struct VideoPlaybackView: UIViewRepresentable {
         
     }
 }
-
-class VideoPlayback: UIViewController, ObservableObject {
-    static var instance : VideoPlayback?
-    let avPlayer = AVPlayer()
-    var avPlayerLayer: AVPlayerLayer!
-
-    var videoURL: URL?
-    //connect this to your uiview in storyboard
-    // @IBOutlet weak var videoView: UIView!
-
-    static func getInstance() -> VideoPlayback {
-        if let safeInstance = instance {
-            return safeInstance
-        }
-        else {
-            instance = VideoPlayback()
-            return instance!
-        }
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        print("helloooooooo")
-        avPlayerLayer = AVPlayerLayer(player: avPlayer)
-        avPlayerLayer.frame = view.bounds
-        avPlayerLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        // videoView.layer.insertSublayer(avPlayerLayer, at: 0)
-    
-        view.layoutIfNeeded()
-        guard let videoURLSafe = videoURL else {
-            return
-        }
-        let playerItem = AVPlayerItem(url: videoURLSafe as URL)
-        avPlayer.replaceCurrentItem(with: playerItem)
-    
-        avPlayer.play()
-    }
-}
+*/
+//class VideoPlayback: UIViewController, ObservableObject {
+//    static var instance : VideoPlayback?
+//    let avPlayer = AVPlayer()
+//    var avPlayerLayer: AVPlayerLayer!
+//
+//
+//    var videoURL: URL?
+//    //connect this to your uiview in storyboard
+//    // @IBOutlet weak var videoView: UIView!
+//
+//    static func getInstance() -> VideoPlayback {
+//        if let safeInstance = instance {
+//            return safeInstance
+//        }
+//        else {
+//            instance = VideoPlayback()
+//            return instance!
+//        }
+//    }
+//
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//        print("helloooooooo")
+//        avPlayerLayer = AVPlayerLayer(player: avPlayer)
+//        avPlayerLayer.frame = view.bounds
+//        avPlayerLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+//        // videoView.layer.insertSublayer(avPlayerLayer, at: 0)
+//
+//        view.layoutIfNeeded()
+//        guard let videoURLSafe = videoURL else {
+//            return
+//        }
+//        let playerItem = AVPlayerItem(url: videoURLSafe as URL)
+//        avPlayer.replaceCurrentItem(with: playerItem)
+//
+//        avPlayer.play()
+//    }
+//}
 
 class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputRecordingDelegate {
     //static var instance = CameraCapture()
@@ -101,6 +105,10 @@ class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputReco
     @Published var activeInput: AVCaptureDeviceInput!
 
     @Published var outputURL: URL!
+    
+    //@EnvironmentObject private var nc: NetworkController
+    @Published var nc: NetworkController!
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -226,12 +234,13 @@ class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputReco
     
         return nil
     }
-
+/*
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let vc = segue.destination as! VideoPlayback
         vc.videoURL = sender as! URL
     }
 
+ */
     func startRecording() {
     
         if movieOutput.isRecording == false {
@@ -295,9 +304,11 @@ class CameraCapture: UIViewController, ObservableObject, AVCaptureFileOutputReco
         
             let videoRecorded = outputURL! as URL
             print(videoRecorded)
-            PHPhotoLibrary.shared().performChanges({
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoRecorded)
-            })
+//            PHPhotoLibrary.shared().performChanges({
+//                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoRecorded)
+//            })
+            nc.uploadURL = videoRecorded
+            nc.uploadURLSaved = true
             //performSegue(withIdentifier: "showVideo", sender: videoRecorded)
             
             // Will work on video playback later. Leaving the code here for now.

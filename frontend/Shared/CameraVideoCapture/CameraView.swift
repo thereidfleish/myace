@@ -9,8 +9,9 @@ import SwiftUI
 
 struct CameraView: View {
     @ObservedObject var camera = CameraCapture()
-    @ObservedObject var vp = VideoPlayback.getInstance()
+    //@ObservedObject var vp = VideoPlayback.getInstance()
     @State var isRecording = false
+    @EnvironmentObject private var nc: NetworkController
     var body: some View {
         ZStack {
             CamPreviewView(camera: camera)
@@ -39,6 +40,10 @@ struct CameraView: View {
                     }
                 })
             }
+            .sheet(isPresented: $nc.uploadURLSaved) {
+                UploadView(url: [nc.uploadURL], uploadInCurrentBucket: false, bucketID: "9")
+            }
+            /*
             if vp.videoURL != nil {
                 ZStack {
                     Text("Hello")
@@ -46,6 +51,7 @@ struct CameraView: View {
                         .ignoresSafeArea()
                 }
             }
+             */
                 
         }
         
