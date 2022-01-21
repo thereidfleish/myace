@@ -29,8 +29,8 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "email": "{User's email}",
-    "type": 0
+    "type": 0,
+    "email": "{User's email}"
 }
 ```
 
@@ -59,8 +59,8 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "email": "{User's email}",
-    "type": 0
+    "type": 0,
+    "email": "{User's email}"
 }
 ```
 
@@ -86,8 +86,8 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "email": "{User's email}",
-    "type": 0
+    "type": 0,
+    "email": "{User's email}"
 }
 ```
 
@@ -378,13 +378,27 @@ Response:
 
 ### Search for users
 
-**GET /users?q=...**
+**GET /users/search**
 
-This route returns a list of users given a URL encoded query. The query could include names or usernames. TODO How to handle emails? How to search by ID?
+This route returns a list of users given a search query.
 
-Request: N/A??
+Request URL parameters:
+- `query`
+    - The search query. Currently must match usernames exactly.
 
-Response: N/A???
+Response:
+```json
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "{User's username}",
+            "display_name": "{User's display name}",
+            "type": 0
+        }
+    ]
+}
+```
 
 ### Create a friend request
 
@@ -419,7 +433,6 @@ Response:
             "id": 1,
             "username": "{User's username}",
             "display_name": "{User's display name}",
-            "email": "{User's email}",
             "type": 0
         },
         ...
@@ -469,7 +482,6 @@ Response:
             "id": 1,
             "username": "{User's username}",
             "display_name": "{User's display name}",
-            "email": "{User's email}",
             "type": 0
         },
         ...

@@ -39,14 +39,18 @@ class User(db.Model):
         self.email = email
         self.type = type
 
-    def serialize(self):
-        return {
+    def serialize(self, show_private=False):
+        # public profile information
+        response = {
             "id": self.id,
             "username": self.username,
             "display_name": self.display_name,
-            "email": self.email,
             "type": self.type
         }
+        # private profile information
+        if show_private:
+            response["email"] = self.email
+        return response
 
     def get_relationship_with(self, other_user_id: int) -> UserRelationship | None:
         """:return: a relationship with another user, or None if DNE"""

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "1370fc08-9c97-4e13-afba-8607076834d9",
+		"_postman_id": "397805d0-d622-46e6-962b-d6b2a0e444fd",
 		"name": "Tennis-Trainer",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -365,6 +365,30 @@
 					"path": [
 						"buckets",
 						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search for user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/users/search?query=tennis.lover.69__",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"users",
+						"search"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "tennis.lover.69__"
+						}
 					]
 				}
 			},

@@ -37,13 +37,13 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
 CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
-S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
-S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
 DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_USERNAME = os.environ.get("DB_USERNAME")
 G_CLIENT_ID = os.environ.get("G_CLIENT_ID")
+S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
+S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
@@ -55,7 +55,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# global AWS instance TODO: check if multiple Flask clients share this instance
+# global AWS instance
 aws = media.AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
 
 
@@ -126,7 +126,7 @@ def login():
         # Begin user session
         flask_login.login_user(user, remember=True)
 
-        return success_response(user.serialize(), 201 if user_created else 200)
+        return success_response(user.serialize(show_private=True), 201 if user_created else 200)
 
     except ValueError:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
@@ -141,13 +141,13 @@ def logout():
 
 @app.route("/users/me/")
 @flask_login.login_required
-def get_profile():
-    return success_response(flask_login.current_user.serialize())
+def get_me():
+    return success_response(flask_login.current_user.serialize(show_private=True))
 
 
 @app.route("/users/me/", methods=['PUT'])
 @flask_login.login_required
-def edit_profile():
+def edit_me():
     user = flask_login.current_user
 
     body = json.loads(request.data)
@@ -178,7 +178,7 @@ def edit_profile():
         user.display_name = new_display_name
 
     db.session.commit()
-    return success_response(user.serialize())
+    return success_response(user.serialize(show_private=True))
 
 
 @app.route("/uploads/")
@@ -443,7 +443,21 @@ def get_buckets():
     user = flask_login.current_user
     return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
 
-# TODO: get users by ID. Do we even want this route??
+
+@app.route("/users/search")
+@flask_login.login_required
+def search_users():
+    # Check for query params
+    query = request.args.get("query")
+    if query is None:
+        return failure_response("Missing query URL parameter.", 400)
+    # Search
+    users = []
+    found = User.query.filter_by(username=query).first()
+    if found is not None:
+        users.append(found)
+    return success_response({"users": [u.serialize() for u in users]})
+
 
 @app.route("/friends/requests/", methods=['POST'])
 @flask_login.login_required
