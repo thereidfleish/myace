@@ -161,7 +161,7 @@ class Upload(db.Model):
             if status == 'COMPLETE':
                 self.stream_ready = True
                 db.session.commit()
-        return {
+        response = {
             "id": self.id,
             "created": self.created.isoformat(),
             "display_title": self.display_title,
@@ -169,6 +169,9 @@ class Upload(db.Model):
             "bucket_id": self.bucket_id,
             "comments": [c.serialize(show_upload_id=False) for c in self.comments],
         }
+        if self.stream_ready:
+            response["thumbnails"] = aws.get_thumbnail_urls(self.id, expiration_in_hours=1)
+        return response
 
 
 # Comment Table

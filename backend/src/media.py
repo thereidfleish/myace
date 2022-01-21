@@ -140,7 +140,7 @@ class AWS:
         """
         print(f"Generating presigned URL for {object_key}")
         url = f"{self.cf_domain}/{object_key}"
-        cloudfront_signer = CloudFrontSigner(self.cf_public_key_id, self.__rsa_sign)
+        cloudfront_signer = CloudFrontSigner(self.cf_public_key_id, self.rsa_sign)
         # Create a signed url using a canned policy
         signed_url = cloudfront_signer.generate_presigned_url(
             url, date_less_than=expiration)
@@ -171,6 +171,24 @@ class AWS:
                 time.sleep(0.2)
         return url
 
+    def get_thumbnail_urls(self, upload_uuid: str, expiration_in_hours: int) -> list:
+        """Generate a list of presigned Cloudfront URLs to view an upload's thumbnails.
+
+           Requires the thumbnail files exist in the S3 bucket.
+
+        :param upload_uuid: The upload UUID
+        :param expiration_in_hours: The number of hours until the URLs expire
+        :return: Presigned URLs pointing to the thumbnails of the given upload
+        """
+        response = self.s3.list_objects_v2(Bucket=self.s3_bucket_name,
+            Prefix=f"uploads/{upload_uuid}/thumbnails/")
+        urls = []
+        td = datetime.timedelta(hours=expiration_in_hours)
+        for thumbnail in response["Contents"]:
+            key = thumbnail["Key"]
+            urls.append(self.__get_presigned_url(key, datetime.datetime.utcnow() + td))
+        return urls
+
     def get_presigned_url_post(self, upload_uuid: str, filename: str, expiration: int = 3600) -> dict:
         """Generate a presigned URL that allows the client to upload a file using a POST request.
 
@@ -184,7 +202,7 @@ class AWS:
         return response
 
     def create_mediaconvert_job(self, upload_uuid: str, filename: str) -> str:
-        """Create an AWS MediaConvert job to convert a video file stored in S3 into an HLS playlist.
+        """Create an AWS MediaConvert job to convert a video file stored in S3 into an HLS playlist and generate thumbnails.
 
         :param upload_uuid: The upload UUID
         :param filename: The original media filename
@@ -196,6 +214,7 @@ class AWS:
         # Complete template
         job_object['Settings']['Inputs'][0]['FileInput'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/{filename}'
         job_object['Settings']['OutputGroups'][0]['OutputGroupSettings']['HlsGroupSettings']['Destination'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/hls/index'
+        job_object['Settings']['OutputGroups'][1]['OutputGroupSettings']['FileGroupSettings']['Destination'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/thumbnails/'
         # Unpack the job_object and create mediaconvert job
         response = self.mediaconvert.create_job(**job_object)
         id = response['Job']['Id']
@@ -268,13 +287,9 @@ def main() -> None:
     #         break
     #     time.sleep(1)
 
-    # Create presigned view URL
-    # Super important to use utcnow() instead of local now()
-    # expire_date = datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    # print(f"Generating presigned URLs with expiration {expire_date}...")
-    # url = aws.get_presigned_hls_url('exampleuploaduid', expire_date)
-    # print(url)
-
+    # Create presigned thubmnail URLs
+    urls = aws.get_thumbnail_urls('exampleuploaduid', 1)
+    print(urls)
     # Create presigned upload URL
     # info = aws.get_presigned_url_post('exampleuploaduid', 'fullcourtstock.mp4')
     # print(info)

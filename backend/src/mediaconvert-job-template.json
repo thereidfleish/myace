@@ -41,6 +41,38 @@
             "ManifestCompression": "NONE"
           }
         }
+      },
+      {
+        "CustomName": "thumbnails",
+        "Name": "File Group",
+        "Outputs": [
+          {
+            "ContainerSettings": {
+              "Container": "RAW"
+            },
+            "VideoDescription": {
+              "Width": 1280,
+              "Height": 720,
+              "CodecSettings": {
+                "Codec": "FRAME_CAPTURE",
+                "FrameCaptureSettings": {
+                  "FramerateNumerator": 1,
+                  "FramerateDenominator": 10,
+                  "MaxCaptures": 13,
+                  "Quality": 80
+                }
+              }
+            },
+            "Extension": "jpg",
+            "NameModifier": "-thumb"
+          }
+        ],
+        "OutputGroupSettings": {
+          "Type": "FILE_GROUP_SETTINGS",
+          "FileGroupSettings": {
+            "Destination": "<INSERT THUMBNAIL DESTINATION HERE>"
+          }
+        }
       }
     ],
     "Inputs": [
