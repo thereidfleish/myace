@@ -171,23 +171,19 @@ class AWS:
                 time.sleep(0.2)
         return url
 
-    def get_thumbnail_urls(self, upload_uuid: str, expiration_in_hours: int) -> list:
-        """Generate a list of presigned Cloudfront URLs to view an upload's thumbnails.
+    def get_thumbnail_url(self, upload_uuid: str, expiration_in_hours: int) -> str:
+        """Generate a presigned Cloudfront URL to view an upload's thumbnail.
 
-           Requires the thumbnail files exist in the S3 bucket.
+           Requires the thumbnail file exists in the S3 bucket.
 
         :param upload_uuid: The upload UUID
         :param expiration_in_hours: The number of hours until the URLs expire
-        :return: Presigned URLs pointing to the thumbnails of the given upload
+        :return: Presigned URL pointing to the thumbnail of the given upload
         """
-        response = self.s3.list_objects_v2(Bucket=self.s3_bucket_name,
-            Prefix=f"uploads/{upload_uuid}/thumbnails/")
-        urls = []
         td = datetime.timedelta(hours=expiration_in_hours)
-        for thumbnail in response["Contents"]:
-            key = thumbnail["Key"]
-            urls.append(self.__get_presigned_url(key, datetime.datetime.utcnow() + td))
-        return urls
+        key = f"uploads/{upload_uuid}/thumbnail.0000000.jpg"
+        url = self.__get_presigned_url(key, datetime.datetime.utcnow() + td)
+        return url
 
     def get_presigned_url_post(self, upload_uuid: str, filename: str, expiration: int = 3600) -> dict:
         """Generate a presigned URL that allows the client to upload a file using a POST request.
@@ -214,7 +210,7 @@ class AWS:
         # Complete template
         job_object['Settings']['Inputs'][0]['FileInput'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/{filename}'
         job_object['Settings']['OutputGroups'][0]['OutputGroupSettings']['HlsGroupSettings']['Destination'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/hls/index'
-        job_object['Settings']['OutputGroups'][1]['OutputGroupSettings']['FileGroupSettings']['Destination'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/thumbnails/'
+        job_object['Settings']['OutputGroups'][1]['OutputGroupSettings']['FileGroupSettings']['Destination'] = f's3://{self.s3_bucket_name}/uploads/{upload_uuid}/thumbnail'
         # Unpack the job_object and create mediaconvert job
         response = self.mediaconvert.create_job(**job_object)
         id = response['Job']['Id']
@@ -278,18 +274,19 @@ def main() -> None:
     aws = AWS(ACCESS_KEY_ID, SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
 
     # Reset the playlist files
-    # print("Converting MP4 to HLS. This may take a sec...")
-    # job_id = aws.create_mediaconvert_job('exampleuploaduid', 'fullcourtstock.mp4')
-    # while True:
-    #     status = aws.get_mediaconvert_status(job_id)
-    #     if status == 'COMPLETE':
-    #         print(status)
-    #         break
-    #     time.sleep(1)
+    print("Converting MP4 to HLS. This may take a sec...")
+    job_id = aws.create_mediaconvert_job('exampleuploaduid', 'fullcourtstock.mp4')
+    while True:
+        status = aws.get_mediaconvert_status(job_id)
+        if status == 'COMPLETE':
+            print(status)
+            break
+        time.sleep(1)
 
     # Create presigned thubmnail URLs
-    urls = aws.get_thumbnail_urls('exampleuploaduid', 1)
-    print(urls)
+    url = aws.get_thumbnail_url('exampleuploaduid', 1)
+    print(url)
+
     # Create presigned upload URL
     # info = aws.get_presigned_url_post('exampleuploaduid', 'fullcourtstock.mp4')
     # print(info)

@@ -97,7 +97,7 @@ Response:
 
 **GET /uploads/**
 
-If `stream_ready` is false, the `thumbnails` field will be omitted from the response.
+If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
 
 Request: N/A
 
@@ -120,10 +120,7 @@ Response:
                 },
                 ...
             ],
-            "thumbnails": [
-                "www.something.jpg",
-                ...
-            ]
+            "thumbnail": "www.something.jpg"
         }
         ...
     ]
@@ -135,7 +132,7 @@ Response:
 **GET /uploads/{upload_id}/**
 
 This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist and setting cookies which enable temporary URL access.
-If `stream_ready` is false, the `url` and `thumbnails` fields will be omitted from the response.
+If `stream_ready` is false, the `url` and `thumbnail` fields will be omitted from the response.
 
 Request: N/A
 
@@ -157,10 +154,7 @@ Reponse:
         ...
     ],
     "url": "www.something.m3u8",
-    "thumbnails": [
-        "www.something.jpg",
-        ...
-    ]
+    "thumbnail": "www.something.jpg"
 }
 ```
 
@@ -216,7 +210,7 @@ Response: N/A
 
 **PUT /uploads/{upload_id}/**
 
-If `stream_ready` is false, the `thumbnails` field will be omitted from the response.
+If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
 
 Request:
 ```json
@@ -242,10 +236,7 @@ Response:
         },
         ...
     ],
-    "thumbnails": [
-        "www.something.jpg",
-        ...
-    ]
+    "thumbnail": "www.something.jpg"
 }
 ```
 

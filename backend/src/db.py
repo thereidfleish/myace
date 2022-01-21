@@ -170,7 +170,7 @@ class Upload(db.Model):
             "comments": [c.serialize(show_upload_id=False) for c in self.comments],
         }
         if self.stream_ready:
-            response["thumbnails"] = aws.get_thumbnail_urls(self.id, expiration_in_hours=1)
+            response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
         return response
 
 

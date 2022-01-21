@@ -58,13 +58,12 @@
                 "FrameCaptureSettings": {
                   "FramerateNumerator": 1,
                   "FramerateDenominator": 10,
-                  "MaxCaptures": 13,
+                  "MaxCaptures": 1,
                   "Quality": 80
                 }
               }
             },
-            "Extension": "jpg",
-            "NameModifier": "-thumb"
+            "Extension": "jpg"
           }
         ],
         "OutputGroupSettings": {
