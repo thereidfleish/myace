@@ -14,10 +14,15 @@ def log_response(res):
     print(f"Status: {res.status_code}")
     print(res.text)
 
+def login(session, google_token):
+    body = {
+        "token": google_token,
+        "type": 0,
+    }
+    response = session.post(url="http://localhost/login/", json=body)
+    assert response.status_code == 200 or response.status_code == 201
 
-def test_upload():
-    # TODO: log in
-    path_to_file = "./samplevids/fullcourtstock.mp4"
+def test_upload(session, path_to_file):
     filename = os.path.basename(path_to_file)
 
     print("Requesting presigned upload URL")
@@ -25,9 +30,9 @@ def test_upload():
     body = {
         "filename": filename,
         "display_title": "My cool full court clip 😎",
-        "bucket_id": 1
+        "bucket_id": 2
     }
-    create_url_res = requests.post(url=create_url_endpoint, json=body)
+    create_url_res = session.post(url=create_url_endpoint, json=body)
     log_response(create_url_res)
     assert create_url_res.status_code == 201
     create_url_res = create_url_res.json()
@@ -41,10 +46,13 @@ def test_upload():
         for old_key in list(fields):
             new_key = old_key.replace('_', '-')
             fields[new_key] = fields.pop(old_key)
-        upload_res = requests.post(create_url_res['url'], data=create_url_res['fields'], files=files)
+        upload_res = session.post(create_url_res['url'], data=create_url_res['fields'], files=files)
         log_response(upload_res)
         assert upload_res.status_code == 204
 
 
 if __name__ == '__main__':
-    test_upload()
+    token = input("Enter Google Token: ")
+    with requests.Session() as s:
+        login(s, token)
+        test_upload(s, "./samplevids/fullcourtstock.mp4")
