@@ -114,9 +114,9 @@ struct StudentUploadView: View {
                                 .navigationLinkStyle()
                             }
                         }
-                            
-                        }.sheet(isPresented: $showingNewBucketView) {
-                            NewBucketView()
+                        
+                    }.sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
                         
                     }
                 }

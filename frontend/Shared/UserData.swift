@@ -91,6 +91,7 @@ struct Upload: Codable, Identifiable {
     var bucket_id: Int
     var comments: [Comment]
     var url: String?
+    var thumbnail: String?
 }
 
 struct BucketRes: Codable {
@@ -169,4 +170,8 @@ struct BucketReq: Codable {
 
 struct DeleteUploadRes: Codable {
     var message: String
+}
+
+struct EditUploadReq: Codable {
+    var display_title: String
 }

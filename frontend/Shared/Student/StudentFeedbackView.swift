@@ -22,6 +22,9 @@ struct StudentFeedbackView: View {
     @State var didAppear = false
     @State private var player = AVPlayer(url:  URL(string: "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8")!)
     
+    @State private var playerDuration = 0;
+    @State private var currentSeconds = 0;
+    
     func initialize() {
         if (!didAppear) {
             didAppear = true
@@ -44,24 +47,13 @@ struct StudentFeedbackView: View {
         }
     }
     
-    func delete()  {
-        
-        Task {
-            do {
-                awaiting = true
-                try await nc.deleteUpload(uploadID: uploadID)
-                self.mode.wrappedValue.dismiss()
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
-            }
-        }
+    
+    func secondsToHoursMinutesSeconds(seconds: Int) -> String {
+        return "\(seconds / 3600):\((seconds % 3600) / 60):\((seconds % 3600) % 60)"
     }
     
     var body: some View {
-        ScrollView {
+        ZStack {
             if (awaiting) {
                 ProgressView()
             } else if (showingError) {
@@ -71,9 +63,55 @@ struct StudentFeedbackView: View {
                     VideoPlayer(player: player)
                         .frame(height: 300)
                     
+                    ScrollView {
+                        ScrollViewReader { proxy in
+                            
+                            ForEach(0...playerDuration, id: \.self) { index in
+                                HStack {
+                                    Text(secondsToHoursMinutesSeconds(seconds: index))
+                                        .foregroundColor(index == currentSeconds ? .green : .primary)
+                                    Spacer()
+                                    Button(action: {
+                                        currentSeconds = index
+                                        player.seek(to: CMTimeMakeWithSeconds(Double(index), preferredTimescale: 1))
+                                    }, label: {
+                                        Text("Sample comment!")
+                                            .foregroundColor(index == currentSeconds ? .green : .primary)
+                                    })
+                                }
+                                .padding(.vertical)
+                                
+                            }
+                            
+                            .onChange(of: currentSeconds) { value in
+                                withAnimation {
+                                    proxy.scrollTo(value, anchor: .top)
+                                }
+                            }
+                        }
+                    }
+                    .onAppear(perform: {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            playerDuration = Int(player.currentItem!.duration.seconds)
+                        }
+                        
+                        DispatchQueue.main.async {
+                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                currentSeconds = Int(player.currentTime().seconds)
+                                //print(currentSeconds)
+                            })
+                        }
+                    })
+                    
                     Button("tap me!") {
-                        print(player.currentItem?.duration.seconds)
+                        print(Int(player.currentItem!.duration.seconds))
                         print(player.currentTime().seconds)
+                    }
+                    
+                    Button("tap me2!") {
+                        print(player.currentItem?.duration.seconds)
+                        player.seek(to: CMTimeMakeWithSeconds(4, preferredTimescale: 1))
+                        currentSeconds = Int(player.currentItem!.duration.seconds)
                     }
                     
                     if (!showOnlyVideo) {
@@ -98,12 +136,6 @@ struct StudentFeedbackView: View {
                         }
                     }
                     
-                    Button(action: {
-                        delete()
-                    }, label: {
-                        Text("Delete Video")
-                            .foregroundColor(.red)
-                    })
                     
                 }.padding(.horizontal)
             }

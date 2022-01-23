@@ -56,13 +56,12 @@ struct NewBucketView: View {
                     HStack {
                         TextField("Name", text: $name)
                             .autocapitalization(.none)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textFieldStyle()
                             .disabled(defaultStrokes.contains(name))
                         
                         Button("Clear") {
                             name = ""
-                        }
+                        }.disabled(name == "")
                     }
                     
                     
