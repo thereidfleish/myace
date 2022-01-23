@@ -19,7 +19,7 @@ struct AI_Tennis_CoachApp: App {
                     .environmentObject(networkController)
             }
             else if (networkController.newUser) {
-                NewUserOnboardingView()
+                ProfileSettingsView(isNewUser: true)
                     .environmentObject(networkController)
             }
             else {
