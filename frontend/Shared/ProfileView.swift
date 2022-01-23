@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
+    @State private var presentingSettingsSheet = false
     
     var yourself: Bool
     var user: Friend
@@ -117,10 +118,19 @@ struct ProfileView: View {
                         Text(yourself ? "Log Out" : "< Back")
                             .foregroundColor(yourself ? Color.red : .accentColor)
                                 .fontWeight(.bold)
-                    }))
+                    }),
+                    trailing:
+                        Button(action: {
+                            presentingSettingsSheet = true
+                        }, label: {
+                            Image(systemName: "gearshape.fill")
+                                .foregroundColor(Color.green)
+                        }))
             }
         }
-        .onAppear(perform: {initialize()})
+        .sheet(isPresented: $presentingSettingsSheet, onDismiss: {initialize()}) {
+            SettingsView()
+        }
     }
 }
 

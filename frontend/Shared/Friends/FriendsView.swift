@@ -59,6 +59,10 @@ struct FriendsView: View {
                 
                 ScrollView {
                     if tabIndex == 0 {
+                        if nc.userData.friends.count == 0 {
+                            Text("Click the + icon to search for and add your friends!")
+                                .bucketTextInternalStyle()
+                        }
                         ForEach(nc.userData.friends) { user in
                             NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
                             {
@@ -94,11 +98,22 @@ struct FriendsView: View {
                     }
                     
                 }.padding(.horizontal)
-                    .navigationBarItems(trailing: NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
-                        Image(systemName: "plus")
-                            .foregroundColor(Color.green)
-                            .padding()
-                    })
+                    .navigationBarItems(trailing:
+                        HStack {
+                            NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
+                                Image(systemName: "face.smiling")
+                                    .foregroundColor(Color.green)
+                                    .padding()
+                            }
+                            NavigationLink(destination: SearchView().onAppear(perform: {didAppear = false})) {
+                                Image(systemName: "plus")
+                                    .foregroundColor(Color.green)
+                                    .padding()
+                            }
+                        
+
+                        }
+                    )
             }
         }.onAppear(perform: {initialize()})
         
