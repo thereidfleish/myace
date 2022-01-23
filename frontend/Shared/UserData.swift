@@ -20,11 +20,6 @@ struct UserData {
     
     var buckets: [Bucket]
     
-    var friends: [Friend]
-    
-    var incomingFriendRequests: [Friend]
-    var outgoingFriendRequests: [Friend]
-    
     //var bucketContents: [BucketContents]
     
     var bucketContents: BucketContents
@@ -80,7 +75,7 @@ struct UserData {
     }
 }
 
-struct SharedData: Codable, Identifiable {
+struct SharedData: Codable {
     var id: Int
     var username: String
     var display_name: String
@@ -96,6 +91,7 @@ struct Upload: Codable, Identifiable {
     var bucket_id: Int
     var comments: [Comment]
     var url: String?
+    var thumbnail: String?
 }
 
 struct BucketRes: Codable {
@@ -176,26 +172,6 @@ struct DeleteUploadRes: Codable {
     var message: String
 }
 
-struct FriendRes: Codable {
-    var friends: [Friend]
-}
-
-struct FriendRequestReq: Codable {
-    var user_id: Int
-}
-
-struct AllFriendRequestsRes: Codable {
-    var incoming: [Friend]
-    var outgoing: [Friend]
-}
-
-struct Friend: Codable, Identifiable, Equatable {
-    var id: Int
-    var username: String
-    var display_name: String
-    var type: Int // -1 == user not logged in, 0 == student, 1 == coach
-}
-
-struct UpdateIncomingFriendRequestReq: Codable {
-    var status: String
+struct EditUploadReq: Codable {
+    var display_title: String
 }

@@ -21,7 +21,6 @@ struct UploadView: View {
     @State private var uploadName = ""
     @State private var uploadBucketName = ""
     var url: [URL]
-    var uploadInCurrentBucket: Bool
     @State var bucketID: String
     
     func computeBucketName() -> String {
@@ -43,17 +42,6 @@ struct UploadView: View {
                     TextField("My Video", text: $uploadName)
                         .textFieldStyle()
                     
-                    //if (!uploadInCurrentBucket) {
-                    //                    Text("Choose a bucket")
-                    //                        .bucketTextInternalStyle()
-                    //                    Picker("None Selected", selection: $bucketID) {
-                    //                        ForEach(nc.userData.buckets) {
-                    //                            //Text(String($0.id))
-                    //                            Text($0.name).tag($0.id)
-                    //                        }
-                    //                    }
-                    //}
-                    //.pickerStyle(.)
                     
                     Text(computeBucketName())
                         .padding(.top)
@@ -62,7 +50,7 @@ struct UploadView: View {
                     if (!uploading) {
                         Menu {
                             ForEach(nc.userData.buckets) { bucket in
-                                Button(bucketID == "\(bucket.id)" ? "🎾 \(bucket.name)" : bucket.name) {
+                                Button(bucketID == "\(bucket.id)" ? "\(bucket.name)  🎾" : bucket.name) {
                                     bucketID = "\(bucket.id)"
                                 }
                             }

@@ -56,7 +56,7 @@ class NetworkController: ObservableObject {
         }
     }
     
-    // DELETE
+    // PUT
     func updateCurrentUser(username: String, displayName: String) async throws {
         let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName)
         
@@ -80,6 +80,28 @@ class NetworkController: ObservableObject {
                 print(response)
                 userData.shared = decodedResponse
             }
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // PUT
+    func editUpload(uploadID: String, displayTitle: String) async throws {
+        let req: EditUploadReq = EditUploadReq(display_title: displayTitle)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/uploads/\(uploadID)/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        
+        do {
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(data.prettyPrintedJSONString)
+            print(response)
         } catch {
             throw NetworkError.failedDecode
         }
