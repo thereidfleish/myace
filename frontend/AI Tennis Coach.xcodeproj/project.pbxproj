@@ -64,6 +64,8 @@
 		9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D3279A036500FAC339 /* FriendRequests.swift */; };
 		9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
 		9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
+		9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
+		9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -127,6 +129,7 @@
 		9A2C34D02799BCC700FAC339 /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		9A2C34D3279A036500FAC339 /* FriendRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequests.swift; sourceTree = "<group>"; };
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		9A2C34E9279E20DA00FAC339 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -196,6 +199,7 @@
 				2519DB312798C9C600A91759 /* SearchView.swift */,
 				256CBD07279DD593004FCC44 /* UserCardView.swift */,
 				9A2C34D02799BCC700FAC339 /* UploadView.swift */,
+				9A2C34E9279E20DA00FAC339 /* SettingsView.swift */,
 				2537F4E5278348BA00596AF6 /* ProfileView.swift */,
 				25C65CE02777BE9000AF5BBE /* StudentInfo.swift */,
 				25A036332778CE3F0090AC49 /* CoachInfo.swift */,
@@ -564,6 +568,7 @@
 				258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */,
 				9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */,
 				25A036342778CE3F0090AC49 /* CoachInfo.swift in Sources */,
+				9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				9A2C34D4279A036500FAC339 /* FriendRequests.swift in Sources */,
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				25C65CDE2777BB1500AF5BBE /* CoachMainView.swift in Sources */,
@@ -585,6 +590,7 @@
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */,
 				2552DDA7277CC4490035EFB4 /* Data2.swift in Sources */,
+				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				25C65CE22777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */,
