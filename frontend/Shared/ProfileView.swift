@@ -10,14 +10,18 @@ import GoogleSignIn
 
 struct ProfileView: View {
     @EnvironmentObject private var nc: NetworkController
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @AppStorage("type") private var typeSelection = -1
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
+    
+    var yourself: Bool
+    var user: Friend
+    
     func initialize() {
         Task {
             do {
-                
                 awaiting = true
                 try await nc.getFriends()
                 awaiting = false
@@ -43,7 +47,7 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(alignment: .leading) {
                         
-                        Text(nc.userData.shared.type == 0 ? "Player" : "Coach")
+                        Text(yourself ? (nc.userData.shared.type == 0 ? "Player" : "Coach") : (user.type == 0 ? "Player" : "Coach"))
                             .profileInfoStyle()
                         
                         HStack {
@@ -69,7 +73,7 @@ struct ProfileView: View {
                                 Spacer()
                                 NavigationLink(destination: FriendsView().navigationTitle("Friends").navigationBarTitleDisplayMode(.inline)) {
                                     
-                                
+                                    
                                     VStack {
                                         Text("\(nc.userData.friends.count)")
                                             .profileInfoStyle()
@@ -83,7 +87,7 @@ struct ProfileView: View {
                         }
                         
                         
-                        Text(nc.userData.shared.display_name)
+                        Text(yourself ? nc.userData.shared.display_name : user.display_name)
                             .profileInfoStyle()
                         
                         Text("The users will be able to write a description of themselves here, like on Instagram.")
@@ -92,7 +96,7 @@ struct ProfileView: View {
                         
                         Spacer()
                         
-                        Text("\(nc.userData.shared.email) | User ID: \(nc.userData.shared.id)")
+                        Text("\(nc.userData.shared.email) | User ID: \(yourself ? nc.userData.shared.id : user.id)")
                             .font(.footnote)
                             .foregroundColor(Color.green)
                         
@@ -100,15 +104,19 @@ struct ProfileView: View {
                     }.padding(.horizontal)
                     
                     
-                }.navigationTitle(nc.userData.shared.username)
+                }.navigationTitle(yourself ? nc.userData.shared.username : user.username)
                     .navigationBarItems(leading: Button(action: {
-                        GIDSignIn.sharedInstance.signOut()
-                        nc.userData.shared.type = -1
-                        typeSelection = -1
+                        if (yourself) {
+                            GIDSignIn.sharedInstance.signOut()
+                            nc.userData.shared.type = -1
+                            typeSelection = -1
+                        } else {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }
                     }, label: {
-                        Text("Log Out")
-                            .foregroundColor(Color.red)
-                            .fontWeight(.bold)
+                        Text(yourself ? "Log Out" : "< Back")
+                            .foregroundColor(yourself ? Color.red : .accentColor)
+                                .fontWeight(.bold)
                     }))
             }
         }
@@ -116,8 +124,8 @@ struct ProfileView: View {
     }
 }
 
-struct ProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProfileView()
-    }
-}
+//struct ProfileView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ProfileView()
+//    }
+//}

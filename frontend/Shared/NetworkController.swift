@@ -15,7 +15,7 @@ class NetworkController: ObservableObject {
     @Published var uploading = false
     @Published var uploadingStatus = ""
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
-     @Published var uploadURLSaved: Bool = false
+    @Published var uploadURLSaved: Bool = false
     @Published var newUser = false
     public let host = "https://api.myace.ai"
     
@@ -276,6 +276,23 @@ class NetworkController: ObservableObject {
     }
     
     // GET
+    func searchUser(query: String) async throws -> [Friend] {
+        let url = URL(string: "\(host)/users/search?query=\(query)")!
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(SearchRes.self, from: data)
+            print(data.prettyPrintedJSONString)
+            return decodedResponse.users
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+        //throw NetworkError.noReturn
+    }
+    
+    // GET
     func getFriends() async throws {
         let url = URL(string: "\(host)/friends/")!
         
@@ -326,15 +343,17 @@ class NetworkController: ObservableObject {
         request.httpMethod = "POST"
         
         do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(response)
+            print(data.prettyPrintedJSONString)
             //No response
             
-//            let decoder = JSONDecoder()
-//            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-//            let decodedResponse = try decoder.decode(Bucket.self, from: data)
-//            DispatchQueue.main.sync {
-//                userData.buckets.append(decodedResponse)
-//            }
+            //            let decoder = JSONDecoder()
+            //            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            //            let decodedResponse = try decoder.decode(Bucket.self, from: data)
+            //            DispatchQueue.main.sync {
+            //                userData.buckets.append(decodedResponse)
+            //            }
             
         } catch {
             
@@ -343,7 +362,7 @@ class NetworkController: ObservableObject {
     }
     
     // PUT
-    func updateIncomingFriendRequest(status: String, userID: Int) async throws {
+    func updateIncomingFriendRequest(status: String, userID: String) async throws {
         let req: UpdateIncomingFriendRequestReq = UpdateIncomingFriendRequestReq(status: status)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -359,7 +378,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-
+            
         } catch {
             
             throw NetworkError.failedDecode
@@ -367,7 +386,7 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func deleteOutgoingFriendRequest(userID: Int) async throws {
+    func deleteOutgoingFriendRequest(userID: String) async throws {
         let url = URL(string: "\(host)/friends/requests/\(userID)/")!
         
         var request = URLRequest(url: url)
@@ -376,14 +395,14 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-
+            
         } catch {
             throw NetworkError.failedDecode
         }
     }
     
     // DELETE
-    func removeFriend(userID: Int) async throws {
+    func removeFriend(userID: String) async throws {
         let url = URL(string: "\(host)/friends/\(userID)/")!
         
         var request = URLRequest(url: url)
@@ -392,7 +411,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-
+            
         } catch {
             throw NetworkError.failedDecode
         }

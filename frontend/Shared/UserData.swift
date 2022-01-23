@@ -20,6 +20,11 @@ struct UserData {
     
     var buckets: [Bucket]
     
+    var friends: [Friend]
+    
+    var incomingFriendRequests: [Friend]
+    var outgoingFriendRequests: [Friend]
+    
     //var bucketContents: [BucketContents]
     
     var bucketContents: BucketContents
@@ -63,19 +68,19 @@ struct UserData {
     static func getThumbnailImage(forUrl url: URL) -> UIImage? {
         let asset: AVAsset = AVAsset(url: url)
         let imageGenerator = AVAssetImageGenerator(asset: asset)
-
+        
         do {
             let thumbnailImage = try imageGenerator.copyCGImage(at: CMTimeMake(value: 1, timescale: 60), actualTime: nil)
             return UIImage(cgImage: thumbnailImage)
         } catch let error {
             print(error)
         }
-
+        
         return nil
     }
 }
 
-struct SharedData: Codable {
+struct SharedData: Codable, Identifiable {
     var id: Int
     var username: String
     var display_name: String
@@ -170,6 +175,34 @@ struct BucketReq: Codable {
 
 struct DeleteUploadRes: Codable {
     var message: String
+}
+
+struct SearchRes: Codable {
+    var users: [Friend]
+}
+
+struct FriendRes: Codable {
+    var friends: [Friend]
+}
+
+struct FriendRequestReq: Codable {
+    var user_id: Int
+}
+
+struct AllFriendRequestsRes: Codable {
+    var incoming: [Friend]
+    var outgoing: [Friend]
+}
+
+struct Friend: Codable, Identifiable, Equatable {
+    var id: Int
+    var username: String
+    var display_name: String
+    var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+}
+
+struct UpdateIncomingFriendRequestReq: Codable {
+    var status: String
 }
 
 struct EditUploadReq: Codable {

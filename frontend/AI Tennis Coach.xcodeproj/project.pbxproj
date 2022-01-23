@@ -29,6 +29,8 @@
 		2558E2CE2773BA270056DD17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2558E2A32773BA270056DD17 /* Assets.xcassets */; };
 		256A8B052798E71000B7DC30 /* NewUserOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* NewUserOnboardingView.swift */; };
 		256A8B062798E71000B7DC30 /* NewUserOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* NewUserOnboardingView.swift */; };
+		256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
+		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* StudentUploadView.swift */; };
@@ -64,12 +66,6 @@
 		9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D3279A036500FAC339 /* FriendRequests.swift */; };
 		9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
 		9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
-		9A2C34DE279D226300FAC339 /* OutgoingFriendRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34DD279D226300FAC339 /* OutgoingFriendRequestList.swift */; };
-		9A2C34DF279D226300FAC339 /* OutgoingFriendRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34DD279D226300FAC339 /* OutgoingFriendRequestList.swift */; };
-		9A2C34E1279D229B00FAC339 /* IncomingFriendRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E0279D229B00FAC339 /* IncomingFriendRequestList.swift */; };
-		9A2C34E2279D229B00FAC339 /* IncomingFriendRequestList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E0279D229B00FAC339 /* IncomingFriendRequestList.swift */; };
-		9A2C34E4279D22B600FAC339 /* FriendList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E3279D22B600FAC339 /* FriendList.swift */; };
-		9A2C34E5279D22B600FAC339 /* FriendList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E3279D22B600FAC339 /* FriendList.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -111,6 +107,7 @@
 		2558E2C52773BA270056DD17 /* Tests_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS.swift; sourceTree = "<group>"; };
 		2558E2C72773BA270056DD17 /* Tests_macOSLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOSLaunchTests.swift; sourceTree = "<group>"; };
 		256A8B042798E71000B7DC30 /* NewUserOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewUserOnboardingView.swift; sourceTree = "<group>"; };
+		256CBD07279DD593004FCC44 /* UserCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCardView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
 		25734AA9277FBEFB00D2B8BE /* AI-Tennis-Coach--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--macOS--Info.plist"; sourceTree = "<group>"; };
 		258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentUploadDetailView.swift; sourceTree = "<group>"; };
@@ -133,9 +130,6 @@
 		9A2C34D02799BCC700FAC339 /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		9A2C34D3279A036500FAC339 /* FriendRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequests.swift; sourceTree = "<group>"; };
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
-		9A2C34DD279D226300FAC339 /* OutgoingFriendRequestList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingFriendRequestList.swift; sourceTree = "<group>"; };
-		9A2C34E0279D229B00FAC339 /* IncomingFriendRequestList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingFriendRequestList.swift; sourceTree = "<group>"; };
-		9A2C34E3279D22B600FAC339 /* FriendList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendList.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -203,6 +197,7 @@
 				2558E2A22773BA260056DD17 /* ContentView.swift */,
 				256A8B042798E71000B7DC30 /* NewUserOnboardingView.swift */,
 				2519DB312798C9C600A91759 /* SearchView.swift */,
+				256CBD07279DD593004FCC44 /* UserCardView.swift */,
 				9A2C34D02799BCC700FAC339 /* UploadView.swift */,
 				2537F4E5278348BA00596AF6 /* ProfileView.swift */,
 				25C65CE02777BE9000AF5BBE /* StudentInfo.swift */,
@@ -317,9 +312,6 @@
 			children = (
 				9A2C34D3279A036500FAC339 /* FriendRequests.swift */,
 				9A2C34D7279A45FF00FAC339 /* FriendsView.swift */,
-				9A2C34DD279D226300FAC339 /* OutgoingFriendRequestList.swift */,
-				9A2C34E0279D229B00FAC339 /* IncomingFriendRequestList.swift */,
-				9A2C34E3279D22B600FAC339 /* FriendList.swift */,
 			);
 			path = Friends;
 			sourceTree = "<group>";
@@ -556,7 +548,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2552DDAF277CCDA40035EFB4 /* NetworkController.swift in Sources */,
-				9A2C34DE279D226300FAC339 /* OutgoingFriendRequestList.swift in Sources */,
 				9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */,
 				25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */,
 				9A2C34C52793CF4900FAC339 /* TextAlert.swift in Sources */,
@@ -564,9 +555,9 @@
 				9A2C34C32792065900FAC339 /* CameraView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34D12799BCC700FAC339 /* UploadView.swift in Sources */,
+				256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */,
 				2552DDAC277CCD750035EFB4 /* UserData.swift in Sources */,
 				2552DDA6277CC4490035EFB4 /* Data2.swift in Sources */,
-				9A2C34E1279D229B00FAC339 /* IncomingFriendRequestList.swift in Sources */,
 				9A2C34CB2798CF8F00FAC339 /* Styles.swift in Sources */,
 				25C65CE12777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				2519DB322798C9C600A91759 /* SearchView.swift in Sources */,
@@ -582,7 +573,6 @@
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				25C65CDE2777BB1500AF5BBE /* CoachMainView.swift in Sources */,
 				9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */,
-				9A2C34E4279D22B600FAC339 /* FriendList.swift in Sources */,
 				2558E2C92773BA270056DD17 /* AI_Tennis_CoachApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -599,10 +589,10 @@
 				256A8B062798E71000B7DC30 /* NewUserOnboardingView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */,
-				9A2C34E2279D229B00FAC339 /* IncomingFriendRequestList.swift in Sources */,
 				2552DDA7277CC4490035EFB4 /* Data2.swift in Sources */,
 				25C65CE22777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
+				256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */,
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				9A2C34D22799BCC700FAC339 /* UploadView.swift in Sources */,
@@ -610,9 +600,7 @@
 				25A036382778D5080090AC49 /* CoachStudentView.swift in Sources */,
 				258D41762773C3E00030D437 /* StudentUploadView.swift in Sources */,
 				25A036352778CE3F0090AC49 /* CoachInfo.swift in Sources */,
-				9A2C34E5279D22B600FAC339 /* FriendList.swift in Sources */,
 				2558E2CC2773BA270056DD17 /* ContentView.swift in Sources */,
-				9A2C34DF279D226300FAC339 /* OutgoingFriendRequestList.swift in Sources */,
 				2537F4E7278348BA00596AF6 /* ProfileView.swift in Sources */,
 				25C65CDF2777BB1500AF5BBE /* CoachMainView.swift in Sources */,
 				9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */,
@@ -773,7 +761,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NLRGJ9C7H8;
+				DEVELOPMENT_TEAM = FF95FHPLK4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
@@ -809,7 +797,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NLRGJ9C7H8;
+				DEVELOPMENT_TEAM = FF95FHPLK4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";

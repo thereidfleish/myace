@@ -43,64 +43,68 @@ struct FriendsView: View {
     }
     
     var body: some View {
-
+        VStack {
             if (awaiting) {
                 ProgressView()
             } else if (showingError) {
                 Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
             } else {
-                ScrollView {
-                    VStack {
-                        Picker("", selection: $tabIndex) {
-                            Text("Friends").tag(0)
-                            Text("Friend Requests").tag(1)
-                        } .pickerStyle(.segmented)
-                        if tabIndex == 0 {
-                            FriendList()
-                        }
-                        else  {
-                            /*
-                            Picker("", selection: $requestTabIndex) {
-                                Text("Incoming").tag(0)
-                                Text("Outgoing").tag(1)
-                            } .pickerStyle(.segmented)
-                             
-                            if requestTabIndex == 0 {
-                                IncomingFriendRequestList()
-                            }
-                            else if requestTabIndex == 1{
-                                OutgoingFriendRequestList()
-                            }
-                             */
-                            Text("Incoming Requests")
-                                .bucketNameStyle()
-                                .foregroundColor(Color.green)
-                            Spacer()
-                            IncomingFriendRequestList()
-                            Spacer()
-                            Text("Outgoing Requests")
-                                .bucketNameStyle()
-                                .foregroundColor(Color.green)
-                            Spacer()
-                            OutgoingFriendRequestList()
-                        }
-                    }
-                    .frame(alignment: .center)
-                    .padding(.horizontal, 12)
-                }
-                .onAppear(perform: {initialize()})
-                .padding(.leading, 1)
-                .navigationBarItems(trailing: NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
-                    Image(systemName: "plus")
-                        .foregroundColor(Color.green)
-                        .padding()
-                })
-            }
+                VStack {
+                    Picker("", selection: $tabIndex) {
+                        Text("Friends").tag(0)
+                        Text("Friend Requests").tag(1)
+                    } .pickerStyle(.segmented)
+                    
+                }.padding(.horizontal)
                 
-
-    
-  
-
+                ScrollView {
+                    if tabIndex == 0 {
+                        ForEach(nc.userData.friends) { user in
+                            NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                            {
+                                UserCardView(user: user)
+                            }
+                        }
+                        
+                    }
+                    else  {
+                        VStack(alignment: .leading) {
+                            Text(nc.userData.incomingFriendRequests.count == 0 ? "No Incoming Friend Requests" : "Incoming Friend Requests")
+                                .bucketTextInternalStyle()
+                            
+                            ForEach(nc.userData.incomingFriendRequests) { user in
+                                NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                                {
+                                    UserCardView(user: user)
+                                }
+                            }
+                            
+                            Text(nc.userData.outgoingFriendRequests.count == 0 ? "No Outgoing Friend Requests" : "Outgoing Requests")
+                                .padding(.top)
+                                .bucketTextInternalStyle()
+                            
+                            ForEach(nc.userData.outgoingFriendRequests) { user in
+                                NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                                {
+                                    UserCardView(user: user)
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                }.padding(.horizontal)
+                    .navigationBarItems(trailing: NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
+                        Image(systemName: "plus")
+                            .foregroundColor(Color.green)
+                            .padding()
+                    })
+            }
+        }.onAppear(perform: {initialize()})
+        
+        
+        
+        
     }
 }
 
