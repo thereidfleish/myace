@@ -47,8 +47,6 @@
 		25C65CE22777BE9000AF5BBE /* StudentInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C65CE02777BE9000AF5BBE /* StudentInfo.swift */; };
 		25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A6A277A594300FFE2B3 /* LogInView.swift */; };
 		25D13A6C277A594300FFE2B3 /* LogInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A6A277A594300FFE2B3 /* LogInView.swift */; };
-		25D13A6E277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A6D277A5E8100FFE2B3 /* StudentVideoView.swift */; };
-		25D13A6F277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A6D277A5E8100FFE2B3 /* StudentVideoView.swift */; };
 		25D13A72277A684700FFE2B3 /* MediaPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 25D13A71277A684700FFE2B3 /* MediaPicker */; };
 		25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
 		25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
@@ -118,7 +116,6 @@
 		25C65CDD2777BB1500AF5BBE /* CoachMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMainView.swift; sourceTree = "<group>"; };
 		25C65CE02777BE9000AF5BBE /* StudentInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentInfo.swift; sourceTree = "<group>"; };
 		25D13A6A277A594300FFE2B3 /* LogInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInView.swift; sourceTree = "<group>"; };
-		25D13A6D277A5E8100FFE2B3 /* StudentVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentVideoView.swift; sourceTree = "<group>"; };
 		25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewBucketView.swift; sourceTree = "<group>"; };
 		3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).release.xcconfig"; sourceTree = "<group>"; };
 		3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).debug.xcconfig"; sourceTree = "<group>"; };
@@ -255,7 +252,6 @@
 				258D41742773C3E00030D437 /* StudentUploadView.swift */,
 				258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */,
 				258D41772773FC470030D437 /* StudentFeedbackView.swift */,
-				25D13A6D277A5E8100FFE2B3 /* StudentVideoView.swift */,
 				25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */,
 			);
 			path = Student;
@@ -563,7 +559,6 @@
 				2519DB322798C9C600A91759 /* SearchView.swift in Sources */,
 				258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				258D41782773FC480030D437 /* StudentFeedbackView.swift in Sources */,
-				25D13A6E277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */,
 				25A036372778D5080090AC49 /* CoachStudentView.swift in Sources */,
 				2537F4E6278348BA00596AF6 /* ProfileView.swift in Sources */,
 				258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */,
@@ -596,7 +591,6 @@
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				9A2C34D22799BCC700FAC339 /* UploadView.swift in Sources */,
-				25D13A6F277A5E8100FFE2B3 /* StudentVideoView.swift in Sources */,
 				25A036382778D5080090AC49 /* CoachStudentView.swift in Sources */,
 				258D41762773C3E00030D437 /* StudentUploadView.swift in Sources */,
 				25A036352778CE3F0090AC49 /* CoachInfo.swift in Sources */,

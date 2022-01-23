@@ -39,7 +39,6 @@ struct navigationLink: ViewModifier {
             .padding()
             .background(Color.green)
             .cornerRadius(10)
-            .padding(.horizontal)
             .shadow(radius: 5)
     }
 }
@@ -110,6 +109,28 @@ struct profileInfo: ViewModifier {
     }
 }
 
+/* The style of the text depicting the friend status on a UserCardView */
+struct friendStatusText: ViewModifier {
+    let font = Font.system(.caption)
+    func body(content: Content) -> some View {
+        content
+            .font(font)
+            .padding(.top, 2)
+    }
+}
+
+/* The style of the friend status background on a UserCardView */
+struct friendStatusBackground: ViewModifier {
+    let font = Font.system(.caption)
+    func body(content: Content) -> some View {
+        content
+            .padding()
+            .background(Color.white)
+            .cornerRadius(10)
+            .foregroundColor(.green)
+    }
+}
+
 extension View {
     func buttonStyle() -> some View {
         modifier(button())
@@ -140,5 +161,11 @@ extension View {
     }
     func profileInfoStyle() -> some View {
         modifier(profileInfo())
+    }
+    func friendStatusTextStyle() -> some View {
+        modifier(friendStatusText())
+    }
+    func friendStatusBackgroundStyle() -> some View {
+        modifier(friendStatusBackground())
     }
 }

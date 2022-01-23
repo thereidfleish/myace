@@ -39,7 +39,7 @@ struct UserCardView: View {
                 try await nc.createFriendRequest(userID: userID)
                 updateData()
                 withAnimation {
-                    statusMessage = "Sent friend request."
+                    statusMessage = userID == String(nc.userData.shared.id) ? "Lol you can't send a friend request to yourself!!" : "Sent friend request."
                     showingStatus = true
                 }
                 awaiting = false
@@ -158,11 +158,11 @@ struct UserCardView: View {
                         Button(action: {
                             showRemoveFriendAlert = true
                         }, label: {
-                            Image(systemName: "person.crop.circle.fill.badge.checkmark")
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .foregroundColor(.green)
+                            VStack {
+                                Image(systemName: "person.crop.circle.fill.badge.checkmark")
+                                Text("Friends")
+                                    .friendStatusTextStyle()
+                            }.friendStatusBackgroundStyle()
                         })
                     }
                     
@@ -172,20 +172,20 @@ struct UserCardView: View {
                             Button(action: {
                                 updateFriendRequest(status: "accepted", userID: String(user.id))
                             }, label: {
-                                Image(systemName: "person.fill.checkmark")
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .foregroundColor(.green)
+                                VStack {
+                                    Image(systemName: "person.fill.checkmark")
+                                    Text("Accept")
+                                        .friendStatusTextStyle()
+                                }.friendStatusBackgroundStyle()
                             })
                             Button(action: {
                                 updateFriendRequest(status: "declined", userID: String(user.id))
                             }, label: {
-                                Image(systemName: "person.fill.xmark")
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(10)
-                                    .foregroundColor(.green)
+                                VStack {
+                                    Image(systemName: "person.fill.xmark")
+                                    Text("Decline")
+                                        .friendStatusTextStyle()
+                                }.friendStatusBackgroundStyle()
                             })
                         }
                     }
@@ -195,11 +195,12 @@ struct UserCardView: View {
                         Button(action: {
                             deleteOutgoingFriendRequest(userID: String(user.id))
                         }, label: {
-                            Image(systemName: "person.wave.2.fill")
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .foregroundColor(.green)
+                            VStack {
+                                Image(systemName: "person.wave.2.fill")
+                                Text("Cancel")
+                                    .friendStatusTextStyle()
+                            }.friendStatusBackgroundStyle()
+                            
                         })
                     }
                     
@@ -208,11 +209,11 @@ struct UserCardView: View {
                         Button(action: {
                             createFriendRequest(userID: String(user.id))
                         }, label: {
-                            Image(systemName: "person.crop.circle.fill.badge.plus")
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .foregroundColor(.green)
+                            VStack {
+                                Image(systemName: "person.crop.circle.fill.badge.plus")
+                                Text("Add Friend")
+                                    .friendStatusTextStyle()
+                            }.friendStatusBackgroundStyle()
                         })
                     }
                 }

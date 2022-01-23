@@ -102,8 +102,8 @@ struct StudentUploadDetailView: View {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
                     Text("Edit Name")
+                        .padding(.top)
                         .bucketTextInternalStyle()
-                        .padding([.top, .leading, .trailing])
                     
                     HStack {
                         TextField("Edit Name", text: $name)
@@ -121,11 +121,11 @@ struct StudentUploadDetailView: View {
                                 .fontWeight(.bold)
                         })
                             .disabled(name == originalName)
-                    }.padding(.horizontal)
+                    }
                     
                     Text("Videos")
+                        .padding(.top)
                         .bucketTextInternalStyle()
-                        .padding([.top, .leading, .trailing])
                     //                            .onChange(of: showsUploadAlert, perform: {
                     //                                initialize()
                     //                            })
@@ -174,7 +174,8 @@ struct StudentUploadDetailView: View {
                                     
                                 }
                             
-                        }.padding([.horizontal, .bottom])
+                        }
+                        .padding(.bottom)
                     }
                     
                     if (nc.userData.bucketContents.uploads.count == 0) {
@@ -390,7 +391,6 @@ struct StudentUploadDetailView: View {
                                             .scaledToFill()
                                             .frame(width: 25, height: 25)
                                     }
-                                    .disabled(!upload.stream_ready)
                                     .padding(.leading)
                                     
                                 }
@@ -405,10 +405,10 @@ struct StudentUploadDetailView: View {
                                 
                             }
                         }
-                        .padding(.horizontal)
                     }
                 }
-            }.navigationBarItems(trailing: Button(action: {
+            }.padding(.horizontal)
+                .navigationBarItems(trailing: Button(action: {
                 initialize()
             }, label: {
                 Image(systemName: "arrow.clockwise.circle.fill")

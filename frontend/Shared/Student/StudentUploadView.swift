@@ -56,7 +56,6 @@ struct StudentUploadView: View {
                         Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
                             .bucketNameStyle()
                             .foregroundColor(Color.green)
-                            .padding(.horizontal)
                         
                         ForEach(nc.userData.buckets) { bucket in
                             NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)").navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
@@ -121,7 +120,8 @@ struct StudentUploadView: View {
                     }
                 }
                 
-            }.onAppear(perform: {initialize()})
+            }.padding(.horizontal)
+            .onAppear(perform: {initialize()})
                 .navigationTitle("Uploads"/*, displayMode: .inline*/)
                 .navigationBarItems(leading: Button(action: {
                     didAppear = false
