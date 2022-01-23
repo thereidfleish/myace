@@ -186,41 +186,81 @@ struct StudentUploadDetailView: View {
                     
                     ForEach(nc.userData.bucketContents.uploads) { upload in
                         
-                        if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
-                            //HStack {
-                                TextField("Edit Name", text: $uploadName)
-                                    .textFieldStyle()
-                                    .onAppear(perform: {
-                                        uploadName = upload.display_title
-                                        originalName = uploadName
+                        HStack {
+                            if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
+                                //HStack {
+                                    TextField("Edit Name", text: $uploadName)
+                                        .textFieldStyle()
+                                        .onAppear(perform: {
+                                            uploadName = upload.display_title
+                                            originalName = uploadName
+                                        })
+                                    
+                                    Button(action: {
+                                        editUpload(jj: "\(upload.id)")
+                                        showingEditingName = false
+                                    }, label: {
+                                        Text("Save")
+                                            .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
+                                            .fontWeight(.bold)
                                     })
-                                
-                                Button(action: {
-                                    editUpload(jj: "\(upload.id)")
-                                    showingEditingName = false
-                                }, label: {
-                                    Text("Save")
-                                        .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
-                                        .fontWeight(.bold)
-                                })
-                                    .disabled(uploadName == originalName)
-                            //}.padding(.horizontal)
-                        }
-                        
-                        
-                        if (showingDelete && String(upload.id) == showingDeleteUploadID) {
-                            HStack {
-                                Text("Are you sure you want to delete this video?  This cannot be undone!")
-                                    .foregroundColor(.red)
-                                Button(action: {
-                                    delete(uploadID: String(upload.id))
-                                }, label: {
-                                    Text("Delete")
+                                        .disabled(uploadName == originalName)
+                                //}.padding(.horizontal)
+                            }
+                            
+                            if (showingDelete && String(upload.id) == showingDeleteUploadID) {
+                                //HStack {
+                                    Text("Are you sure you want to delete this video?  This cannot be undone!")
                                         .foregroundColor(.red)
-                                        .fontWeight(.bold)
-                                })
-                            }.padding(.horizontal)
-                        }
+                                    Button(action: {
+                                        delete(uploadID: String(upload.id))
+                                    }, label: {
+                                        Text("Delete")
+                                            .foregroundColor(.red)
+                                            .fontWeight(.bold)
+                                    })
+                                //}.padding(.horizontal)
+                            }
+
+                        }.padding(.horizontal)
+                        
+                        Spacer()
+                        
+//                        if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
+//                            //HStack {
+//                                TextField("Edit Name", text: $uploadName)
+//                                    .textFieldStyle()
+//                                    .onAppear(perform: {
+//                                        uploadName = upload.display_title
+//                                        originalName = uploadName
+//                                    })
+//
+//                                Button(action: {
+//                                    editUpload(jj: "\(upload.id)")
+//                                    showingEditingName = false
+//                                }, label: {
+//                                    Text("Save")
+//                                        .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
+//                                        .fontWeight(.bold)
+//                                })
+//                                    .disabled(uploadName == originalName)
+//                            //}.padding(.horizontal)
+//                        }
+//
+//
+//                        if (showingDelete && String(upload.id) == showingDeleteUploadID) {
+//                            HStack {
+//                                Text("Are you sure you want to delete this video?  This cannot be undone!")
+//                                    .foregroundColor(.red)
+//                                Button(action: {
+//                                    delete(uploadID: String(upload.id))
+//                                }, label: {
+//                                    Text("Delete")
+//                                        .foregroundColor(.red)
+//                                        .fontWeight(.bold)
+//                                })
+//                            }.padding(.horizontal)
+//                        }
                         
                         HStack {
                             NavigationLink(destination: StudentFeedbackView(text: "SJ", student: true, showOnlyVideo: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
