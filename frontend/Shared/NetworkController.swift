@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
     @Published var awaiting = false
     @Published var progress: Progress = Progress()
     @Published var uploading = false
@@ -234,7 +234,7 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getBuckets(uid: String) async throws {
+    func getBuckets() async throws {
         let url = URL(string: "\(host)/buckets/")!
         
         do {
@@ -253,6 +253,128 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // GET
+    func getFriends() async throws {
+        let url = URL(string: "\(host)/friends/")!
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(FriendRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.friends = decodedResponse.friends
+            }
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // GET
+    func getFriendRequests() async throws {
+        let url = URL(string: "\(host)/friends/requests/")!
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(AllFriendRequestsRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.incomingFriendRequests = decodedResponse.incoming
+                userData.outgoingFriendRequests = decodedResponse.outgoing
+            }
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // POST
+    func createFriendRequest(userID: String) async throws {
+        let req: FriendRequestReq = FriendRequestReq(user_id: Int(userID)!)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/friends/requests/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        
+        do {
+            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+            //No response
+            
+//            let decoder = JSONDecoder()
+//            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+//            let decodedResponse = try decoder.decode(Bucket.self, from: data)
+//            DispatchQueue.main.sync {
+//                userData.buckets.append(decodedResponse)
+//            }
+            
+        } catch {
+            
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // PUT
+    func updateIncomingFriendRequest(status: String, userID: Int) async throws {
+        let req: UpdateIncomingFriendRequestReq = UpdateIncomingFriendRequestReq(status: status)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/friends/requests/\(userID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        
+        do {
+            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+
+        } catch {
+            
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // DELETE
+    func deleteOutgoingFriendRequest(userID: Int) async throws {
+        let url = URL(string: "\(host)/friends/requests/\(userID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // DELETE
+    func removeFriend(userID: Int) async throws {
+        let url = URL(string: "\(host)/friends/\(userID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
     
     enum NetworkError: Error {
         case failedEncode

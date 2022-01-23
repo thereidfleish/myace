@@ -11,76 +11,108 @@ import GoogleSignIn
 struct ProfileView: View {
     @EnvironmentObject private var nc: NetworkController
     @AppStorage("type") private var typeSelection = -1
-    
+    @State private var showingError = false
+    @State private var errorMessage = ""
+    @State private var awaiting = false
+    func initialize() {
+        Task {
+            do {
+                
+                awaiting = true
+                try await nc.getFriends()
+                awaiting = false
+                print("DONE!")
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+                awaiting = false
+            }
+            
+            print(nc.userData.friends)
+        }
+        
+    }
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    
-                    Text(nc.userData.shared.type == 0 ? "Player" : "Coach")
-                        .profileInfoStyle()
-                    
-                    HStack {
-                        AsyncImage(url: nc.userData.profilePic) { image in
-                            image.resizable()
-                        } placeholder: {
-                            ProgressView()
-                        }
-                        .frame(width: 128, height: 128)
-                        .clipShape(Circle())
+            if (awaiting) {
+                ProgressView()
+            } else if (showingError) {
+                Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading) {
                         
-                        Spacer()
+                        Text(nc.userData.shared.type == 0 ? "Player" : "Coach")
+                            .profileInfoStyle()
                         
                         HStack {
-                            VStack {
-                                Text("42")
-                                    .videoInfoStyle()
-                                    .foregroundColor(Color.green)
-                                Text("Videos")
-                                    .profileTextStyle()
+                            AsyncImage(url: nc.userData.profilePic) { image in
+                                image.resizable()
+                            } placeholder: {
+                                ProgressView()
                             }
+                            .frame(width: 128, height: 128)
+                            .clipShape(Circle())
                             
                             Spacer()
                             
-                            VStack {
-                                Text("69")
-                                    .profileInfoStyle()
-                                Text("Friends")
-                                    .profileTextStyle()
+                            HStack {
+                                VStack {
+                                    Text("42")
+                                        .videoInfoStyle()
+                                        .foregroundColor(Color.green)
+                                    Text("Videos")
+                                        .profileTextStyle()
+                                }
+                                
+                                Spacer()
+                                NavigationLink(destination: FriendsView().navigationTitle("Friends").navigationBarTitleDisplayMode(.inline)) {
+                                    
+                                
+                                    VStack {
+                                        Text("\(nc.userData.friends.count)")
+                                            .profileInfoStyle()
+                                        Text("Friends")
+                                            .profileTextStyle()
+                                    }
+                                }
                             }
+                            .padding(.horizontal)
+                            
                         }
-                        .padding(.horizontal)
                         
-                    }
+                        
+                        Text(nc.userData.shared.display_name)
+                            .profileInfoStyle()
+                        
+                        Text("The users will be able to write a description of themselves here, like on Instagram.")
+                            .profileTextStyle()
+                        
+                        
+                        Spacer()
+                        
+                        Text("\(nc.userData.shared.email) | User ID: \(nc.userData.shared.id)")
+                            .font(.footnote)
+                            .foregroundColor(Color.green)
+                        
+                        
+                    }.padding(.horizontal)
                     
                     
-                    Text(nc.userData.shared.display_name)
-                        .profileInfoStyle()
-                    
-                    Text("The users will be able to write a description of themselves here, like on Instagram.")
-                        .profileTextStyle()
-                    
-                    
-                    Spacer()
-                    
-                    Text("\(nc.userData.shared.email) | User ID: \(nc.userData.shared.id)")
-                        .font(.footnote)
-                        .foregroundColor(Color.green)
-                    
-                }.padding(.horizontal)
-                
-                
-            }.navigationTitle(nc.userData.shared.username)
-                .navigationBarItems(leading: Button(action: {
-                    GIDSignIn.sharedInstance.signOut()
-                    nc.userData.shared.type = -1
-                    typeSelection = -1
-                }, label: {
-                    Text("Log Out")
-                        .foregroundColor(Color.red)
-                        .fontWeight(.bold)
-                }))
+                }.navigationTitle(nc.userData.shared.username)
+                    .navigationBarItems(leading: Button(action: {
+                        GIDSignIn.sharedInstance.signOut()
+                        nc.userData.shared.type = -1
+                        typeSelection = -1
+                    }, label: {
+                        Text("Log Out")
+                            .foregroundColor(Color.red)
+                            .fontWeight(.bold)
+                    }))
+            }
         }
+        .onAppear(perform: {initialize()})
     }
 }
 

@@ -26,7 +26,7 @@ struct StudentUploadView: View {
                     awaiting = true
                     
                     //try await nc.authenticate(token: "test", type: nc.userData.shared.type)
-                    try await nc.getBuckets(uid: "\(nc.userData.shared.id)")
+                    try await nc.getBuckets()
                     awaiting = false
                     print("DONE!")
                 } catch {
