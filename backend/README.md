@@ -95,11 +95,13 @@ Response:
 
 ### Get all uploads
 
-**GET /uploads/**
+**GET /uploads**
 
 If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
 
-Request: N/A
+Optional query parameters:
+- `bucket`
+    - Filter response to uploads in a given bucket ID.
 
 Response:
 ```json
@@ -110,7 +112,9 @@ Response:
             "created": "{ISO 8601 formatted timestamp}",
             "display_title": "...",
             "stream_ready": true,
-            "bucket_id": 1,
+            "bucket": {
+                ...
+            },
             "thumbnail": "www.something.jpg"
         },
         ...
@@ -134,7 +138,9 @@ Response:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "...",
     "stream_ready": true,
-    "bucket_id": 1,
+    "bucket": {
+        ...
+    },
     "url": "www.something.m3u8",
     "thumbnail": "www.something.jpg"
 }
@@ -208,7 +214,9 @@ Response:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "{upload display title}",
     "stream_ready": true,
-    "bucket_id": 1,
+    "bucket": {
+        ...
+    },
     "thumbnail": "www.something.jpg"
 }
 ```
@@ -330,35 +338,6 @@ Response:
 {
     "id": 1,
     "name": "{bucket name}",
-    "user_id": 1
-}
-```
-
-### Get bucket contents
-
-**GET /buckets/{bucket_id}/**
-
-This route gets all user uploads in a given bucket. If there are no uploads in this bucket, `last_modified` will be omitted.
-
-Request: N/A
-
-Response:
-```json
-{
-    "id": 1,
-    "name": "{bucket name}",
-    "user_id": 1,
-    "last_modified": "{ISO 8601 formatted timestamp}",
-    "uploads": [
-        {
-            "id": 1,
-            "created": "{ISO 8601 formatted timestamp}",
-            "display_title": "{upload display title}",
-            "stream_ready": true,
-            "bucket_id": 1
-        },
-        ...
-    ]
 }
 ```
 
@@ -377,7 +356,6 @@ Response:
         {
             "id": 1,
             "name": "{bucket name}",
-            "user_id": 1,
             "last_modified": "{ISO 8601 formatted timestamp}"
         },
         ...

@@ -186,14 +186,18 @@ def edit_me():
     return success_response(user.serialize(show_private=True))
 
 
-@app.route("/uploads/")
+@app.route("/uploads")
 @flask_login.login_required
 def get_all_uploads():
     user = flask_login.current_user
+    uploads = Upload.query.filter_by(user_id=user.id)
 
-    return success_response(
-        {"uploads": [up.serialize(aws) for up in Upload.query.filter_by(user_id=user.id)]}
-    )
+    # Optionally filter by bucket
+    bucket_id = request.args.get("bucket")
+    if bucket_id is not None:
+        uploads = uploads.filter_by(bucket_id=bucket_id)
+
+    return success_response({"uploads": [up.serialize(aws) for up in uploads]})
 
 
 @app.route("/uploads/<int:upload_id>/")
@@ -451,27 +455,14 @@ def create_bucket():
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.serialize(aws=aws), 201)
-
-
-@app.route("/buckets/<int:bucket_id>/")
-@flask_login.login_required
-def get_uploads_in_bucket(bucket_id):
-    user = flask_login.current_user
-    bucket = Bucket.query.filter_by(id=bucket_id).first()
-    if bucket is None:
-        return failure_response("Bucket not found.")
-    elif bucket.user_id != user.id:
-        return failure_response("User forbidden to access this bucket.", 403)
-
-    return success_response(bucket.serialize(aws=aws, show_uploads=True))
+    return success_response(bucket.serialize(), 201)
 
 
 @app.route("/buckets/")
 @flask_login.login_required
 def get_buckets():
     user = flask_login.current_user
-    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
+    return success_response({"buckets": [b.serialize() for b in user.buckets]})
 
 
 @app.route("/users/search")

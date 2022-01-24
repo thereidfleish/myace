@@ -269,7 +269,7 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/comments",
+					"raw": "localhost/comments?upload=3&user-type=0",
 					"host": [
 						"localhost"
 					],
@@ -279,13 +279,11 @@
 					"query": [
 						{
 							"key": "upload",
-							"value": "3",
-							"disabled": true
+							"value": "3"
 						},
 						{
 							"key": "user-type",
-							"value": "0",
-							"disabled": true
+							"value": "0"
 						}
 					]
 				}
@@ -299,7 +297,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"upload_id\": 47,\n    \"text\": \"This is my new cool comment\"\n}",
+					"raw": "{\n    \"upload_id\": 3,\n    \"text\": \"This is terrible!!\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -375,26 +373,7 @@
 			"response": []
 		},
 		{
-			"name": "Get bucket contents",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost/buckets/2/",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"buckets",
-						"2",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get user's buckets",
+			"name": "Get all buckets",
 			"request": {
 				"method": "GET",
 				"header": [],

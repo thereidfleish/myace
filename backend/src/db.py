@@ -151,6 +151,7 @@ class Upload(db.Model):
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
     # Bucket (each upload has to be created in a bucket)
     bucket_id = db.Column(db.Integer, db.ForeignKey("bucket.id"), nullable=False)
+    bucket = db.relationship("Bucket", back_populates="uploads")
     # Comments
     comments = db.relationship("Comment", cascade="delete", back_populates="upload")
 
@@ -166,7 +167,7 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
-            "bucket_id": self.bucket_id
+            "bucket": self.bucket.serialize()
         }
         if self.stream_ready:
             response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
@@ -214,20 +215,17 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    uploads = db.relationship("Upload", cascade="delete")
+    uploads = db.relationship("Upload", cascade="delete", back_populates="bucket")
 
-    def serialize(self, aws, show_uploads=False):
-        res = {
+    def serialize(self):
+        response = {
             "id": self.id,
             "name": self.name,
-            "user_id": self.user_id,
         }
         last_modified = self.__get_last_modified()
         if last_modified is not None:
-            res["last_modified"] = last_modified
-        if show_uploads:
-            res["uploads"] = [u.serialize(aws) for u in self.uploads]
-        return res
+            response["last_modified"] = last_modified
+        return response
 
     def __get_last_modified(self) -> datetime.datetime:
         """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
