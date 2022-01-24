@@ -86,6 +86,11 @@ def health_check():
     return success_response({"status": "OK"})
 
 
+@app.route("/host/")
+def get_host():
+    return request.host_url
+
+
 @app.route("/login/", methods=["POST"])
 def login():
     body = json.loads(request.data)
@@ -223,11 +228,6 @@ def get_upload(upload_id):
     return success_response(response)
 
 
-@app.route("/host/")
-def get_host():
-    return request.host_url
-
-
 @app.route("/uploads/", methods=['POST'])
 @flask_login.login_required
 def create_upload_url():
@@ -343,6 +343,36 @@ def delete_upload(upload_id):
 #     """Called by AWS after a successful upload to the S3 bucket"""
 #     # TODO: create mediaconvert job and add upload to database
 #     pass
+
+
+@app.route("/comments")
+@flask_login.login_required
+def get_all_comments():
+    user = flask_login.current_user
+    # Check for optional query params
+    upload_id = request.args.get("upload")
+    if upload_id is None:
+        # Default behavior. Get all comments authored by user
+        # I could use 'user.comments' here but the InstrumentedList obj does not
+        # allow chaining filtering like the Query obj
+        comments = Comment.query.filter_by(author_id=user.id)
+    else:
+        # Get all comments under upload ID
+        upload = Upload.query.filter_by(id=upload_id).first()
+        if upload is None:
+            return failure_response("Upload not found.")
+        if not upload.is_viewable_by(user):
+            return failure_response("User forbidden to view upload.", 403)
+        comments = Comment.query.filter_by(upload_id=upload.id)
+    # Optionally filter by user type
+    user_type = request.args.get("user-type", type=str)
+    if user_type is not None:
+        if user_type != "0" and user_type != "1":
+            return failure_response("Invalid user type.", 400)
+        comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
+
+    # Create response
+    return success_response({"comments": [c.serialize() for c in comments if c.is_viewable_by(user)]})
 
 
 @app.route("/comments/", methods=['POST'])
