@@ -125,9 +125,14 @@ struct ProfileView: View {
                         }, label: {
                             Image(systemName: "gearshape.fill")
                                 .foregroundColor(Color.green)
-                        }))
+                        })
+                        .opacity(yourself ? 1 : 0)
+                        .disabled(!yourself)
+                    )
+
             }
         }
+        .onAppear(perform: {initialize()})
         .sheet(isPresented: $presentingSettingsSheet, onDismiss: {initialize()}) {
             SettingsView()
         }
