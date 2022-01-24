@@ -86,6 +86,11 @@ def health_check():
     return success_response({"status": "OK"})
 
 
+@app.route("/host/")
+def get_host():
+    return request.host_url
+
+
 @app.route("/login/", methods=["POST"])
 def login():
     body = json.loads(request.data)
@@ -181,14 +186,18 @@ def edit_me():
     return success_response(user.serialize(show_private=True))
 
 
-@app.route("/uploads/")
+@app.route("/uploads")
 @flask_login.login_required
 def get_all_uploads():
     user = flask_login.current_user
+    uploads = Upload.query.filter_by(user_id=user.id)
 
-    return success_response(
-        {"uploads": [up.serialize(aws) for up in Upload.query.filter_by(user_id=user.id)]}
-    )
+    # Optionally filter by bucket
+    bucket_id = request.args.get("bucket")
+    if bucket_id is not None:
+        uploads = uploads.filter_by(bucket_id=bucket_id)
+
+    return success_response({"uploads": [up.serialize(aws) for up in uploads]})
 
 
 @app.route("/uploads/<int:upload_id>/")
@@ -221,11 +230,6 @@ def get_upload(upload_id):
         return response
 
     return success_response(response)
-
-
-@app.route("/host/")
-def get_host():
-    return request.host_url
 
 
 @app.route("/uploads/", methods=['POST'])
@@ -345,6 +349,36 @@ def delete_upload(upload_id):
 #     pass
 
 
+@app.route("/comments")
+@flask_login.login_required
+def get_all_comments():
+    user = flask_login.current_user
+    # Check for optional query params
+    upload_id = request.args.get("upload")
+    if upload_id is None:
+        # Default behavior. Get all comments authored by user
+        # I could use 'user.comments' here but the InstrumentedList obj does not
+        # allow chaining filtering like the Query obj
+        comments = Comment.query.filter_by(author_id=user.id)
+    else:
+        # Get all comments under upload ID
+        upload = Upload.query.filter_by(id=upload_id).first()
+        if upload is None:
+            return failure_response("Upload not found.")
+        if not upload.is_viewable_by(user):
+            return failure_response("User forbidden to view upload.", 403)
+        comments = Comment.query.filter_by(upload_id=upload.id)
+    # Optionally filter by user type
+    user_type = request.args.get("user-type", type=str)
+    if user_type is not None:
+        if user_type != "0" and user_type != "1":
+            return failure_response("Invalid user type.", 400)
+        comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
+
+    # Create response
+    return success_response({"comments": [c.serialize() for c in comments if c.is_viewable_by(user)]})
+
+
 @app.route("/comments/", methods=['POST'])
 @flask_login.login_required
 def create_comment():
@@ -421,27 +455,14 @@ def create_bucket():
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.serialize(aws=aws), 201)
-
-
-@app.route("/buckets/<int:bucket_id>/")
-@flask_login.login_required
-def get_uploads_in_bucket(bucket_id):
-    user = flask_login.current_user
-    bucket = Bucket.query.filter_by(id=bucket_id).first()
-    if bucket is None:
-        return failure_response("Bucket not found.")
-    elif bucket.user_id != user.id:
-        return failure_response("User forbidden to access this bucket.", 403)
-
-    return success_response(bucket.serialize(aws=aws, show_uploads=True))
+    return success_response(bucket.serialize(), 201)
 
 
 @app.route("/buckets/")
 @flask_login.login_required
 def get_buckets():
     user = flask_login.current_user
-    return success_response({"buckets": [b.serialize(aws=aws) for b in user.buckets]})
+    return success_response({"buckets": [b.serialize() for b in user.buckets]})
 
 
 @app.route("/users/search")

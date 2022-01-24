@@ -95,11 +95,13 @@ Response:
 
 ### Get all uploads
 
-**GET /uploads/**
+**GET /uploads**
 
 If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
 
-Request: N/A
+Optional query parameters:
+- `bucket`
+    - Filter response to uploads in a given bucket ID.
 
 Response:
 ```json
@@ -110,18 +112,11 @@ Response:
             "created": "{ISO 8601 formatted timestamp}",
             "display_title": "...",
             "stream_ready": true,
-            "bucket_id": 1,
-            "comments": [
-                {
-                    "id": 1,
-                    "created": "{ISO 8601 formatted timestamp}",
-                    "author_id": 1,
-                    "text": "Tennis goals!!! LOML 😍"
-                },
+            "bucket": {
                 ...
-            ],
+            },
             "thumbnail": "www.something.jpg"
-        }
+        },
         ...
     ]
 }
@@ -136,23 +131,16 @@ If `stream_ready` is false, the `url` and `thumbnail` fields will be omitted fro
 
 Request: N/A
 
-Reponse:
+Response:
 ```json
 {
     "id": 1,
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "...",
     "stream_ready": true,
-    "bucket_id": 1,
-    "comments": [
-        {
-            "id": 1,
-            "created": "{ISO 8601 formatted timestamp}",
-            "author_id": 1,
-            "text": "Tennis goals!!! LOML 😍"
-        },
+    "bucket": {
         ...
-    ],
+    },
     "url": "www.something.m3u8",
     "thumbnail": "www.something.jpg"
 }
@@ -226,16 +214,9 @@ Response:
     "created": "{ISO 8601 formatted timestamp}",
     "display_title": "{upload display title}",
     "stream_ready": true,
-    "bucket_id": 1,
-    "comments": [
-        {
-            "id": 1,
-            "created": "{ISO 8601 formatted timestamp}",
-            "author_id": 1,
-            "text": "Tennis goals!!! LOML 😍"
-        },
+    "bucket": {
         ...
-    ],
+    },
     "thumbnail": "www.something.jpg"
 }
 ```
@@ -259,7 +240,41 @@ Response:
   "message": "Found entry in database but not in S3."
 }
 ```
+
 ## Comments
+
+### Get all comments
+
+**GET /comments**
+
+By default, this route returns all comments authored by the logged in user.
+
+Optional query parameters:
+- `upload`
+    - Return all comments under a specific upload ID. Currently the user may only view comments on their own uploads.
+- `user-type`
+    - Filter response to comments created by a specific user type. The user may only view coach comments on their own uploads.
+
+Response:
+```json
+{
+    "comments": [
+        {
+            "id": 1,
+            "created": "{ISO 8601 formatted timestamp}",
+            "author": {
+                "id": 1,
+                "username": "{User's username}",
+                "display_name": "{User's display name}",
+                "type": 0
+            },
+            "text": "Tennis goals!!! LOML 😍",
+            "upload_id": 1
+        },
+        ...
+    ]
+}
+```
 
 ### Create a comment
 
@@ -280,9 +295,14 @@ Response:
 {
     "id": 1,
     "created": "{ISO 8601 formatted timestamp}",
-    "author_id": 1,
-    "upload_id": 1,
-    "text": "Tennis goals!!! LOML 😍"
+    "author": {
+        "id": 1,
+        "username": "{User's username}",
+        "display_name": "{User's display name}",
+        "type": 0
+    },
+    "text": "Tennis goals!!! LOML 😍",
+    "upload_id": 1
 }
 ```
 
@@ -318,48 +338,10 @@ Response:
 {
     "id": 1,
     "name": "{bucket name}",
-    "user_id": 1
 }
 ```
 
-### Get bucket contents
-
-**GET /buckets/{bucket_id}/**
-
-This route gets all user uploads in a given bucket. If there are no uploads in this bucket, `last_modified` will be omitted.
-
-Request: N/A
-
-Response:
-```json
-{
-    "id": 1,
-    "name": "{bucket name}",
-    "user_id": 1,
-    "last_modified": "{ISO 8601 formatted timestamp}",
-    "uploads": [
-        {
-            "id": 1,
-            "created": "{ISO 8601 formatted timestamp}",
-            "display_title": "{upload display title}",
-            "stream_ready": true,
-            "bucket_id": 1,
-            "comments": [
-                {
-                    "id": 1,
-                    "created": "{ISO 8601 formatted timestamp}",
-                    "author_id": 1,
-                    "text": "Tennis goals!!! LOML 😍"
-                },
-                ...
-            ]
-        },
-        ...
-    ]
-}
-```
-
-### Get user's buckets
+### Get all buckets
 
 **GET /buckets/**
 
@@ -374,7 +356,6 @@ Response:
         {
             "id": 1,
             "name": "{bucket name}",
-            "user_id": 1,
             "last_modified": "{ISO 8601 formatted timestamp}"
         },
         ...
@@ -390,7 +371,7 @@ Response:
 
 This route returns a list of users given a search query.
 
-Request URL parameters:
+Request query parameters:
 - `query`
     - The search query. Currently must match usernames exactly.
 

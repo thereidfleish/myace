@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "397805d0-d622-46e6-962b-d6b2a0e444fd",
+		"_postman_id": "5bddbaf0-026a-48f7-87e0-30101b7ee00d",
 		"name": "Tennis-Trainer",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -252,13 +252,52 @@
 			"response": []
 		},
 		{
+			"name": "Get all comments",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/comments?upload=3&user-type=0",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"comments"
+					],
+					"query": [
+						{
+							"key": "upload",
+							"value": "3"
+						},
+						{
+							"key": "user-type",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Create comment",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"upload_id\": 47,\n    \"text\": \"This is my new cool comment\"\n}",
+					"raw": "{\n    \"upload_id\": 3,\n    \"text\": \"This is terrible!!\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -334,26 +373,7 @@
 			"response": []
 		},
 		{
-			"name": "Get bucket contents",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost/buckets/2/",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"buckets",
-						"2",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get user's buckets",
+			"name": "Get all buckets",
 			"request": {
 				"method": "GET",
 				"header": [],

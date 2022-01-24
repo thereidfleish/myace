@@ -27,6 +27,8 @@
 		2558E2CC2773BA270056DD17 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2558E2A22773BA260056DD17 /* ContentView.swift */; };
 		2558E2CD2773BA270056DD17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2558E2A32773BA270056DD17 /* Assets.xcassets */; };
 		2558E2CE2773BA270056DD17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2558E2A32773BA270056DD17 /* Assets.xcassets */; };
+		256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */; };
+		256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */; };
 		256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
@@ -39,10 +41,6 @@
 		25A036352778CE3F0090AC49 /* CoachInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A036332778CE3F0090AC49 /* CoachInfo.swift */; };
 		25A036372778D5080090AC49 /* CoachStudentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A036362778D5080090AC49 /* CoachStudentView.swift */; };
 		25A036382778D5080090AC49 /* CoachStudentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A036362778D5080090AC49 /* CoachStudentView.swift */; };
-		25BF7B1E279E1EC400BA158F /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BF7B1D279E1EC400BA158F /* ProfileSettingsView.swift */; };
-		25BF7B1F279E1EC400BA158F /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BF7B1D279E1EC400BA158F /* ProfileSettingsView.swift */; };
-		25BF7B21279E1EE000BA158F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BF7B20279E1EE000BA158F /* SettingsView.swift */; };
-		25BF7B22279E1EE000BA158F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25BF7B20279E1EE000BA158F /* SettingsView.swift */; };
 		25C65CDE2777BB1500AF5BBE /* CoachMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C65CDD2777BB1500AF5BBE /* CoachMainView.swift */; };
 		25C65CDF2777BB1500AF5BBE /* CoachMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C65CDD2777BB1500AF5BBE /* CoachMainView.swift */; };
 		25C65CE12777BE9000AF5BBE /* StudentInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C65CE02777BE9000AF5BBE /* StudentInfo.swift */; };
@@ -66,6 +64,8 @@
 		9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D3279A036500FAC339 /* FriendRequests.swift */; };
 		9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
 		9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
+		9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
+		9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -106,6 +106,7 @@
 		2558E2C12773BA270056DD17 /* Tests macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2558E2C52773BA270056DD17 /* Tests_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS.swift; sourceTree = "<group>"; };
 		2558E2C72773BA270056DD17 /* Tests_macOSLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOSLaunchTests.swift; sourceTree = "<group>"; };
+		256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		256CBD07279DD593004FCC44 /* UserCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCardView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
 		25734AA9277FBEFB00D2B8BE /* AI-Tennis-Coach--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--macOS--Info.plist"; sourceTree = "<group>"; };
@@ -114,8 +115,6 @@
 		258D41772773FC470030D437 /* StudentFeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentFeedbackView.swift; sourceTree = "<group>"; };
 		25A036332778CE3F0090AC49 /* CoachInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachInfo.swift; sourceTree = "<group>"; };
 		25A036362778D5080090AC49 /* CoachStudentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachStudentView.swift; sourceTree = "<group>"; };
-		25BF7B1D279E1EC400BA158F /* ProfileSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
-		25BF7B20279E1EE000BA158F /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		25C65CDD2777BB1500AF5BBE /* CoachMainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachMainView.swift; sourceTree = "<group>"; };
 		25C65CE02777BE9000AF5BBE /* StudentInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentInfo.swift; sourceTree = "<group>"; };
 		25D13A6A277A594300FFE2B3 /* LogInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInView.swift; sourceTree = "<group>"; };
@@ -130,6 +129,7 @@
 		9A2C34D02799BCC700FAC339 /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		9A2C34D3279A036500FAC339 /* FriendRequests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendRequests.swift; sourceTree = "<group>"; };
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
+		9A2C34E9279E20DA00FAC339 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -195,12 +195,12 @@
 				258D41722773C3B60030D437 /* Student */,
 				2558E2A12773BA260056DD17 /* AI_Tennis_CoachApp.swift */,
 				2558E2A22773BA260056DD17 /* ContentView.swift */,
-				25BF7B1D279E1EC400BA158F /* ProfileSettingsView.swift */,
+				256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */,
 				2519DB312798C9C600A91759 /* SearchView.swift */,
 				256CBD07279DD593004FCC44 /* UserCardView.swift */,
 				9A2C34D02799BCC700FAC339 /* UploadView.swift */,
+				9A2C34E9279E20DA00FAC339 /* SettingsView.swift */,
 				2537F4E5278348BA00596AF6 /* ProfileView.swift */,
-				25BF7B20279E1EE000BA158F /* SettingsView.swift */,
 				25C65CE02777BE9000AF5BBE /* StudentInfo.swift */,
 				25A036332778CE3F0090AC49 /* CoachInfo.swift */,
 				2552DDAB277CCD750035EFB4 /* UserData.swift */,
@@ -551,8 +551,8 @@
 				9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */,
 				25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */,
 				9A2C34C52793CF4900FAC339 /* TextAlert.swift in Sources */,
+				256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				9A2C34C32792065900FAC339 /* CameraView.swift in Sources */,
-				25BF7B1E279E1EC400BA158F /* ProfileSettingsView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34D12799BCC700FAC339 /* UploadView.swift in Sources */,
 				256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */,
@@ -568,7 +568,7 @@
 				258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */,
 				9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */,
 				25A036342778CE3F0090AC49 /* CoachInfo.swift in Sources */,
-				25BF7B21279E1EE000BA158F /* SettingsView.swift in Sources */,
+				9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				9A2C34D4279A036500FAC339 /* FriendRequests.swift in Sources */,
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				25C65CDE2777BB1500AF5BBE /* CoachMainView.swift in Sources */,
@@ -586,11 +586,11 @@
 				25D13A6C277A594300FFE2B3 /* LogInView.swift in Sources */,
 				25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34C62793CF4900FAC339 /* TextAlert.swift in Sources */,
+				256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */,
 				2552DDA7277CC4490035EFB4 /* Data2.swift in Sources */,
-				25BF7B1F279E1EC400BA158F /* ProfileSettingsView.swift in Sources */,
-				25BF7B22279E1EE000BA158F /* SettingsView.swift in Sources */,
+				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				25C65CE22777BE9000AF5BBE /* StudentInfo.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */,
@@ -761,7 +761,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
@@ -797,7 +797,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = NLRGJ9C7H8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
