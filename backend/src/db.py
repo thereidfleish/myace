@@ -29,7 +29,7 @@ class User(db.Model):
     # 0 = player, 1 = coach
     type = db.Column(db.Integer, nullable=False) # Player vs coach...See API docs for interpretation
     uploads = db.relationship("Upload", cascade="delete")
-    comments = db.relationship("Comment", cascade="delete")
+    comments = db.relationship("Comment", cascade="delete", back_populates="author")
     buckets = db.relationship("Bucket", cascade="delete")
 
     def __init__(self, google_id, display_name, email, type):
@@ -151,8 +151,9 @@ class Upload(db.Model):
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
     # Bucket (each upload has to be created in a bucket)
     bucket_id = db.Column(db.Integer, db.ForeignKey("bucket.id"), nullable=False)
+    bucket = db.relationship("Bucket", back_populates="uploads")
     # Comments
-    comments = db.relationship("Comment", cascade="delete")
+    comments = db.relationship("Comment", cascade="delete", back_populates="upload")
 
     def serialize(self, aws):
         # Check stream_ready
@@ -166,33 +167,46 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
-            "bucket_id": self.bucket_id,
-            "comments": [c.serialize(show_upload_id=False) for c in self.comments],
+            "bucket": self.bucket.serialize()
         }
         if self.stream_ready:
             response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
         return response
 
+    def is_viewable_by(self, user: User) -> bool:
+        """Check if user is allowed to view this upload"""
+        # TODO add public, friends & coaches, just coaches, and private visibility field
+        return self.user_id == user.id
 
 # Comment Table
 class Comment(db.Model):
     __tablename__ = 'comment'
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author = db.relationship("User", back_populates="comments")
     upload_id = db.Column(db.Integer, db.ForeignKey("upload.id"), nullable=False)
+    upload = db.relationship("Upload", back_populates="comments")
     created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     text = db.Column(db.String, nullable=False)
 
-    def serialize(self, show_upload_id=True):
+    def serialize(self):
         res = {
             "id": self.id,
             "created": self.created.isoformat(),
-            "author_id": self.author_id,
+            "author": self.author.serialize(),
+            "text": self.text,
+            "upload_id": self.upload_id
         }
-        if show_upload_id:
-            res["upload_id"] = self.upload_id
-        res["text"] = self.text
         return res
+
+    def is_viewable_by(self, user: User) -> bool:
+        """Check if user is allowed to view this comment"""
+        if not self.upload.is_viewable_by(user):
+            return False
+        # Prohibit viewing coach comments on uploads that the user doesn't own
+        if self.author.type == 1 and self.upload.user != user:
+            return False
+        return True
 
 
 # Bucket Table
@@ -201,20 +215,17 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    uploads = db.relationship("Upload", cascade="delete")
+    uploads = db.relationship("Upload", cascade="delete", back_populates="bucket")
 
-    def serialize(self, aws, show_uploads=False):
-        res = {
+    def serialize(self):
+        response = {
             "id": self.id,
             "name": self.name,
-            "user_id": self.user_id,
         }
         last_modified = self.__get_last_modified()
         if last_modified is not None:
-            res["last_modified"] = last_modified
-        if show_uploads:
-            res["uploads"] = [u.serialize(aws) for u in self.uploads]
-        return res
+            response["last_modified"] = last_modified
+        return response
 
     def __get_last_modified(self) -> datetime.datetime:
         """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
