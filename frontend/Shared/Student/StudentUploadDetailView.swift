@@ -24,11 +24,11 @@ struct StudentUploadDetailView: View {
     @State private var isShowingMediaPicker = false
     @State private var isShowingCamera = false
     @State var url: [URL] = []
-    @State private var name = ""
     @State private var originalName = ""
     var student: Bool
     //@State private var bucketContents: BucketContents = BucketContents(id: -1, name: "", user_id: -1, uploads: [])
     var bucketID: String
+    @State var name: String
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
@@ -47,11 +47,10 @@ struct StudentUploadDetailView: View {
             do {
                 awaiting = true
                 //try await bucketContents = nc.getBucketContents(uid: "2", bucketID: "\(bucketID)")
-                try await nc.getBucketContents(uid: "\(student ? nc.userData.shared.id : 4)", bucketID: "\(student ? bucketID : "9")")
-                name = nc.userData.bucketContents.name
+                try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
+                //name = nc.userData.bucketContents.name
                 print("Finsihed init")
                 awaiting = false
-                //nc.userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -182,7 +181,6 @@ struct StudentUploadDetailView: View {
                         Text("Welcome!  You can upload videos related to \(name) from your camera roll or by capturing a video in-app.")
                             .multilineTextAlignment(.center)
                             .bucketTextInternalStyle()
-                            .padding(.horizontal)
                     }
                     
                     ForEach(nc.userData.bucketContents.uploads) { upload in
@@ -223,45 +221,10 @@ struct StudentUploadDetailView: View {
                                 //}.padding(.horizontal)
                             }
 
-                        }.padding(.horizontal)
+                        }
                         
                         Spacer()
                         
-//                        if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
-//                            //HStack {
-//                                TextField("Edit Name", text: $uploadName)
-//                                    .textFieldStyle()
-//                                    .onAppear(perform: {
-//                                        uploadName = upload.display_title
-//                                        originalName = uploadName
-//                                    })
-//
-//                                Button(action: {
-//                                    editUpload(jj: "\(upload.id)")
-//                                    showingEditingName = false
-//                                }, label: {
-//                                    Text("Save")
-//                                        .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
-//                                        .fontWeight(.bold)
-//                                })
-//                                    .disabled(uploadName == originalName)
-//                            //}.padding(.horizontal)
-//                        }
-//
-//
-//                        if (showingDelete && String(upload.id) == showingDeleteUploadID) {
-//                            HStack {
-//                                Text("Are you sure you want to delete this video?  This cannot be undone!")
-//                                    .foregroundColor(.red)
-//                                Button(action: {
-//                                    delete(uploadID: String(upload.id))
-//                                }, label: {
-//                                    Text("Delete")
-//                                        .foregroundColor(.red)
-//                                        .fontWeight(.bold)
-//                                })
-//                            }.padding(.horizontal)
-//                        }
                         
                         HStack {
                             NavigationLink(destination: StudentFeedbackView(text: "SJ", student: true, showOnlyVideo: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
@@ -323,7 +286,7 @@ struct StudentUploadDetailView: View {
                                                 .foregroundColor(Color.green)
                                         }
                                         
-                                        else if (upload.comments.count == 0) {
+                                        else if (true) {
                                             Image(systemName: student ? "person.crop.circle.badge.clock.fill" : "plus.bubble.fill")
                                                 .resizable()
                                                 .scaledToFill()
@@ -347,7 +310,7 @@ struct StudentUploadDetailView: View {
                                         //                                }
                                         
                                     })
-                                        .disabled(upload.comments.count == 0 && student ? true : false)
+                                        //.disabled(upload.comments.count == 0 && student ? true : false)
                                     
                                     Menu {
                                         Button {

@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), uploads: [], buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [], bucketContents: BucketContents(id: -1, name: "", user_id: -1, uploads: []))
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), bucketContents: UploadsRes(uploads: []), buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [])
     @Published var awaiting = false
     @Published var progress: Progress = Progress()
     @Published var uploading = false
@@ -107,22 +107,7 @@ class NetworkController: ObservableObject {
         }
     }
     
-    // GET
-    func getAllUploads(uid: String) async throws {
-        let url = URL(string: "\(host)/uploads/")!
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            if let decodedResponse = try? decoder.decode([Upload].self, from: data) {
-                userData.uploads = decodedResponse
-            }
-        } catch {
-            
-            throw NetworkError.failedDecode
-        }
-    }
+
     
     // GET
     func getUpload(uid: String, uploadID: String) async throws -> Upload {
@@ -192,11 +177,11 @@ class NetworkController: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
-            for i in userData.uploads.indices {
-                if (userData.uploads[i].id == decodedResponse.upload_id) {
-                    userData.uploads[i].comments.append(decodedResponse)
-                }
-            }
+//            for i in userData.uploads.indices {
+//                if (userData.uploads[i].id == decodedResponse.upload_id) {
+//                    userData.uploads[i].comments.append(decodedResponse)
+//                }
+//            }
         } catch {
             
             throw NetworkError.failedDecode
@@ -234,26 +219,32 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getBucketContents(uid: String, bucketID: String) async throws {
-        let url = URL(string: "\(host)/buckets/\(bucketID)/")!
-        
+    func getUploads(getSpecificID: Bool, bucketID: String) async throws {
+        var url: URL
+        if (getSpecificID) {
+            url = URL(string: "\(host)/uploads?bucket=\(bucketID)")!
+        } else {
+            url = URL(string: "\(host)/uploads")!
+        }
+
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(BucketContents.self, from: data)
+            let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
-                self.userData.bucketContents = decodedResponse
-                self.userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                userData.bucketContents = decodedResponse
+                userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
                 print("Got given bucket in nc!")
-                //print(self.userData.bucketContents)
             }
-            
+
         } catch {
             throw NetworkError.failedDecode
         }
     }
+    
+    
     
     // GET
     func getBuckets() async throws {

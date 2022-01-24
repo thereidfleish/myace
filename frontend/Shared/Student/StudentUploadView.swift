@@ -13,7 +13,6 @@ struct StudentUploadView: View {
     @State private var showingNewBucketView = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var bucketContents: [BucketContents] = []
     @State private var awaiting = false
     @State var didAppear = false
     
@@ -58,7 +57,7 @@ struct StudentUploadView: View {
                             .foregroundColor(Color.green)
                         
                         ForEach(nc.userData.buckets) { bucket in
-                            NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)").navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
+                            NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)", name: bucket.name).navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
                             {
                                 HStack {
                                     VStack(alignment: .leading) {

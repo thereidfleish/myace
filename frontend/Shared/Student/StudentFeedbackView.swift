@@ -18,7 +18,7 @@ struct StudentFeedbackView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = true
-    @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket_id: -1, comments: [], url: "")
+    @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket: Bucket(id: -1, name: "", last_modified: nil), url: "")
     @State var didAppear = false
     @State private var player = AVPlayer(url:  URL(string: "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8")!)
     

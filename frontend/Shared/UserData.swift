@@ -16,7 +16,7 @@ struct UserData {
     var profilePic: URL?
     
     // Student data
-    var uploads: [Upload]
+    var bucketContents: UploadsRes
     
     var buckets: [Bucket]
     
@@ -27,7 +27,7 @@ struct UserData {
     
     //var bucketContents: [BucketContents]
     
-    var bucketContents: BucketContents
+    //var bucketContents: BucketContents
     
     //    enum FeedbackStatus {
     //        case awaiting
@@ -93,8 +93,7 @@ struct Upload: Codable, Identifiable {
     var created: Date
     var display_title: String
     var stream_ready: Bool
-    var bucket_id: Int
-    var comments: [Comment]
+    var bucket: Bucket?
     var url: String?
     var thumbnail: String?
 }
@@ -106,18 +105,21 @@ struct BucketRes: Codable {
 struct Bucket: Codable, Identifiable {
     var id: Int
     var name: String
-    var user_id: Int
+    //var user_id: Int
     var last_modified: Date?
 }
 
-
-struct BucketContents: Codable {
-    var id: Int
-    var name: String
-    var user_id: Int
-    var last_modified: Date?
+struct UploadsRes: Codable {
     var uploads: [Upload]
 }
+
+//struct BucketContents: Codable {
+//    var id: Int
+//    var name: String
+//    var user_id: Int
+//    var last_modified: Date?
+//    var uploads: [Upload]
+//}
 
 struct Comment: Codable {
     var id: Int
