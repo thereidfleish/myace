@@ -209,8 +209,8 @@ def get_upload(upload_id):
         return failure_response("Upload not found.")
 
     user = flask_login.current_user
-    if user.id != upload.user_id:
-        return failure_response("User forbidden to access upload.", 403)
+    if not user.can_view_upload(upload):
+        return failure_response("User forbidden to view upload.", 403)
 
     # Create response
     response = upload.serialize(aws)
@@ -251,8 +251,8 @@ def create_upload_url():
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
         return failure_response("Bucket not found.")
-    elif user.id != bucket.user_id:
-        return failure_response("User forbidden to access bucket.", 403)
+    if not user.can_modify_bucket(bucket):
+        return failure_response("User forbidden to modify bucket.", 403)
 
     # Create upload row
     new_upload = Upload(filename=filename, display_title=display_title, user_id=user.id, bucket_id=bucket_id)
@@ -282,8 +282,8 @@ def start_convert(upload_id):
         return failure_response("Upload not found.")
 
     user = flask_login.current_user
-    if user.id != upload.user_id:
-        return failure_response("User forbidden to access upload.", 403)
+    if not user.can_modify_upload(upload):
+        return failure_response("User forbidden to modify upload.", 403)
 
     # create convert job
     convert_job_id = aws.create_mediaconvert_job(upload_id, upload.filename)
@@ -302,8 +302,8 @@ def edit_upload(upload_id):
         return failure_response("Upload not found.")
 
     user = flask_login.current_user
-    if user.id != upload.user_id:
-        return failure_response("User forbidden to access upload.", 403)
+    if not user.can_modify_upload(upload):
+        return failure_response("User forbidden to modify upload.", 403)
 
     body = json.loads(request.data)
 
@@ -339,8 +339,8 @@ def delete_upload(upload_id):
         return failure_response("Upload not found in database.")
 
     user = flask_login.current_user
-    if user.id != upload.user_id:
-        return failure_response("User forbidden to access upload.", 403)
+    if not user.can_modify_upload(upload):
+        return failure_response("User forbidden to modify upload.", 403)
 
     # Delete upload
     db.session.delete(upload)
@@ -375,7 +375,7 @@ def get_all_comments():
         upload = Upload.query.filter_by(id=upload_id).first()
         if upload is None:
             return failure_response("Upload not found.")
-        if not upload.is_viewable_by(user):
+        if not user.can_view_upload(upload):
             return failure_response("User forbidden to view upload.", 403)
         comments = Comment.query.filter_by(upload_id=upload.id)
     # Optionally filter by user type
@@ -386,7 +386,7 @@ def get_all_comments():
         comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
 
     # Create response
-    return success_response({"comments": [c.serialize() for c in comments if c.is_viewable_by(user)]})
+    return success_response({"comments": [c.serialize() for c in comments if user.can_view_comment(c)]})
 
 
 @app.route("/comments/", methods=['POST'])
@@ -406,8 +406,7 @@ def create_comment():
     # Check for valid author
     author = flask_login.current_user
     # Check if user is allowed to comment
-    # TODO: allow coaches to comment
-    if author.id != upload.user_id:
+    if not author.can_comment_on_upload(upload):
         return failure_response("User forbidden to comment on upload.", 403)
 
     # Check for valid text
@@ -432,13 +431,9 @@ def delete_comment(comment_id):
         return failure_response("Comment not found.")
 
     # Check that user is allowed to delete comment
-    # Upload owners can delete all comments under upload. Commenters can delete their comments.
     user = flask_login.current_user
-    upload = Upload.query.filter_by(id=comment.upload_id).first()
-    upload_owner = user.id == upload.user_id
-    commenter = user.id == comment.author_id
-    if not (upload_owner or commenter):
-        return failure_response("User forbidden to delete comment.", 403)
+    if not user.can_modify_comment(comment):
+        return failure_response("User forbidden to modify comment.", 403)
 
     # Delete
     # Note that deleting like this respects the cascades defined at the ORM level

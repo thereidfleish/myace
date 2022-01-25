@@ -60,8 +60,37 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
         return b_to_a
 
+    def can_view_upload(self, upload: Upload) -> bool:
+        """:return: True if the user is allowed to view a given upload"""
+        # TODO add public, friends & coaches, just coaches, and private visibility field
+        return self.id == upload.user_id
+
+    def can_modify_upload(self, upload: Upload) -> bool:
+        """:return: True if the user is allowed to modify a given upload's properties"""
+        return self.id == upload.user_id
+
+    def can_comment_on_upload(self, upload: Upload) -> bool:
+        """:return: True if the user is allowed to comment on a given upload"""
+        return self.can_view_upload(upload)
+
+    def can_view_comment(self, comment: Comment) -> bool:
+        """:return: True if the user is allowed to view a given comment"""
+        if not self.can_view_upload(comment.upload):
+            return False
+        # Prohibit viewing coach comments on uploads that the user doesn't own
+        if comment.author.type == 1 and self.id != comment.upload.user_id:
+            return False
+        return True
+
+    def can_modify_comment(self, comment: Comment) -> bool:
+        """:return: True if the user is allowed to modify a given comment"""
+        # Upload owners can modify all comments under upload. Commenters can modify their comments.
+        owns_upload = self.id == comment.upload.user_id
+        owns_comment = self.id == comment.author_id
+        return owns_upload or owns_comment
+
     def can_modify_bucket(self, bucket: Bucket) -> bool:
-        """:return: True if this user is allowed to edit a given bucket's contents and properties"""
+        """:return: True if the user is allowed to edit a given bucket's contents and properties"""
         return self.id == bucket.user_id
 
     @classmethod
@@ -83,7 +112,6 @@ class User(db.Model):
     def is_username_unique(username: str) -> bool:
         """:return: if a username is unique"""
         return User.query.filter_by(username=username).first() is None
-
 
     # Methods required by Flask-Login
 
@@ -177,11 +205,6 @@ class Upload(db.Model):
             response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
         return response
 
-    def is_viewable_by(self, user: User) -> bool:
-        """Check if user is allowed to view this upload"""
-        # TODO add public, friends & coaches, just coaches, and private visibility field
-        return self.user_id == user.id
-
 # Comment Table
 class Comment(db.Model):
     __tablename__ = 'comment'
@@ -202,15 +225,6 @@ class Comment(db.Model):
             "upload_id": self.upload_id
         }
         return res
-
-    def is_viewable_by(self, user: User) -> bool:
-        """Check if user is allowed to view this comment"""
-        if not self.upload.is_viewable_by(user):
-            return False
-        # Prohibit viewing coach comments on uploads that the user doesn't own
-        if self.author.type == 1 and self.upload.user != user:
-            return False
-        return True
 
 
 # Bucket Table
