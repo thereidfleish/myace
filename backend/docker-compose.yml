@@ -33,4 +33,4 @@ services:
     build: test/token_retriever/
     restart: unless-stopped
     ports:
-      - "5000:80"
+      - "5001:80"
