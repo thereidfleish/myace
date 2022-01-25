@@ -351,6 +351,18 @@ def delete_upload(upload_id):
     return success_response(code=204) if found else success_response(data={'message': 'Found entry in database but not in S3.'}, code=200)
 
 
+@app.route("/uploads/<int:upload_id>/download/")
+@flask_login.login_required
+def get_download_url(upload_id):
+    upload = Upload.query.filter_by(id=upload_id).first()
+    if upload is None:
+        return failure_response("Upload not found.")
+    user = flask_login.current_user
+    if not user.can_view_upload(upload):
+        return failure_response("User forbidden to view upload.", 403)
+    return success_response({"url": aws.get_upload_url(upload.id, upload.filename, expiration_in_hours=1)})
+
+
 # TODO: autodetect S3 uploads
 # @app.route("/api/callback/s3upload/", methods=['POST'])
 # def upload_callback():

@@ -258,6 +258,66 @@
 			"response": []
 		},
 		{
+			"name": "Delete upload",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/uploads/4/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"uploads",
+						"4",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get download URL",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/uploads/2/download/",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"uploads",
+						"2",
+						"download",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get all comments",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true

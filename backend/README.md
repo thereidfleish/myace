@@ -242,6 +242,23 @@ Response:
 }
 ```
 
+### Get download URL
+
+**GET /uploads/{upload_id}/download/**
+
+This route returns a presigned URL which can be used to download the originally uploaded file directly from AWS.
+If a user can see a post, they are permitted to download it.
+
+Request: N/A
+
+Response:
+
+```json
+{
+  "url": "www.something.com/.../filename.mp4"
+}
+```
+
 ## Comments
 
 ### Get all comments

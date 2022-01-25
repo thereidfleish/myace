@@ -171,6 +171,21 @@ class AWS:
                 time.sleep(0.2)
         return url
 
+    def get_upload_url(self, upload_uuid: str, filename: str, expiration_in_hours: int) -> str:
+        """Generate a presigned Cloudfront URL to view the upload's original, non-HLS URL.
+
+           Ex. 'www.something.com/.../filename.mp4'
+
+        :param upload_uuid: The upload UUID
+        :param filename: The original media filename
+        :param expiration_in_hours: The number of hours until the URLs expire
+        :return: Presigned URL pointing to the originally uploaded file
+        """
+        td = datetime.timedelta(hours=expiration_in_hours)
+        key = f"uploads/{upload_uuid}/{filename}"
+        url = self.__get_presigned_url(key, datetime.datetime.utcnow() + td)
+        return url
+
     def get_thumbnail_url(self, upload_uuid: str, expiration_in_hours: int) -> str:
         """Generate a presigned Cloudfront URL to view an upload's thumbnail.
 
