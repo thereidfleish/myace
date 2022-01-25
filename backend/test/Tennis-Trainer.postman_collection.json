@@ -124,13 +124,19 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/uploads/",
+					"raw": "localhost/uploads",
 					"host": [
 						"localhost"
 					],
 					"path": [
-						"uploads",
-						""
+						"uploads"
+					],
+					"query": [
+						{
+							"key": "bucket",
+							"value": "2",
+							"disabled": true
+						}
 					]
 				}
 			},
@@ -230,7 +236,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"display_title\": \"this is my new cool title\"\n}",
+					"raw": "{\n    \"display_title\": \"this is my new cool title\",\n    \"bucket_id\": 0\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -238,13 +244,13 @@
 					}
 				},
 				"url": {
-					"raw": "localhost/uploads/48/",
+					"raw": "localhost/uploads/2/",
 					"host": [
 						"localhost"
 					],
 					"path": [
 						"uploads",
-						"48",
+						"2",
 						""
 					]
 				}
@@ -352,7 +358,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"backhand\"\n}",
+					"raw": "{\n    \"name\": \"serves\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"

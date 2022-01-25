@@ -198,12 +198,13 @@ Response: N/A
 
 **PUT /uploads/{upload_id}/**
 
-If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
+All fields are optional. If `stream_ready` is false, the `thumbnail` field will be omitted from the response.
 
 Request:
 ```json
 {
-    "display_title": "{new upload display title}"
+    "display_title": "{new upload display title}",
+    "bucket_id": 2
 }
 ```
 
@@ -384,7 +385,8 @@ Response:
             "username": "{User's username}",
             "display_name": "{User's display name}",
             "type": 0
-        }
+        },
+        ...
     ]
 }
 ```

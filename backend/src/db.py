@@ -60,6 +60,10 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
         return b_to_a
 
+    def can_modify_bucket(self, bucket: Bucket) -> bool:
+        """:return: True if this user is allowed to edit a given bucket's contents and properties"""
+        return self.id == bucket.user_id
+
     @classmethod
     def _generate_unique_username(cls, display_name: str) -> str:
         """:return: a unique, legal username based off the user's display name"""

@@ -314,6 +314,16 @@ def edit_upload(upload_id):
             return failure_response("Invalid title.", 400)
         upload.display_title = new_title
 
+    # Update bucket
+    new_bucket_id = body.get("bucket_id")
+    if new_bucket_id is not None and upload.bucket_id != new_bucket_id:
+        bucket = Bucket.query.filter_by(id=new_bucket_id).first()
+        if bucket is None:
+            return failure_response("Bucket not found.")
+        if not user.can_modify_bucket(bucket):
+            return failure_response("User forbidden to modify bucket.", 403)
+        upload.bucket_id = new_bucket_id
+
     db.session.commit()
     return success_response(upload.serialize(aws))
 
