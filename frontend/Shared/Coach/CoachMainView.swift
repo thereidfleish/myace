@@ -49,7 +49,7 @@ struct CoachMainView: View {
                                             .foregroundColor(.white)
                                             .frame(width: 15)
                                         Text(coachInfo.modifyDates[i])
-                                            .bucketTextExternalStyle() 
+                                            .bucketTextExternalStyle()
                                     }
                                 }
                                 

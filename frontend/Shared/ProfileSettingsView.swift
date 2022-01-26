@@ -34,43 +34,43 @@ struct ProfileSettingsView: View {
     }
     
     var body: some View {
-            if (awaiting) {
-                ProgressView()
-            } else if (showingError) {
-                Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
-            } else {
-                VStack {
-                    Text(isNewUser ? "Welcome to AI Tennis Coach!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
-                        .bucketTextInternalStyle()
-                        .onAppear(perform: {
-                            username = nc.userData.shared.username
-                            displayName = nc.userData.shared.display_name
-                        })
-                    TextField("Edit Username", text: $username)
-                        .textFieldStyle()
-
-                    Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
-                        .padding(.top, 20)
-                        .bucketTextInternalStyle()
-                        .onAppear(perform: {
-                            username = nc.userData.shared.username
-                        })
-                    
-                    TextField("Edit Display Name", text: $displayName)
-                        .textFieldStyle()
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        updateUser()
-                    }, label: {
-                        Text(isNewUser ? "Continue" : "Save")
-                            .buttonStyle()
+        if (awaiting) {
+            ProgressView()
+        } else if (showingError) {
+            Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+        } else {
+            VStack {
+                Text(isNewUser ? "Welcome to AI Tennis Coach!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
+                    .bucketTextInternalStyle()
+                    .onAppear(perform: {
+                        username = nc.userData.shared.username
+                        displayName = nc.userData.shared.display_name
                     })
-                    
-                    
-                }.padding(.horizontal)
-            }
+                TextField("Edit Username", text: $username)
+                    .textFieldStyle()
+                
+                Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
+                    .padding(.top, 20)
+                    .bucketTextInternalStyle()
+                    .onAppear(perform: {
+                        username = nc.userData.shared.username
+                    })
+                
+                TextField("Edit Display Name", text: $displayName)
+                    .textFieldStyle()
+                
+                Spacer()
+                
+                Button(action: {
+                    updateUser()
+                }, label: {
+                    Text(isNewUser ? "Continue" : "Save")
+                        .buttonStyle()
+                })
+                
+                
+            }.padding(.horizontal)
+        }
         
         
     }

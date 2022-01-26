@@ -120,7 +120,7 @@ struct StudentUploadView: View {
                 }
                 
             }.padding(.horizontal)
-            .onAppear(perform: {initialize()})
+                .onAppear(perform: {initialize()})
                 .navigationTitle("Uploads"/*, displayMode: .inline*/)
                 .navigationBarItems(leading: Button(action: {
                     didAppear = false

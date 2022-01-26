@@ -11,13 +11,10 @@ import Alamofire
 class NetworkController: ObservableObject {
     @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), bucketContents: UploadsRes(uploads: []), buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [])
     @Published var awaiting = false
-    @Published var progress: Progress = Progress()
-    @Published var uploading = false
-    @Published var uploadingStatus = ""
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
     @Published var newUser = false
-    public let host = "https://api.myace.ai"
+    let host = "https://api.myace.ai"
     
     
     //    enum State {
@@ -29,32 +26,6 @@ class NetworkController: ObservableObject {
     //
     //    @Published private(set) var state = State.idle
     
-    // POST
-    func authenticate(token: String, type: Int) async throws {
-        let req: AuthReq = AuthReq(token: token, type: type)
-        
-        guard let encoded = try? JSONEncoder().encode(req) else {
-            throw NetworkError.failedEncode
-        }
-        
-        let url = URL(string: "\(host)/api/user/authenticate/")!
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpMethod = "POST"
-        
-        do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(SharedData.self, from: data)
-            
-            DispatchQueue.main.sync {
-                userData.shared = decodedResponse
-            }
-        } catch {
-            throw NetworkError.failedDecode
-        }
-    }
     
     // PUT
     func updateCurrentUser(username: String, displayName: String) async throws {
@@ -107,10 +78,8 @@ class NetworkController: ObservableObject {
         }
     }
     
-
-    
     // GET
-    func getUpload(uid: String, uploadID: String) async throws -> Upload {
+    func getUpload(uploadID: String) async throws -> Upload {
         let url = URL(string: "\(host)/uploads/\(uploadID)/")!
         
         do {
@@ -177,11 +146,11 @@ class NetworkController: ObservableObject {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
-//            for i in userData.uploads.indices {
-//                if (userData.uploads[i].id == decodedResponse.upload_id) {
-//                    userData.uploads[i].comments.append(decodedResponse)
-//                }
-//            }
+            //            for i in userData.uploads.indices {
+            //                if (userData.uploads[i].id == decodedResponse.upload_id) {
+            //                    userData.uploads[i].comments.append(decodedResponse)
+            //                }
+            //            }
         } catch {
             
             throw NetworkError.failedDecode
@@ -189,7 +158,7 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func addBucket(userID: String, name: String) async throws {
+    func addBucket(name: String) async throws {
         let req: BucketReq = BucketReq(name: name)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -226,7 +195,7 @@ class NetworkController: ObservableObject {
         } else {
             url = URL(string: "\(host)/uploads")!
         }
-
+        
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             print(data.prettyPrintedJSONString)
@@ -238,13 +207,11 @@ class NetworkController: ObservableObject {
                 userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
                 print("Got given bucket in nc!")
             }
-
+            
         } catch {
             throw NetworkError.failedDecode
         }
     }
-    
-    
     
     // GET
     func getBuckets() async throws {
@@ -337,14 +304,6 @@ class NetworkController: ObservableObject {
             let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(response)
             print(data.prettyPrintedJSONString)
-            //No response
-            
-            //            let decoder = JSONDecoder()
-            //            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            //            let decodedResponse = try decoder.decode(Bucket.self, from: data)
-            //            DispatchQueue.main.sync {
-            //                userData.buckets.append(decodedResponse)
-            //            }
             
         } catch {
             

@@ -17,36 +17,36 @@ struct SettingsView: View {
                         .bucketNameStyle()
                         .foregroundColor(Color.green)
                         .padding(.horizontal)
-                        NavigationLink(destination: ProfileSettingsView(isNewUser: false)) {
-                            HStack {
-                                Text("Edit Profile Info")
-                                    .bucketNameStyle()
-                                    .foregroundColor(Color.white)
-                                Spacer()
-                                Image(systemName: "chevron.right.square.fill")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .foregroundColor(Color.white)
-                                    .frame(width: 20, height: 20)
-                            }
-                            .navigationLinkStyle()
+                    NavigationLink(destination: ProfileSettingsView(isNewUser: false)) {
+                        HStack {
+                            Text("Edit Profile Info")
+                                .bucketNameStyle()
+                                .foregroundColor(Color.white)
+                            Spacer()
+                            Image(systemName: "chevron.right.square.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundColor(Color.white)
+                                .frame(width: 20, height: 20)
                         }
+                        .navigationLinkStyle()
+                    }
                 }
             }
             .navigationTitle("Settings")
             .navigationBarItems(trailing:
-                Button(action: {
-                    self.mode.wrappedValue.dismiss()
-                }, label: {
-                    Text("Done")
-                        .foregroundColor(.green)
-                })
-
+                                    Button(action: {
+                self.mode.wrappedValue.dismiss()
+            }, label: {
+                Text("Done")
+                    .foregroundColor(.green)
+            })
+                                
             )
         }
-
         
-
+        
+        
     }
 }
 

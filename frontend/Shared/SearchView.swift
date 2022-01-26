@@ -54,17 +54,9 @@ struct SearchView: View {
                             UserCardView(user: user)
                         }
                     }
-                    
-                    
-                    
-                    
                 }
             }.navigationTitle("Search")
                 .padding(.horizontal)
-            
-            
-            
-            
         }
     }
 }

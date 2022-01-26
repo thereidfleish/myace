@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection = 0
-    @State private var showsUploadAlert = false
     @StateObject var studentInfo = StudentInfo()
     @StateObject var coachInfo = CoachInfo()
     @EnvironmentObject private var networkController: NetworkController
@@ -66,51 +65,51 @@ struct ContentView: View {
                 }
                 .tag(2)
             /*
-                .sheet(isPresented: $showsUploadAlert) {
-                    NavigationView {
-                        VStack {
-                            TextField("My Video", text: $uploadName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            //.padding([.top, .leading, .trailing])
-                            Text("Choose a bucket")
-                                .bucketTextInternalStyle()
-                            Picker("None Selected", selection: $uploadBucketName) {
-                                ForEach(nc.userData.buckets, id: \.id) {
-                                    Text($0.name)
-                                }
-                            }
-                            //.pickerStyle(.)
-                            
-                            Spacer()
-                            if url.count > 0 {
-                                VideoPlayer(player: AVPlayer(url: url[0]))
-                                    .frame(height: 300)
-                            }
-                            Spacer()
-                            
-                            Button(action: {
-                                showsUploadAlert = false
-                                uploadInit(fileURL: url[0], uploadName: uploadName)
-                                
-                            }, label: {
-                                Text("Upload")
-                                    .buttonStyle()
-                                //.padding([.top, .leading, .trailing])
-                            })
-                            
-                        }.padding()
-                            .navigationTitle("Set Video Title")
-                            .navigationBarItems(leading: Button(action: {
-                                showsUploadAlert = false
-                            }, label: {
-                                Text("Cancel")
-                                    .foregroundColor(Color.green)
-                                    .fontWeight(.bold)
-                            }))
-                        
-                    }
-                    
-                }
+             .sheet(isPresented: $showsUploadAlert) {
+             NavigationView {
+             VStack {
+             TextField("My Video", text: $uploadName)
+             .textFieldStyle(RoundedBorderTextFieldStyle())
+             //.padding([.top, .leading, .trailing])
+             Text("Choose a bucket")
+             .bucketTextInternalStyle()
+             Picker("None Selected", selection: $uploadBucketName) {
+             ForEach(nc.userData.buckets, id: \.id) {
+             Text($0.name)
+             }
+             }
+             //.pickerStyle(.)
+             
+             Spacer()
+             if url.count > 0 {
+             VideoPlayer(player: AVPlayer(url: url[0]))
+             .frame(height: 300)
+             }
+             Spacer()
+             
+             Button(action: {
+             showsUploadAlert = false
+             uploadInit(fileURL: url[0], uploadName: uploadName)
+             
+             }, label: {
+             Text("Upload")
+             .buttonStyle()
+             //.padding([.top, .leading, .trailing])
+             })
+             
+             }.padding()
+             .navigationTitle("Set Video Title")
+             .navigationBarItems(leading: Button(action: {
+             showsUploadAlert = false
+             }, label: {
+             Text("Cancel")
+             .foregroundColor(Color.green)
+             .fontWeight(.bold)
+             }))
+             
+             }
+             
+             }
              */
             ProfileView(yourself: true, user: Friend(id: -1, username: "", display_name: "", type: -1))
                 .tabItem {

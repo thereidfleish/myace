@@ -117,19 +117,19 @@ struct ProfileView: View {
                     }, label: {
                         Text(yourself ? "Log Out" : "< Back")
                             .foregroundColor(yourself ? Color.red : .accentColor)
-                                .fontWeight(.bold)
+                            .fontWeight(.bold)
                     }),
-                    trailing:
-                        Button(action: {
-                            presentingSettingsSheet = true
-                        }, label: {
-                            Image(systemName: "gearshape.fill")
-                                .foregroundColor(Color.green)
-                        })
-                        .opacity(yourself ? 1 : 0)
-                        .disabled(!yourself)
+                                        trailing:
+                                            Button(action: {
+                        presentingSettingsSheet = true
+                    }, label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(Color.green)
+                    })
+                                            .opacity(yourself ? 1 : 0)
+                                            .disabled(!yourself)
                     )
-
+                
             }
         }
         .onAppear(perform: {initialize()})

@@ -201,7 +201,7 @@ struct LogInView: View {
                 if (response.debugDescription.contains("Status Code: 201")) {
                     nc.newUser = true
                 }
-
+                
             } catch {
                 print("Error")
                 awaiting = false

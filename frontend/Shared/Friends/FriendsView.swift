@@ -14,7 +14,6 @@ struct FriendsView: View {
     @State private var awaiting = false
     @State private var didAppear = false
     @State var tabIndex = 0
-    @State var requestTabIndex = -1
     
     func initialize() {
         if(!didAppear) {
@@ -99,20 +98,20 @@ struct FriendsView: View {
                     
                 }.padding(.horizontal)
                     .navigationBarItems(trailing:
-                        HStack {
-                            NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
-                                Image(systemName: "face.smiling")
-                                    .foregroundColor(Color.green)
-                                    .padding()
-                            }
-                            NavigationLink(destination: SearchView().onAppear(perform: {didAppear = false})) {
-                                Image(systemName: "plus")
-                                    .foregroundColor(Color.green)
-                                    .padding()
-                            }
-                        
-
+                                            HStack {
+                        NavigationLink(destination: FriendRequests().onAppear(perform: {didAppear = false})) {
+                            Image(systemName: "face.smiling")
+                                .foregroundColor(Color.green)
+                                .padding()
                         }
+                        NavigationLink(destination: SearchView().onAppear(perform: {didAppear = false})) {
+                            Image(systemName: "plus")
+                                .foregroundColor(Color.green)
+                                .padding()
+                        }
+                        
+                        
+                    }
                     )
             }
         }.onAppear(perform: {initialize()})

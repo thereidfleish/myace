@@ -15,8 +15,6 @@ struct UserCardView: View {
     @State var user: Friend
     @State private var showRemoveFriendAlert = false
     
-    //@State private var
-    
     func updateData() {
         Task {
             do {

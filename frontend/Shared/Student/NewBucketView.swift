@@ -20,7 +20,7 @@ struct NewBucketView: View {
         Task {
             do {
                 awaiting = true
-                try await nc.addBucket(userID: "\(nc.userData.shared.id)", name: name)
+                try await nc.addBucket(name: name)
                 print("DONE!")
             } catch {
                 print(error)

@@ -32,7 +32,7 @@ struct StudentFeedbackView: View {
                 do {
                     awaiting = true
                     print(uploadID)
-                    try await upload = nc.getUpload(uid: "\(nc.userData.shared.id)", uploadID: uploadID)
+                    try await upload = nc.getUpload(uploadID: uploadID)
                     player = AVPlayer(url:  URL(string: upload.url!)!)
                     print(upload.url!)
                     print("DONE!")
@@ -91,28 +91,31 @@ struct StudentFeedbackView: View {
                         }
                     }
                     .onAppear(perform: {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            playerDuration = Int(player.currentItem!.duration.seconds)
-                        }
-                        
                         DispatchQueue.main.async {
                             Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                // Hack to fix concurrency issue at the beginning
+                                if (!player.currentItem!.duration.seconds.isNaN) {
+                                    withAnimation {
+                                        playerDuration = Int(player.currentItem!.duration.seconds)
+                                    }
+                                    
+                                }
+                                
                                 currentSeconds = Int(player.currentTime().seconds)
-                                //print(currentSeconds)
                             })
                         }
                     })
                     
-                    Button("tap me!") {
-                        print(Int(player.currentItem!.duration.seconds))
-                        print(player.currentTime().seconds)
-                    }
-                    
-                    Button("tap me2!") {
-                        print(player.currentItem?.duration.seconds)
-                        player.seek(to: CMTimeMakeWithSeconds(4, preferredTimescale: 1))
-                        currentSeconds = Int(player.currentItem!.duration.seconds)
-                    }
+                    //                    Button("tap me!") {
+                    //                        print(Int(player.currentItem!.duration.seconds))
+                    //                        print(player.currentTime().seconds)
+                    //                    }
+                    //
+                    //                    Button("tap me2!") {
+                    //                        print(player.currentItem?.duration.seconds)
+                    //                        player.seek(to: CMTimeMakeWithSeconds(4, preferredTimescale: 1))
+                    //                        currentSeconds = Int(player.currentItem!.duration.seconds)
+                    //                    }
                     
                     if (!showOnlyVideo) {
                         if (student) {
