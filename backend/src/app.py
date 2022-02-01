@@ -12,7 +12,6 @@ from botocore.client import Config
 from flask import Flask
 from flask import request
 from flask import make_response
-from werkzeug.utils import secure_filename
 import flask_login
 
 from db import User

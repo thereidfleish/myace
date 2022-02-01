@@ -1,0 +1,50 @@
+
+name: Backend Continuous Deployment
+
+# Controls when the workflow will run
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - backend/src/*
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install Docker
+        uses: docker-practice/actions-setup-docker@master
+
+      # TODO: Automate this and install AWS requirements if missing
+      - name: (MANUAL) Check for AWS-CLI v2
+        run: |
+          aws --version
+
+      - name: Install lightsailctl plugin
+        run: |
+          curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+          sudo chmod +x /usr/local/bin/lightsailctl
+
+      # Runs a single command using the runners shell
+      - name: Run deploy.py
+        run: |
+          ./deploy.py
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

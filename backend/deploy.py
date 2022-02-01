@@ -17,10 +17,9 @@ def build() -> None:
 def push() -> int:
     """Push the Docker image to Lightsail and get the image version"""
     result = subprocess.run(["aws", "lightsail", "push-container-image", "--region", "us-east-2", "--service-name", "tennistrainerapi", "--label", "tennistrainer", "--image", "myace-api-prod"], 
-        capture_output=True, text=True, check=True
+        capture_output=True, text=True
     )
-    print(result.stderr)
-    print(result.stdout)
+    assert result.returncode == 0, f"Failed to push image. Here's some info: \n{result.stdout}\n{result.stderr}"
     # Get the image version from STDOUT
     version_pattern = r"Refer to this image as \":tennistrainerapi\.tennistrainer\.(\d+)\" in deployments\."
     match = re.search(version_pattern, result.stdout)
@@ -32,7 +31,8 @@ def push() -> int:
 
 def _get_active_env() -> dict:
     """Get the environment variables for the active container"""
-    result = subprocess.run(["aws", "lightsail", "get-container-services", "--query", "containerServices[].currentDeployment.containers.tennistrainerapi.environment"], capture_output=True, text=True, check=True)
+    result = subprocess.run(["aws", "lightsail", "get-container-services", "--query", "containerServices[].currentDeployment.containers.tennistrainerapi.environment", "--region", "us-east-2"], capture_output=True, text=True)
+    assert result.returncode == 0, f"Failed to get currentDeployment environment. Here's some info: \n{result.stdout}\n{result.stderr}"
     result = json.loads(result.stdout)
     return result[0]
 
@@ -41,6 +41,8 @@ def deploy(image_version: int) -> int:
     """Deploy the specified image version on Lightsail and return the deployment version"""
     env = _get_active_env()
     result = subprocess.run(["aws", "lightsail", "create-container-service-deployment", 
+        "--region",
+        "us-east-2",
         "--service-name", 
         "tennistrainerapi", 
         "--containers", 
@@ -63,7 +65,7 @@ def check_deployment(deployment_version: int) -> int:
     :return: 0 (success), 1 (error), 2 (pending)
     """
     # Get the deployment
-    result = subprocess.run(["aws", "lightsail", "get-container-service-deployments", "--service-name", "tennistrainerapi"],
+    result = subprocess.run(["aws", "lightsail", "get-container-service-deployments", "--service-name", "tennistrainerapi", "--region", "us-east-2"],
         check=True, capture_output=True, text=True
     )
     deployments = json.loads(result.stdout)["deployments"]
