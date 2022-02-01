@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Specify the command to run on container start
-CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "wsgi:app" ]
+CMD [ "gunicorn", "--bind", "0.0.0.0:6000", "--workers", "4", "wsgi:app" ]
 
 # By default, listen on port 6000
 EXPOSE 6000/tcp

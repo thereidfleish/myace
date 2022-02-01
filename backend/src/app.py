@@ -618,8 +618,3 @@ def remove_friend(other_user_id):
     db.session.commit()
 
     return success_response(code=204)
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 6000))
-    app.run(host="0.0.0.0", port=port)
