@@ -34,7 +34,7 @@ login_manager.init_app(app)
 ENV = "dev"
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-CF_PRIVATE_KEY_FILE = os.environ.get("CF_PRIVATE_KEY_FILE")
+CF_PRIVATE_KEY = os.environ.get("CF_PRIVATE_KEY").encode("utf-8")
 CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
 DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
@@ -55,7 +55,7 @@ with app.app_context():
     db.create_all()
 
 # global AWS instance
-aws = media.AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE)
+aws = media.AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY)
 
 
 def success_response(data={}, code=200):
@@ -77,7 +77,6 @@ def load_user(user_id):
 @login_manager.unauthorized_handler
 def unauthorized():
     return failure_response("User not authorized.", 401)
-
 
 # Routes
 @app.route("/health/")

@@ -18,13 +18,13 @@ from botocore.client import Config
 from botocore.exceptions import ClientError
 
 class AWS:
-    def __init__(self, access_key_id: str, secret_access_key: str, cf_public_key_id: str, cf_private_key_file: str) -> None:
+    def __init__(self, access_key_id: str, secret_access_key: str, cf_public_key_id: str, cf_private_key: bytes) -> None:
         """Construct an AWS object containing boto3 clients and helper methods.
 
         :param access_key_id: IAM access key ID
         :param secret_access_key: IAM secret access key
         :param cf_public_key_id: CloudFront public key ID
-        :param cf_private_key_file: Path to file containing CloudFront private key
+        :param cf_private_key: Cloudfront private key
         """
         self.s3_region_name = 'us-east-2'
         self.s3_bucket_name = 'tennis-trainer'
@@ -33,51 +33,22 @@ class AWS:
         self.cf_distribution_id = 'ERPD0DBPXWVO3'
         self.cf_domain = 'https://d11b188mr2hahn.cloudfront.net'
         self.cf_public_key_id = cf_public_key_id
-        self.cf_private_key_file = cf_private_key_file
+        self.cf_private_key = cf_private_key
         self.cloudfront = boto3.client('cloudfront', aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
         self.mediaconvert = boto3.client('mediaconvert', region_name=self.s3_region_name, endpoint_url=f'https://mqm13wgra.mediaconvert.{self.s3_region_name}.amazonaws.com',
                       aws_access_key_id=access_key_id, aws_secret_access_key=secret_access_key)
-        # Invalidation requests that have not yet completed. Relevant to self.get_presigned_hls_url().
-        # TODO: This could become problematic when serving multiple clients using the same class instance.
-        #       For example, because get_presigned_hls_url() blocks until this list is empty, if multiple
-        #       clients are continually appending, no single method call will complete until all invalidation
-        #       requests are complete, including those unrelated to that call.
-        #       A possible fix would be accumulating invalidation request IDs in a local var rather than member
-        self.__invalidation_ids = []
 
     def rsa_sign(self, message):
-        """Sign a message with self.cf_private_key_file.
+        """Sign a message with self.cf_private_key.
 
         :return: The signed message
         """
-        with open(self.cf_private_key_file, 'rb') as key_file:
-            private_key = serialization.load_pem_private_key(
-                key_file.read(),
-                password=None,
-                backend=default_backend()
-            )
-        return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
-
-    def __create_m3u8_invalidation(self, m3u8_object_key: str) -> str:
-        """Create CloudFront cache invalidation request.
-
-        :param m3u8_object_key: The Cloudfront client
-        :return: The invalidation request ID
-        """
-        response = self.cloudfront.create_invalidation(
-            DistributionId=self.cf_distribution_id,
-            InvalidationBatch={
-                'Paths': {
-                    'Quantity': 1,
-                    'Items': [
-                        '/' + m3u8_object_key
-                    ]
-                },
-                'CallerReference': str(time.time()).replace(".", "")
-            }
+        private_key = serialization.load_pem_private_key(
+            self.cf_private_key,
+            password=None,
+            backend=default_backend()
         )
-        invalidation_id = response['Invalidation']['Id']
-        return invalidation_id
+        return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
 
     def __is_invalidation_request_completed(self, invalidation_id: str) -> bool:
         """Check if an invalidation request has been completed.
@@ -91,48 +62,8 @@ class AWS:
         )
         return response['Invalidation']['Status'] == 'Completed'
 
-    def __sign_sub_files(self, m3u8_object_key: str, expiration: datetime.datetime) -> None:
-        """Modify the contents of the m3u8 file to append signed URL params to each *.m3u8 or *.ts file name.
-
-        :param m3u8_object_key: The object key of the HLS manifest file. Typically resembles 'index.m3u8'
-        :param expiration: The datetime obj when the URL should expire
-        """
-        print(f"Downloading {m3u8_object_key}")
-        temp_filename = m3u8_object_key.replace('/', '-') + '.tmp'
-        # Download m3u8
-        self.s3.download_file(self.s3_bucket_name, m3u8_object_key, temp_filename)
-        # Modify file TODO modify subfiles, collect list of keys, invalidate all keys at once
-        with open(temp_filename, 'r+') as f:
-            lines = f.readlines() # Manifest files are small. It's ok to load it all into memory.
-            modified_lines = []
-            for line in lines:
-                if '.m3u8' in line or '.ts' in line:
-                    # Just the filename. Ex. index-720p.m3u8
-                    filename = line.split('?')[0].rstrip()
-                    # Full key of filename. Ex. uploads/exampleuid/hls/index-720p.m3u8
-                    sub_object_key = m3u8_object_key.replace(os.path.basename(m3u8_object_key), filename)
-                    # Replace line
-                    sub_query_params = self.__get_presigned_url(sub_object_key, expiration).split('?')[1]
-                    line = filename + '?' + sub_query_params + '\n'
-                modified_lines.append(line)
-            f.seek(0)
-            f.writelines(modified_lines)
-            f.truncate()
-        # Reupload file
-        print(f"Uploading {m3u8_object_key}")
-        response = self.s3.upload_file(temp_filename, self.s3_bucket_name, m3u8_object_key)
-        # Invalidate cloudfront cache
-        invalidation_id = self.__create_m3u8_invalidation(m3u8_object_key)
-        self.__invalidation_ids.append(invalidation_id)
-        # Remove local file
-        print(f"Removing {temp_filename}")
-        os.remove(temp_filename)
-
     def __get_presigned_url(self, object_key: str, expiration: datetime.datetime) -> str:
         """Generate a presigned Cloudfront URL for any S3 object.
-
-           For a general idea of why this function works recursively with HLS streams, see:
-           https://aws.amazon.com/blogs/networking-and-content-delivery/secure-and-cost-effective-video-streaming-using-cloudfront-signed-urls/
 
         :param object_key: The S3 object to sign
         :param expiration: The datetime obj when the URL should expire
@@ -144,35 +75,10 @@ class AWS:
         # Create a signed url using a canned policy
         signed_url = cloudfront_signer.generate_presigned_url(
             url, date_less_than=expiration)
-        if '.m3u8' in object_key:
-            self.__sign_sub_files(object_key, expiration)
         return signed_url
 
-    def get_presigned_hls_url(self, upload_uuid: str, expiration: datetime.datetime) -> str:
-        """Generate a presigned Cloudfront URL to view an upload's HLS stream.
-
-           Requires the HLS files exist in the S3 bucket.
-
-        :param upload_uuid: The upload UUID
-        :param expiration: The datetime obj when the URL should expire
-        :return: Presigned URL pointing to the manifest file or None if there was an error
-        """
-        object_key = f"uploads/{upload_uuid}/hls/index.m3u8"
-        try:
-            url = self.__get_presigned_url(object_key, expiration) # populates self.__invalidation_ids
-        except ClientError as e:
-            print(e.response['Error']['Message'])
-            return None
-        print(f"Waiting for {len(self.__invalidation_ids)} invalidation requests to complete...")
-        for id in self.__invalidation_ids:
-            if self.__is_invalidation_request_completed(id):
-                self.__invalidation_ids.remove(id)
-            else:
-                time.sleep(0.2)
-        return url
-
     def get_upload_url(self, upload_uuid: str, filename: str, expiration_in_hours: int) -> str:
-        """Generate a presigned Cloudfront URL to view the upload's original, non-HLS URL.
+        """Generate a presigned Cloudfront URL to view the original upload.
 
            Ex. 'www.something.com/.../filename.mp4'
 
