@@ -1,5 +1,3 @@
-import React from 'react';
-import { Navbar } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card'
 
 export default function FundCard(props) {
@@ -11,29 +9,28 @@ export default function FundCard(props) {
             <Card.Text>
                 {props.description}
             </Card.Text>
-            <Card.Text>
-                <span>Ready to take the next step?</span>
-                <br/>
-                <div className='d-flex justify-content-around'>
-                    {
-                        props.links.map((link, i) => {
-                            return (
-                                <Card.Link 
-                                    href={link.link}
-                                    target="_blank"
-                                    style={{ textDecoration: 'none'}}
-                                >
-                                    <span 
-                                        className="primary-color"
-                                    >
-                                        {link.text}
-                                    </span>
-                                </Card.Link>
-                            )
-                        })
-                    }
+            <span>Ready to take the next step?</span>
+            <br/>
+            <div className='d-flex justify-content-around'>
+            {
+                props.links.map((link, i) => {
+                    return (
+                        <Card.Link 
+                            href={link.link}
+                            target="_blank"
+                            style={{ textDecoration: 'none'}}
+                            key={i}
+                        >
+                            <span 
+                                className="primary-color"
+                            >
+                                {link.text}
+                            </span>
+                        </Card.Link>
+                    )
+                })
+            }
                 </div>
-            </Card.Text>
         </Card.Body>
     </Card>
   );
