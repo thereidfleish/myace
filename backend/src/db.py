@@ -26,26 +26,22 @@ class User(db.Model):
 
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
-    # 0 = player, 1 = coach
-    type = db.Column(db.Integer, nullable=False) # Player vs coach...See API docs for interpretation
     uploads = db.relationship("Upload", cascade="delete")
     comments = db.relationship("Comment", cascade="delete", back_populates="author")
     buckets = db.relationship("Bucket", cascade="delete")
 
-    def __init__(self, google_id, display_name, email, type):
+    def __init__(self, google_id, display_name, email):
         self.google_id = google_id
         self.username = self._generate_unique_username(display_name)
         self.display_name = display_name
         self.email = email
-        self.type = type
 
     def serialize(self, show_private=False):
         # public profile information
         response = {
             "id": self.id,
             "username": self.username,
-            "display_name": self.display_name,
-            "type": self.type
+            "display_name": self.display_name
         }
         # private profile information
         if show_private:
@@ -78,8 +74,9 @@ class User(db.Model):
         if not self.can_view_upload(comment.upload):
             return False
         # Prohibit viewing coach comments on uploads that the user doesn't own
-        if comment.author.type == 1 and self.id != comment.upload.user_id:
-            return False
+        # TODO: fix this
+        # if comment.author.type == 1 and self.id != comment.upload.user_id:
+        #     return False
         return True
 
     def can_modify_comment(self, comment: Comment) -> bool:
@@ -137,10 +134,18 @@ class User(db.Model):
 
 @enum.unique
 class RelationshipType(enum.Enum):
+    """Exclusive states that may exist between two users"""
+    # I'm using enum.auto() because the variable names are stored in the DB, not the values
     # user A has a pending friend request to user B
-    REQUESTED = enum.auto()
+    FRIEND_REQUESTED = enum.auto()
     # user A and B are mutual friends
     FRIENDS = enum.auto()
+    # user A is requesting that user B become their coach
+    COACH_REQUESTED = enum.auto()
+    # user A is requesting that user B become their student
+    STUDENT_REQUESTED = enum.auto()
+    # user A has user B as a student
+    A_COACHES_B = enum.auto()
     # user A has blocked user B
     A_BLOCKED_B = enum.auto()
     B_BLOCKED_A = enum.auto()
@@ -162,12 +167,6 @@ class UserRelationship(db.Model):
     # The datetime of the last type change. Interpreted differently depending
     # on the type. Ex. if type is FRIENDS then means 'when users became friends'
     last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
-
-    def set_type(self, type: RelationshipType):
-        """Change and commit the relationship type"""
-        self.type = type
-        self.last_changed = datetime.datetime.utcnow()
-        db.session.commit()
 
 
 # Upload Table

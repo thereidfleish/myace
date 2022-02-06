@@ -22,6 +22,9 @@ from db import Comment
 from db import Bucket
 from db import db
 
+from sqlalchemy import or_
+from sqlalchemy import and_
+
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
@@ -91,14 +94,19 @@ def get_host():
 
 @app.route("/login/", methods=["POST"])
 def login():
-    body = json.loads(request.data)
+    """
+    SwingVision behavior:
+    - When I sign in via Oauth to an account made by email, I am logged into that account.
+      - IMO this is a security risk. If an actor compromises a target's Twitter account, for example, they have access to the SwingVision platform.
+    - When I sign up with an email connected to an Oauth account, 500 internal server error.
+    - Email addresses are immutable
 
-    # Validate type
-    user_type = body.get("type")
-    if user_type is None:
-        return failure_response("Missing type.", 400)
-    if not (user_type == 0 or user_type == 1):
-        return failure_response("Invalid type.", 400)
+    I believe our login behavior should look like this:
+    - When I sign in via Oauth to an account made by email, I get an error like "This account was registered with email/password" and then prompt a password.
+    - When I sign up with an email connected to an Oauth account, I get an error like "This email address is already used by an account using Google sign-on"
+    - For now, email addresses are immutable
+    """
+    body = json.loads(request.data)
 
     # Validate google auth
     token = body.get("token")
@@ -117,12 +125,12 @@ def login():
                                     "Google token. Unauthorized.", 401)
 
         # Check if user exists
-        user = User.query.filter_by(google_id=gid, type=user_type).first()
+        user = User.query.filter_by(google_id=gid).first()
         user_created = user is None
 
         if user is None:
             # User does not exist, add them.
-            user = User(google_id=gid, display_name=display_name, email=email, type=user_type)
+            user = User(google_id=gid, display_name=display_name, email=email)
             db.session.add(user)
             db.session.commit()
 
@@ -261,7 +269,7 @@ def create_upload_url():
     res = {'id': new_upload.id}
     urldata = aws.get_presigned_url_post(new_upload.id, filename)
 
-    # Replace hyphens in field names with underscores 
+    # Replace hyphens in field names with underscores
     # because Swift cannot decode fields with hyphens
     for old_key in list(urldata['fields']):
         new_key = old_key.replace('-', '_')
@@ -388,12 +396,13 @@ def get_all_comments():
         if not user.can_view_upload(upload):
             return failure_response("User forbidden to view upload.", 403)
         comments = Comment.query.filter_by(upload_id=upload.id)
-    # Optionally filter by user type
-    user_type = request.args.get("user-type", type=str)
-    if user_type is not None:
-        if user_type != "0" and user_type != "1":
-            return failure_response("Invalid user type.", 400)
-        comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
+    # Optionally filter by courtship
+    # TODO: fix this
+    # user_type = request.args.get("courtship", type=str)
+    # if user_type is not None:
+    #     if user_type != "0" and user_type != "1":
+    #         return failure_response("Invalid user type.", 400)
+    #     comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
 
     # Create response
     return success_response({"comments": [c.serialize() for c in comments if user.can_view_comment(c)]})
@@ -495,62 +504,112 @@ def search_users():
     return success_response({"users": [u.serialize() for u in users]})
 
 
-@app.route("/friends/requests/", methods=['POST'])
+@app.route("/courtships/requests/", methods=['POST'])
 @flask_login.login_required
-def create_friend_request():
+def create_courtship_request():
     user = flask_login.current_user
 
     # Check for valid request body
     body = json.loads(request.data)
-    friend_id = body.get("user_id")
-    if friend_id is None:
+    other_id = body.get("user_id")
+    if other_id is None:
         return failure_response("Could not get user ID from request body.", 400)
-    friend = User.query.filter_by(id=friend_id).first()
-    if friend is None:
+    other = User.query.filter_by(id=other_id).first()
+    if other is None:
         return failure_response("User not found.")
 
-    # Check if user is allowed to create friend request
-    # TODO: add support for blocking users
-    if friend_id == user.id:
-        return failure_response("Cannot friend yourself.", 400)
-    if user.get_relationship_with(friend.id) is not None:
-        return failure_response("A relationship already exists with this user.", 400)
+    type = body.get("type")
+    if type == "friend":
+        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.FRIEND_REQUESTED)
+    elif type == "coach":
+        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.COACH_REQUESTED)
+    elif type == "student":
+        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.STUDENT_REQUESTED)
+    else:
+        return failure_response("Invalid type.", 400)
 
-    # Create friend request
-    relationship = UserRelationship(user_a_id=user.id, user_b_id=friend.id, type=RelationshipType.REQUESTED)
-    db.session.add(relationship)
+    # Check if user is allowed to create courtship request
+    # TODO: add support for blocking users
+    if other_id == user.id:
+        return failure_response("Cannot court yourself.", 400)
+    if user.get_relationship_with(other.id) is not None:
+        return failure_response("A courtship already exists with this user.", 400)
+
+    # Create courtship request
+    db.session.add(courtship)
     db.session.commit()
 
     return success_response(code=201)
 
 
-@app.route("/friends/requests/")
+@app.route("/courtships/requests")
 @flask_login.login_required
-def get_friend_requests():
+def get_courtship_requests():
     user = flask_login.current_user
-    # A list of user IDs requesting to friend the current user
-    incoming_ids = [rel.user_a_id for rel in UserRelationship.query.filter_by(user_b_id=user.id, type=RelationshipType.REQUESTED)]
-    # A list of user IDs that the current user is requesting to friend
-    outgoing_ids = [rel.user_b_id for rel in UserRelationship.query.filter_by(user_a_id=user.id, type=RelationshipType.REQUESTED)]
+    # Get all UserRelationships involving the user
+    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == user.id, UserRelationship.user_b_id == user.id))
+    # filter relationships to courtship requests only
+    courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIEND_REQUESTED,
+                                       UserRelationship.type == RelationshipType.COACH_REQUESTED,
+                                       UserRelationship.type == RelationshipType.STUDENT_REQUESTED))
+    # Optionally filter by request type
+    request_type = request.args.get("type", type=str)
+    if request_type is not None:
+        if request_type == "friend":
+            courtships = courtships.filter_by(type=RelationshipType.FRIEND_REQUESTED)
+        elif request_type == "coach":
+            courtships = courtships.filter_by(type=RelationshipType.COACH_REQUESTED)
+        elif request_type == "student":
+            courtships = courtships.filter_by(type=RelationshipType.STUDENT_REQUESTED)
+        else:
+            return failure_response("Invalid request type.", 400)
 
-    # I believe we should serialize users in the response because their
-    # info is required for the end user to act on the friend request
-    res = {
-        "incoming": [db.session.query(User).get(id).serialize() for id in incoming_ids],
-        "outgoing": [db.session.query(User).get(id).serialize() for id in outgoing_ids]
+    # Optionally filter by request direction
+    direction = request.args.get("dir", type=str)
+    if direction is not None:
+        if direction == "in":
+            courtships = courtships.filter_by(user_b_id=user.id)
+        elif direction == "out":
+            courtships = courtships.filter_by(user_a_id=user.id)
+        else:
+            return failure_response("Invalid dir.", 400)
+
+    # Given two IDs in which one of the IDs is the current user's, return the other ID
+    get_other_id = lambda id1, id2: id1 if user.id == id2 else id2
+
+    # Optionally filter by user IDs
+    user_ids_str = request.args.get("users", type=str)
+    if user_ids_str is not None:
+        user_ids = user_ids_str.split(",")
+        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != user.id, UserRelationship.user_a_id.in_(user_ids)),
+                                           and_(UserRelationship.user_b_id != user.id, UserRelationship.user_b_id.in_(user_ids))))
+
+    # Create response
+    # map RelationshipTypes to their string forms
+    type_strings = {RelationshipType.FRIEND_REQUESTED: "friend", RelationshipType.STUDENT_REQUESTED: "student", RelationshipType.COACH_REQUESTED: "coach"}
+    response = {
+        "requests": [{
+            "type": type_strings[c.type],
+            "dir": "out" if c.user_a_id == user.id else "in",
+            "user": db.session.query(User).get(get_other_id(c.user_a_id, c.user_b_id)).serialize()
+        } for c in courtships]
     }
-    return success_response(res)
+    return success_response(response)
 
 
-@app.route("/friends/requests/<int:other_user_id>/", methods=["PUT"])
+@app.route("/courtships/requests/<int:other_user_id>/", methods=["PUT"])
 @flask_login.login_required
-def update_incoming_friend_request(other_user_id):
+def update_incoming_courtship_request(other_user_id):
     user = flask_login.current_user
 
-    # Verify friend request exists
+    # Verify incoming courtship request exists
     rel = user.get_relationship_with(other_user_id)
-    if rel is None or rel.type != RelationshipType.REQUESTED or rel.user_b_id != user.id:
-        return failure_response("Friend request not found.")
+    if (rel is None
+        or rel.type not in (RelationshipType.FRIEND_REQUESTED,
+                            RelationshipType.STUDENT_REQUESTED,
+                            RelationshipType.COACH_REQUESTED)
+        or rel.user_b_id != user.id):
+        return failure_response("Incoming courtship request not found.", 404)
 
     # Check for valid request body
     body = json.loads(request.data)
@@ -559,27 +618,49 @@ def update_incoming_friend_request(other_user_id):
         return failure_response("Could not get status from request body.", 400)
 
     # Change relationship status
-    if status == 'accepted':
-        rel.set_type(RelationshipType.FRIENDS)
-    elif status == 'declined':
+    if status == 'accept':
+        assert rel.user_b_id == user.id, "Cannot accept an outgoing request!"
+
+        # User A requests that current_user becomes his friend.
+        if rel.type == RelationshipType.FRIEND_REQUESTED:
+            rel.type = RelationshipType.FRIENDS
+
+        # User A requests that current_user becomes his student.
+        elif rel.type == RelationshipType.STUDENT_REQUESTED:
+            rel.type = RelationshipType.A_COACHES_B
+
+        # User A requests that current_user becomes his coach.
+        else:
+            # Swap user A and user B
+            swap = rel.user_a_id
+            rel.user_a_id = rel.user_b_id
+            rel.user_b_id = swap
+            rel.type = RelationshipType.A_COACHES_B
+
+        rel.last_changed = datetime.datetime.utcnow()
+    elif status == 'decline':
         # Delete relationship
         db.session.delete(rel)
-        db.session.commit()
     else:
         return failure_response("Invalid status.", 400)
 
+    db.session.commit()
     return success_response(code=204)
 
 
-@app.route("/friends/requests/<int:other_user_id>/", methods=["DELETE"])
+@app.route("/courtships/requests/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
-def delete_outgoing_friend_request(other_user_id):
+def delete_outgoing_courtship_request(other_user_id):
     user = flask_login.current_user
 
-    # Verify friend request exists
+    # Verify outgoing courtship request exists
     rel = user.get_relationship_with(other_user_id)
-    if rel is None or rel.type != RelationshipType.REQUESTED or rel.user_a_id != user.id:
-        return failure_response("Friend request not found.")
+    if (rel is None
+        or rel.type not in (RelationshipType.FRIEND_REQUESTED,
+                            RelationshipType.STUDENT_REQUESTED,
+                            RelationshipType.COACH_REQUESTED)
+        or rel.user_a_id != user.id):
+        return failure_response("Outgoing courtship request not found.", 404)
 
     # Delete relationship
     db.session.delete(rel)
@@ -588,30 +669,62 @@ def delete_outgoing_friend_request(other_user_id):
     return success_response(code=204)
 
 
-@app.route("/friends/")
+@app.route("/courtships")
 @flask_login.login_required
-def get_all_friends():
+def get_all_courtships():
     user = flask_login.current_user
-    # The current user reached out first
-    friends_the_user_made = [rel.user_b_id for rel in UserRelationship.query.filter_by(user_a_id=user.id, type=RelationshipType.FRIENDS)]
-    # They reached out first
-    others_who_friended_user = [rel.user_a_id for rel in UserRelationship.query.filter_by(user_b_id=user.id, type=RelationshipType.FRIENDS)]
-    # Combine lists
-    friends = friends_the_user_made + others_who_friended_user
-    return success_response({"friends": [db.session.query(User).get(id).serialize() for id in friends]})
+    # Get all UserRelationships involving the user
+    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == user.id, UserRelationship.user_b_id == user.id))
+    # filter relationships to courtships only (no requests)
+    courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIENDS,
+                                       UserRelationship.type == RelationshipType.A_COACHES_B))
+    # Optionally filter by courtship type
+    type = request.args.get("type", type=str)
+    if type is not None:
+        if type == "friend":
+            courtships = courtships.filter_by(type=RelationshipType.FRIENDS)
+        elif type == "coach":
+            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_b_id=user.id)
+        elif type == "student":
+            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_a_id=user.id)
+        else:
+            return failure_response("Invalid type.", 400)
+
+    # Given two IDs in which one of the IDs is the current user's, return the other ID
+    get_other_id = lambda id1, id2: id1 if user.id == id2 else id2
+
+    # Optionally filter by user ID
+    user_ids_str = request.args.get("users", type=str)
+    if user_ids_str is not None:
+        user_ids = user_ids_str.split(",")
+        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != user.id, UserRelationship.user_a_id.in_(user_ids)),
+                                           and_(UserRelationship.user_b_id != user.id, UserRelationship.user_b_id.in_(user_ids))))
+
+    # Create response
+    # Return the string representation of a UserRelationship in which current_user is involved.
+    get_type_str = lambda rel: ("friend" if rel.type == RelationshipType.FRIENDS
+                                         else ("student" if rel.type == RelationshipType.A_COACHES_B and rel.user_a_id == user.id
+                                         else "coach"))
+    response = {
+        "courtships": [{
+            "type": get_type_str(c),
+            "user": db.session.query(User).get(get_other_id(c.user_a_id, c.user_b_id)).serialize()
+        } for c in courtships]
+    }
+    return success_response(response)
 
 
-@app.route("/friends/<int:other_user_id>/", methods=["DELETE"])
+@app.route("/courtships/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
-def remove_friend(other_user_id):
+def remove_courtship(other_user_id):
     user = flask_login.current_user
 
-    # Verify friendship exists
+    # Verify courtship exists
     rel = user.get_relationship_with(other_user_id)
-    if rel is None or rel.type != RelationshipType.FRIENDS:
-        return failure_response("Friend not found.")
+    if rel is None or rel.type not in (RelationshipType.FRIENDS, RelationshipType.A_COACHES_B):
+        return failure_response("Courtship not found.", 404)
 
-    # Delete friendship 💔
+    # Delete courtship 💔
     db.session.delete(rel)
     db.session.commit()
 

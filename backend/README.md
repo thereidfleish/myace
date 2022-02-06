@@ -6,19 +6,14 @@
 
 **POST /login/**
 
-This route establishes a session given a Google OAuth token and returns a user. If the user does not exist, the user is created. A Google account may be associated with multiple user IDs as long as the user IDs have different types. Therefore it is possible for someone to be both a player and a coach.
+This route establishes a session given a Google OAuth token and returns a user. If the user does not exist, the user is created.
 
 Request:
 ```json
 {
     "token": "{Google OAuth Token}",
-    "type": 0
 }
 ```
-
-- `type`:
-  - 0: player
-  - 1: coach
 
 Response:
 - 200: User fetched.
@@ -29,7 +24,6 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "type": 0,
     "email": "{User's email}"
 }
 ```
@@ -59,7 +53,6 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "type": 0,
     "email": "{User's email}"
 }
 ```
@@ -75,7 +68,7 @@ Request:
 ```json
 {
     "username": "{New username}",
-    "display_name": "{New display name}",
+    "display_name": "{New display name}"
 }
 ```
 
@@ -86,7 +79,6 @@ Response:
     "id": 1,
     "username": "{User's username}",
     "display_name": "{User's display name}",
-    "type": 0,
     "email": "{User's email}"
 }
 ```
@@ -270,8 +262,8 @@ By default, this route returns all comments authored by the logged in user.
 Optional query parameters:
 - `upload`
     - Return all comments under a specific upload ID. Currently the user may only view comments on their own uploads.
-- `user-type`
-    - Filter response to comments created by a specific user type. The user may only view coach comments on their own uploads.
+- `courtship`: "friend" | "coach" | "student"
+    - Filter response to comments created by a specific user. The user may only view coach comments on their own uploads. TODO: this needs to be fixed
 
 Response:
 ```json
@@ -283,8 +275,7 @@ Response:
             "author": {
                 "id": 1,
                 "username": "{User's username}",
-                "display_name": "{User's display name}",
-                "type": 0
+                "display_name": "{User's display name}"
             },
             "text": "Tennis goals!!! LOML 😍",
             "upload_id": 1
@@ -316,8 +307,7 @@ Response:
     "author": {
         "id": 1,
         "username": "{User's username}",
-        "display_name": "{User's display name}",
-        "type": 0
+        "display_name": "{User's display name}"
     },
     "text": "Tennis goals!!! LOML 😍",
     "upload_id": 1
@@ -381,7 +371,7 @@ Response:
 }
 ```
 
-## Friends
+## Courtships
 
 ### Search for users
 
@@ -400,106 +390,141 @@ Response:
         {
             "id": 1,
             "username": "{User's username}",
-            "display_name": "{User's display name}",
-            "type": 0
+            "display_name": "{User's display name}"
         },
         ...
     ]
 }
 ```
 
-### Create a friend request
+### Create a courtship request
 
-**POST /friends/requests/**
+**POST /courtships/requests/**
 
-This route requests to friend a specified user. The current user cannot have an existing relationship status with the specified user.
+This route begins the courting process, ha ha 😐. Request that another user become your friend, student, xor coach.
+The current user cannot have an existing relationship with the specified user.
 For example, requesting to friend someone who has already requested to friend you will yield an error.
+As another example, requesting to coach your friend will yield an error until you unfriend them.
 
 Request:
 ```json
 {
-    "user_id": 1
+    "user_id": 1,
+    "type": "friend"
 }
 ```
 
+- `type`
+    - "friend" | "student" | "coach"
+
 Response: N/A
 
-### Get all friend requests
+### Get courtship requests
 
-**GET /friends/requests/**
+**GET /courtships/requests**
 
-This route returns a list users associated with incoming and outgoing friend requests. An incoming friend is a
-user who has requested to friend you, and an outgoing friend is someone who you have requested to friend.
+This route returns a list incoming and outgoing courtship requests.
 
-Request: N/A
+| Dir | Request Type | Meaning
+| --- | --- | ---
+| out | friend | You request to add another user as a friend
+| out | coach | You request that another user becomes your coach
+| out | student | You request that another user becomes your student
+| in | friend | Another user requests to add you as a friend
+| in | coach | Another user requests that you coach them
+| in | student | Another user requests to coach you
+
+According to the request semantics table above, your outgoing coach request is another user's incoming coach request.
+
+Optional query parameters:
+- `type`: "friend" | "student" | "coach"
+    - Filter response by the type of request.
+- `dir`: "in" | "out"
+    - Filter response by the direction of the request.
+- `users`
+    - Filter response to requests to/from users specified by a comma separated list of user IDs.
 
 Response:
 ```json
 {
-    "incoming": [
+    "requests": [
         {
-            "id": 1,
-            "username": "{User's username}",
-            "display_name": "{User's display name}",
-            "type": 0
-        },
-        ...
-    ],
-    "outgoing": [
-        ...
-    ]
-}
-```
-
-### Update incoming friend request
-
-**PUT /friends/requests/{other_user_id}/**
-
-This route responds to an incoming friend request.
-
-Request:
-```json
-{
-    "status": "declined"
-}
-```
-
-- `status`: "accepted" | "declined"
-
-Response: N/A
-
-### Delete outgoing friend request
-
-**DELETE /friends/requests/{other_user_id}/**
-
-Request: N/A
-
-Response: N/A
-
-### Get all friends
-
-**GET /friends/**
-
-Request: N/A
-
-Response:
-```json
-{
-    "friends": [
-        {
-            "id": 1,
-            "username": "{User's username}",
-            "display_name": "{User's display name}",
-            "type": 0
+            "type": "friend",
+            "dir": "in",
+            "user": {
+                "id": 1,
+                "username": "{User's username}",
+                "display_name": "{User's display name}"
+            }
         },
         ...
     ]
 }
 ```
 
-### Remove friend
+### Update incoming courtship request
 
-**DELETE /friends/{other_user_id}/**
+**PUT /courtships/requests/{other_user_id}/**
+
+This route responds to an incoming courtship request.
+
+Request:
+```json
+{
+    "status": "decline"
+}
+```
+
+- `status`: "accept" | "decline"
+
+Response: N/A
+
+### Delete outgoing courtship request
+
+**DELETE /courtships/requests/{other_user_id}/**
+
+Request: N/A
+
+Response: N/A
+
+### Get courtships
+
+**GET /courtships**
+
+Get a list of established courtships involving the current user.
+
+| Courtship Type | Meaning
+| --- | ---
+| friend | This user is your friend
+| coach | This user is your coach
+| student | This user is your student
+
+Optional query parameters:
+- `type`: "friend" | "student" | "coach"
+    - Filter response by the type of courtship. For example, "student" will only return the current user's students.
+- `users`
+    - Filter response to courtships to/from users specified by a comma separated list of user IDs.
+
+Response:
+```json
+{
+    "courtships": [
+        {
+            "type": "friend",
+            "user": {
+                "id": 1,
+                "username": "{User's username}",
+                "display_name": "{User's display name}"
+            }
+        },
+        ...
+    ]
+}
+```
+
+### Remove courtship
+
+**DELETE /courtships/{other_user_id}/**
 
 Request: N/A
 
