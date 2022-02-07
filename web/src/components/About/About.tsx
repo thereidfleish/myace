@@ -19,7 +19,7 @@ export default function About() {
           {
             pics.map((pic, i) => {
               return (
-                <div className='team-pic'>
+                <div className='team-pic' key={i}>
                   
                 </div>
               )
