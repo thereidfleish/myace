@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom'
 import FundCard from './FundCard';
 import Header from '../Header/Header'
+import Timeline from '../Timeline/Timeline';
 
 export default function Fund() {
   const fundCards = [
@@ -67,8 +68,8 @@ export default function Fund() {
             <span className="primary-color">about</span>
           </Link>
         </p>
-        
       </div>
+      <Timeline />
     </div>
     
   );
