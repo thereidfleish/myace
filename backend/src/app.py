@@ -43,7 +43,7 @@ DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 DB_USERNAME = os.environ.get("DB_USERNAME")
-G_CLIENT_ID = os.environ.get("G_CLIENT_ID")
+G_CLIENT_IDS = os.environ.get("G_CLIENT_IDS").split(",")
 S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
 S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
@@ -113,34 +113,41 @@ def login():
     if token is None:
         return failure_response("Missing token.", 400)
 
-    try:
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), G_CLIENT_ID)
+    # Check if the token will verify with any of the specified oauth tokens
+    valid = False
+    for id in G_CLIENT_IDS:
+        try:
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), G_CLIENT_IDS)
+            valid = True
+            break
+        except ValueError:
+            pass # don't set valid to True
 
-        gid = idinfo.get("sub")
-        email = idinfo.get("email")
-        display_name = idinfo.get("name")
-
-        if gid is None or email is None or display_name is None:
-            return failure_response("Could not retrieve required fields (Google Account ID, email, and name) from"
-                                    "Google token. Unauthorized.", 401)
-
-        # Check if user exists
-        user = User.query.filter_by(google_id=gid).first()
-        user_created = user is None
-
-        if user is None:
-            # User does not exist, add them.
-            user = User(google_id=gid, display_name=display_name, email=email)
-            db.session.add(user)
-            db.session.commit()
-
-        # Begin user session
-        flask_login.login_user(user, remember=True)
-
-        return success_response(user.serialize(show_private=True), 201 if user_created else 200)
-
-    except ValueError:
+    if not valid:
         return failure_response("Could not authenticate user. Unauthorized.", 401)
+
+    gid = idinfo.get("sub")
+    email = idinfo.get("email")
+    display_name = idinfo.get("name")
+
+    if gid is None or email is None or display_name is None:
+        return failure_response("Could not retrieve required fields (Google Account ID, email, and name) from"
+                                "Google token. Unauthorized.", 401)
+
+    # Check if user exists
+    user = User.query.filter_by(google_id=gid).first()
+    user_created = user is None
+
+    if user is None:
+        # User does not exist, add them.
+        user = User(google_id=gid, display_name=display_name, email=email)
+        db.session.add(user)
+        db.session.commit()
+
+    # Begin user session
+    flask_login.login_user(user, remember=True)
+
+    return success_response(user.serialize(show_private=True), 201 if user_created else 200)
 
 
 @app.route("/logout/", methods=["POST"])
