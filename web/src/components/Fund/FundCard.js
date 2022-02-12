@@ -1,5 +1,4 @@
 import React from 'react';
-import { Navbar } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card'
 
 export default function FundCard(props) {
