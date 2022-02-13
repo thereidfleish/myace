@@ -15,6 +15,12 @@ export default function Team() {
       linkedin: 'https://www.linkedin.com/in/adler-weber-106a651ab/'
     },
     {
+      name: 'Grant Rinehimer',
+      description: 'Backend',
+      picture: "https://media.superhuman.com/images/_/https%3A%2F%2Flh6.googleusercontent.com%2Fr66PDijtSugTK_jQCYLXD_OGwI-OJW_oZRYlBPczQqMaWa0Pdh3vZHthGJJ1blwxp_JGxxzc1xs1KlUENMSoW4hlUIdyFkUue39t81i09cSobY3ZY8PnjT6DMFOrS2C7Mif9wYoCm0bh",
+      linkedin: 'https://www.linkedin.com'
+    },
+    {
       name: 'Reid Fleishman',
       description: 'iOS',
       picture: "https://media-exp1.licdn.com/dms/image/C4D03AQEO4fkuZOwEUg/profile-displayphoto-shrink_400_400/0/1641232103208?e=1648684800&v=beta&t=5BsNg8Qj7qeG7MbasLh-zCSS1wgklrq8wE8rMjrlmpg",
@@ -32,6 +38,12 @@ export default function Team() {
       picture: "https://media-exp1.licdn.com/dms/image/C5603AQEQkIucffHGSw/profile-displayphoto-shrink_800_800/0/1631155833068?e=1649894400&v=beta&t=7BBhXs2SbmHzOirMMMllR2y7REmVM6X1UOqd2Z0KL5M",
       linkedin: 'https://www.linkedin.com/in/alex-godfrey-91a7251b1/'
     },
+    {
+      name: 'Mostafa Osman',
+      description: 'Business',
+      picture: "https://media-exp1.licdn.com/dms/image/C5603AQG_o5WKJ9hFDA/profile-displayphoto-shrink_400_400/0/1620367079019?e=1650499200&v=beta&t=nVumreteWgtflodydeuI1ANOlSknvGFomLJUxIe2n7w",
+      linkedin: 'https://www.linkedin.com/in/mostafaosman03/'
+    }
   ]
 
   return (
