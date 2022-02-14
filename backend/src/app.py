@@ -4,7 +4,7 @@ import json
 import os
 import re
 
-import media
+from aws import AWS
 from cookiesigner import CookieSigner
 
 from botocore.client import Config
@@ -14,13 +14,13 @@ from flask import request
 from flask import make_response
 import flask_login
 
-from db import User
-from db import UserRelationship
-from db import RelationshipType
-from db import Upload
-from db import Comment
-from db import Bucket
-from db import db
+from models import User
+from models import UserRelationship
+from models import RelationshipType
+from models import Upload
+from models import Comment
+from models import Bucket
+from models import db
 
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -59,7 +59,7 @@ with app.app_context():
     db.create_all()
 
 # global AWS instance
-aws = media.AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY)
+aws = AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY)
 
 
 def success_response(data={}, code=200):
@@ -345,7 +345,6 @@ def edit_upload(upload_id):
 @app.route("/uploads/<int:upload_id>/", methods=['DELETE'])
 @flask_login.login_required
 def delete_upload(upload_id):
-
     # Verify user and existence of upload.
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -482,6 +481,9 @@ def create_bucket():
     if name is None:
         return failure_response("Could not get bucket name from request body.", 400)
 
+    if Bucket.query.filter_by(name=name, user_id=user.id).first() is not None:
+        return failure_response("A bucket of this name already exists.", 400)
+
     # Create the bucket
     bucket = Bucket(user_id=user.id, name=name)
     db.session.add(bucket)
@@ -496,6 +498,55 @@ def get_buckets():
     user = flask_login.current_user
     return success_response({"buckets": [b.serialize() for b in user.buckets]})
 
+
+@app.route("/buckets/<int:bucket_id>/", methods=['PUT'])
+@flask_login.login_required
+def edit_bucket(bucket_id):
+    user = flask_login.current_user
+    bucket = Bucket.query.filter_by(id=bucket_id, user_id=user.id).first()
+
+    if bucket is None:
+        return failure_response("Bucket by user not found.")
+
+    if not user.can_modify_bucket(bucket):
+        return failure_response("User forbidden to modify bucket.", 403)
+
+    body = json.loads(request.data)
+
+    # Update name
+    new_name = body.get("name")
+    if new_name is not None and bucket.name != new_name:
+        if new_name.isspace():
+            return failure_response("Invalid title.", 400)
+        if Bucket.query.filter_by(name=new_name, user_id=user.id).first() is not None:
+            return failure_response("A bucket of this name already exists.", 400)
+        bucket.name = new_name
+
+    db.session.commit()
+    return success_response(bucket.serialize())
+
+
+@app.route("/buckets/<int:bucket_id>/", methods=['DELETE'])
+@flask_login.login_required
+def delete_bucket(bucket_id):
+    user = flask_login.current_user
+    # Check for valid bucket
+    bucket = Bucket.query.filter_by(id=bucket_id, user_id=user.id).first()
+    if bucket is None:
+        return failure_response("Bucket by user not found.")
+
+    # Check that user is allowed to delete bucket
+    if not user.can_modify_bucket(bucket):
+        return failure_response("User forbidden to modify bucket.", 403)
+
+    # Delete bucket and associated uploads
+    # Note that deleting like this respects the cascades defined at the ORM level
+    # Bucket.query.filter_by(...).delete() does not respect cascades!
+    aws.delete_uploads(bucket.uploads)
+    db.session.delete(bucket)
+    db.session.commit()
+
+    return success_response(code=204)
 
 @app.route("/users/search")
 @flask_login.login_required

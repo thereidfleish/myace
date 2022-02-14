@@ -18,14 +18,14 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    google_id = db.Column(db.String, nullable=False)
+    google_id = db.Column(db.String, nullable=False, unique=True)
 
     # Matches all characters disallowed in usernames. Allow alphanumeric, underscores, & periods.
     ILLEGAL_UNAME_PATTERN = r"[^\w\.]"
     username = db.Column(db.String, nullable=False, unique=True)
 
     display_name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, nullable=False, unique=True)
     uploads = db.relationship("Upload", cascade="delete")
     comments = db.relationship("Comment", cascade="delete", back_populates="author")
     buckets = db.relationship("Bucket", cascade="delete")

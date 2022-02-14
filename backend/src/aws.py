@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Provides a utility class to manage AWS streams.
+Provides a utility class to abstract interaction with AWS.
 """
 
 import boto3
@@ -50,7 +50,7 @@ class AWS:
         )
         return private_key.sign(message, padding.PKCS1v15(), hashes.SHA1())
 
-    def __is_invalidation_request_completed(self, invalidation_id: str) -> bool:
+    def _is_invalidation_request_completed(self, invalidation_id: str) -> bool:
         """Check if an invalidation request has been completed.
 
         :param invalidation_id: The invalidation request ID
@@ -62,7 +62,7 @@ class AWS:
         )
         return response['Invalidation']['Status'] == 'Completed'
 
-    def __get_presigned_url(self, object_key: str, expiration: datetime.datetime) -> str:
+    def _get_presigned_url(self, object_key: str, expiration: datetime.datetime) -> str:
         """Generate a presigned Cloudfront URL for any S3 object.
 
         :param object_key: The S3 object to sign
@@ -89,7 +89,7 @@ class AWS:
         """
         td = datetime.timedelta(hours=expiration_in_hours)
         key = f"uploads/{upload_uuid}/{filename}"
-        url = self.__get_presigned_url(key, datetime.datetime.utcnow() + td)
+        url = self._get_presigned_url(key, datetime.datetime.utcnow() + td)
         return url
 
     def get_thumbnail_url(self, upload_uuid: str, expiration_in_hours: int) -> str:
@@ -103,7 +103,7 @@ class AWS:
         """
         td = datetime.timedelta(hours=expiration_in_hours)
         key = f"uploads/{upload_uuid}/thumbnail.0000000.jpg"
-        url = self.__get_presigned_url(key, datetime.datetime.utcnow() + td)
+        url = self._get_presigned_url(key, datetime.datetime.utcnow() + td)
         return url
 
     def get_presigned_url_post(self, upload_uuid: str, filename: str, expiration: int = 3600) -> dict:
@@ -211,6 +211,7 @@ def main() -> None:
     # Create presigned upload URL
     # info = aws.get_presigned_url_post('exampleuploaduid', 'fullcourtstock.mp4')
     # print(info)
+
 
 
 if __name__ == '__main__':

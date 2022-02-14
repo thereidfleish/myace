@@ -331,7 +331,7 @@ Response: N/A
 
 **POST /buckets/**
 
-This route creates a bucket with the specified name and attaches it to the logged in user. A user can have multiple
+This route creates a bucket with the specified name and attaches it to the logged in user. A user cannot have multiple
 buckets of the same name. A user must create at least one bucket before uploading a video.
 
 Request:
@@ -345,7 +345,7 @@ Response:
 ```json
 {
     "id": 1,
-    "name": "{bucket name}",
+    "name": "{bucket name}"
 }
 ```
 
@@ -370,6 +370,38 @@ Response:
     ]
 }
 ```
+
+### Edit a bucket
+
+**PUT /buckets/{bucket_id}/**
+
+This route only updates the properties of a bucket. To transfer an upload to another
+bucket, see [edit upload]("#edit-upload").
+
+Request:
+```json
+{
+    "name": "backhand"
+}
+```
+
+Response:
+```json
+{
+    "id": 1,
+    "name": "{new bucket name}"
+}
+```
+
+### Delete a bucket
+
+**PUT /buckets/{bucket_id}/**
+
+This route deletes a bucket and all of its associated uploads.
+
+Request: NA
+
+Response: NA
 
 ## Courtships
 

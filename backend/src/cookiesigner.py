@@ -1,4 +1,4 @@
-from media import AWS
+from aws import AWS
 import time
 import json
 import base64
@@ -25,17 +25,17 @@ class CookieSigner:
         self.__cf_key_id = cf_key_id
         self.object_url_header = os.environ.get("S3_OBJECT_URL_HEADER")
 
-    def __expiration_time(self) -> int:
+    def _expiration_time(self) -> int:
         return int(time.time()) + (self.expiration_in_hrs * 3600)
 
-    def __generate_policy_cookie(self, url: str) -> tuple:
+    def _generate_policy_cookie(self, url: str) -> tuple:
         policy_dict = {
             "Statement": [
                 {
                     "Resource": url,
                     "Condition": {
                         "DateLessThan": {
-                            "AWS:EpochTime": self.__expiration_time()
+                            "AWS:EpochTime": self._expiration_time()
                         }
                     }
                 }
@@ -49,12 +49,12 @@ class CookieSigner:
         policy_64 = _replace_unsupported_chars(policy_64)
         return policy_json, policy_64
 
-    def __generate_signature(self, policy: json) -> str:
+    def _generate_signature(self, policy: json) -> str:
         sig_bytes = self.aws.rsa_sign(policy.encode('utf-8'))
         sig_64 = _replace_unsupported_chars(str(base64.b64encode(sig_bytes), "utf-8"))
         return sig_64
 
     def generate_signed_cookies(self, url: str) -> dict:
-        policy_json, policy64 = self.__generate_policy_cookie(url)
-        signature = self.__generate_signature(policy_json)
+        policy_json, policy64 = self._generate_policy_cookie(url)
+        signature = self._generate_signature(policy_json)
         return _generate_cookies(policy64, signature, self.__cf_key_id)
