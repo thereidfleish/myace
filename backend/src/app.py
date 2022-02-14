@@ -37,7 +37,8 @@ login_manager.init_app(app)
 ENV = "dev"
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-CF_PRIVATE_KEY = os.environ.get("CF_PRIVATE_KEY").encode("utf-8")
+# replace line delimeter characters '\n' with newlines and convert to bytes
+CF_PRIVATE_KEY = os.environ.get("CF_PRIVATE_KEY").replace("\\n", "\n").encode("utf-8")
 CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
 DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
 DB_NAME = os.environ.get("DB_NAME")
