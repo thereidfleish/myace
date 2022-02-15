@@ -37,12 +37,6 @@ export default function Team() {
       description: 'Web',
       picture: "https://media-exp1.licdn.com/dms/image/C5603AQEQkIucffHGSw/profile-displayphoto-shrink_800_800/0/1631155833068?e=1649894400&v=beta&t=7BBhXs2SbmHzOirMMMllR2y7REmVM6X1UOqd2Z0KL5M",
       linkedin: 'https://www.linkedin.com/in/alex-godfrey-91a7251b1/'
-    },
-    {
-      name: 'Mostafa Osman',
-      description: 'Business',
-      picture: "https://media-exp1.licdn.com/dms/image/C5603AQG_o5WKJ9hFDA/profile-displayphoto-shrink_400_400/0/1620367079019?e=1650499200&v=beta&t=nVumreteWgtflodydeuI1ANOlSknvGFomLJUxIe2n7w",
-      linkedin: 'https://www.linkedin.com/in/mostafaosman03/'
     }
   ]
 

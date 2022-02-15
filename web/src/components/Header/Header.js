@@ -12,9 +12,9 @@ export default function Header() {
             </Navbar.Brand></Link>
             <Navbar.Toggle />
             <Navbar.Collapse className="justify-content-end">
-                <Link to="/coaches" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
-                    <span style={{ color: '#8AD28A', marginRight: '20px' }}>coches</span>
-                </Navbar.Text></Link>
+                {/* <Link to="/coaches" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
+                    <span style={{ color: '#8AD28A', marginRight: '20px' }}>coaches</span>
+                </Navbar.Text></Link> */}
                 <Link to="/fund" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A', marginRight: '20px'}}>fund</span>
                 </Navbar.Text></Link>

@@ -23,8 +23,8 @@ export default function About() {
         <h2>Our end goal</h2>
         <p>
           Following the release of our consumer product, we will be implementing a machine learning model
-          that will offer automatated advice to players. As more player's upload their vidoes to our platform
-          our automated advice will continue to get better!
+          that will offer automatated advice to players. As more players upload their vidoes to our platform,
+          our automated advice will continue to get better.
         </p>
         <h2>Meet the team</h2>
         <Team />

@@ -9,9 +9,8 @@ export default function Fund() {
     {
       title: 'Individuals',
       subtitle: 'Minimum investment: $500',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
-        'ed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut ' +
-        'enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
+      description: 'Option for individuals not associated with a firm or investment fund. ' + 
+      'Friends and family welcome. More details available over call or email.',
       links: [
         {
           text: 'Call Chris',
@@ -24,11 +23,10 @@ export default function Fund() {
       ]
     },
     {
-      title: 'Venture Capital',
+      title: 'Groups',
       subtitle: 'Minimum investment: $25,000',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
-        'ed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut ' +
-        'enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
+      description: 'Option for angel investing groups, venture capital funds, investing firms, etc. ' + 
+      'More details over call or email.',
       links: [
         {
           text: 'Call Chris',
@@ -71,6 +69,5 @@ export default function Fund() {
       </div>
       <Timeline />
     </div>
-    
   );
 }
