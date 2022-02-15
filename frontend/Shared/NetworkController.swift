@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: "", type: -1), bucketContents: UploadsRes(uploads: []), buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [])
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [])
     @Published var awaiting = false
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
@@ -197,7 +197,8 @@ class NetworkController: ObservableObject {
         }
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print(response)
             print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
@@ -268,16 +269,29 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getFriendRequests() async throws {
-        let url = URL(string: "\(host)/friends/requests/")!
+    func getCourtshipRequests(type: String?, dir: String?, users: String?) async throws {
+        var stringBuilder: String = "\(host)/courtships/requests"
+        
+        if (type != nil) {
+            stringBuilder += "?type=\(type!)"
+        }
+        
+        if (dir != nil) {
+            stringBuilder += "?dir=\(dir!)"
+        }
+        
+        if (users != nil) {
+            stringBuilder += "?users=\(users!)"
+        }
+        
+        let url = URL(string: stringBuilder)!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode(AllFriendRequestsRes.self, from: data)
+            let decodedResponse = try decoder.decode(GetCourtshipRequestsRes.self, from: data)
             DispatchQueue.main.sync {
-                userData.incomingFriendRequests = decodedResponse.incoming
-                userData.outgoingFriendRequests = decodedResponse.outgoing
+                userData.courtshipRequests = decodedResponse.requests
             }
             
         } catch {
@@ -286,15 +300,15 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func createFriendRequest(userID: String) async throws {
-        let req: FriendRequestReq = FriendRequestReq(user_id: Int(userID)!)
+    func createCourtshipRequest(userID: String, type: String) async throws {
+        let req: CourtshipRequestReq = CourtshipRequestReq(user_id: Int(userID)!, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/friends/requests/")!
+        let url = URL(string: "\(host)/courtships/requests/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -13,6 +13,8 @@ struct UserData {
     // Shared data
     var shared: SharedData
     
+    var loggedIn: Bool = false
+    
     var profilePic: URL?
     
     // Student data
@@ -21,6 +23,8 @@ struct UserData {
     var buckets: [Bucket]
     
     var friends: [Friend]
+    
+    var courtshipRequests: [Courtship]
     
     var incomingFriendRequests: [Friend]
     var outgoingFriendRequests: [Friend]
@@ -84,8 +88,8 @@ struct SharedData: Codable, Identifiable {
     var id: Int
     var username: String
     var display_name: String
-    var email: String
-    var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+    var email: String?
+    //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 }
 
 struct Upload: Codable, Identifiable {
@@ -137,7 +141,6 @@ struct Tag: Codable {
 // Helpers
 struct AuthReq: Codable {
     var token: String
-    var type: Int
 }
 
 struct UpdateUserReq: Codable {
@@ -187,20 +190,19 @@ struct FriendRes: Codable {
     var friends: [Friend]
 }
 
-struct FriendRequestReq: Codable {
+struct CourtshipRequestReq: Codable {
     var user_id: Int
+    var type: String
 }
 
-struct AllFriendRequestsRes: Codable {
-    var incoming: [Friend]
-    var outgoing: [Friend]
+struct GetCourtshipRequestsRes: Codable {
+    var requests: [Courtship]
 }
 
-struct Friend: Codable, Identifiable, Equatable {
-    var id: Int
-    var username: String
-    var display_name: String
-    var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+struct Courtship: Codable, Identifiable, Equatable {
+    var type: String
+    var dir: String?
+    var user: SharedData
 }
 
 struct UpdateIncomingFriendRequestReq: Codable {

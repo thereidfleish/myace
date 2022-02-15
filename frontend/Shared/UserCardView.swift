@@ -30,11 +30,11 @@ struct UserCardView: View {
         }
     }
     
-    func createFriendRequest(userID: String) {
+    func createCourtshipRequest(userID: String, type: String) {
         Task {
             do {
                 awaiting = true
-                try await nc.createFriendRequest(userID: userID)
+                try await nc.createCourtshipRequest(userID: userID, type: type)
                 updateData()
                 withAnimation {
                     statusMessage = userID == String(nc.userData.shared.id) ? "Lol you can't send a friend request to yourself!!" : "Sent friend request."
@@ -141,8 +141,6 @@ struct UserCardView: View {
                         Image(systemName: "person.text.rectangle.fill")
                             .foregroundColor(Color.white)
                             .frame(width: 15)
-                        Text(user.type == 0 ? "Player" : "Coach")
-                            .bucketTextExternalStyle()
                     }
                 }
                 
@@ -204,15 +202,33 @@ struct UserCardView: View {
                     
                     // Handle if the user has never interacted with this user (i.e., doesn't meet the above criteria); thus, they can only send a friend request
                     else {
-                        Button(action: {
-                            createFriendRequest(userID: String(user.id))
-                        }, label: {
+                        Menu {
+                            Button {
+                                createCourtshipRequest(userID: String(user.id), type: "friend")
+                            } label: {
+                                Label("Add Friend", systemImage: "face.smiling.fill")
+                            }
+                            
+                            Button {
+                                createCourtshipRequest(userID: String(user.id), type: "student")
+                            } label: {
+                                Label("Add Student", systemImage: "graduationcap.fill")
+                            }
+                            
+                            Button {
+                                createCourtshipRequest(userID: String(user.id), type: "coach")
+                            } label: {
+                                Label("Add Coach", systemImage: "person.text.rectangle.fill")
+                            }
+                            
+                        } label: {
                             VStack {
                                 Image(systemName: "person.crop.circle.fill.badge.plus")
-                                Text("Add Friend")
+                                Text("Add Courtship")
                                     .friendStatusTextStyle()
                             }.friendStatusBackgroundStyle()
-                        })
+                        }
+                        .padding(.leading)
                     }
                 }
                 

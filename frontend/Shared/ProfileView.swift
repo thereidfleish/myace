@@ -11,7 +11,7 @@ import GoogleSignIn
 struct ProfileView: View {
     @EnvironmentObject private var nc: NetworkController
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @AppStorage("type") private var typeSelection = -1
+    //@AppStorage("type") private var typeSelection = -1
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
@@ -47,9 +47,6 @@ struct ProfileView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        
-                        Text(yourself ? (nc.userData.shared.type == 0 ? "Player" : "Coach") : (user.type == 0 ? "Player" : "Coach"))
-                            .profileInfoStyle()
                         
                         HStack {
                             AsyncImage(url: nc.userData.profilePic) { image in
@@ -109,8 +106,7 @@ struct ProfileView: View {
                     .navigationBarItems(leading: Button(action: {
                         if (yourself) {
                             GIDSignIn.sharedInstance.signOut()
-                            nc.userData.shared.type = -1
-                            typeSelection = -1
+                            //typeSelection = -1
                         } else {
                             self.presentationMode.wrappedValue.dismiss()
                         }
