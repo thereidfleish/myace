@@ -135,7 +135,10 @@ class User(db.Model):
 @enum.unique
 class RelationshipType(enum.Enum):
     """Exclusive states that may exist between two users"""
-    # I'm using enum.auto() because the variable names are stored in the DB, not the values
+    # If you ever modify these values, the database type must be recreated:
+    #   `DROP TYPE "typename";`
+    # I'm using enum.auto() because the names are stored in the DB as strings.
+    # The values are never stored in the DB.
     # user A has a pending friend request to user B
     FRIEND_REQUESTED = enum.auto()
     # user A and B are mutual friends
