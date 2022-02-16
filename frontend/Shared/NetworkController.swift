@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], friends: [], incomingFriendRequests: [], outgoingFriendRequests: [])
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], courtships: [], courtshipRequests: [])
     @Published var awaiting = false
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
@@ -235,7 +235,7 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func searchUser(query: String) async throws -> [Friend] {
+    func searchUser(query: String) async throws -> [SharedData] {
         let url = URL(string: "\(host)/users/search?query=\(query)")!
         
         do {
@@ -249,54 +249,6 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedDecode
         }
         //throw NetworkError.noReturn
-    }
-    
-    // GET
-    func getFriends() async throws {
-        let url = URL(string: "\(host)/friends/")!
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode(FriendRes.self, from: data)
-            DispatchQueue.main.sync {
-                userData.friends = decodedResponse.friends
-            }
-            
-        } catch {
-            throw NetworkError.failedDecode
-        }
-    }
-    
-    // GET
-    func getCourtshipRequests(type: String?, dir: String?, users: String?) async throws {
-        var stringBuilder: String = "\(host)/courtships/requests"
-        
-        if (type != nil) {
-            stringBuilder += "?type=\(type!)"
-        }
-        
-        if (dir != nil) {
-            stringBuilder += "?dir=\(dir!)"
-        }
-        
-        if (users != nil) {
-            stringBuilder += "?users=\(users!)"
-        }
-        
-        let url = URL(string: stringBuilder)!
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode(GetCourtshipRequestsRes.self, from: data)
-            DispatchQueue.main.sync {
-                userData.courtshipRequests = decodedResponse.requests
-            }
-            
-        } catch {
-            throw NetworkError.failedDecode
-        }
     }
     
     // POST
@@ -325,24 +277,57 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // GET
+    func getCourtshipRequests(type: String?, dir: String?, users: String?) async throws {
+        var stringBuilder: String = "\(host)/courtships/requests\(type == nil && dir == nil && users == nil ? "" : "?")"
+        
+        if (type != nil) {
+            stringBuilder += "type=\(type!)"
+        }
+        
+        if (dir != nil) {
+            stringBuilder += "\(type != nil ? "&" : "")dir=\(dir!)"
+        }
+        
+        if (users != nil) {
+            stringBuilder += "\(type != nil || dir != nil ? "&" : "")users=\(users!)"
+        }
+        
+        let url = URL(string: stringBuilder)!
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(CourtshipRequestRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.courtshipRequests = decodedResponse.requests
+            }
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
     // PUT
-    func updateIncomingFriendRequest(status: String, userID: String) async throws {
-        let req: UpdateIncomingFriendRequestReq = UpdateIncomingFriendRequestReq(status: status)
+    func updateIncomingCourtshipRequest(status: String, userID: String) async throws {
+        let req: UpdateIncomingCourtshipRequestReq = UpdateIncomingCourtshipRequestReq(status: status)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/friends/requests/\(userID)/")!
+        let url = URL(string: "\(host)/courtships/requests/\(userID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "PUT"
         
         do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print("I LOVE EDEN")
+            print(data)
+            print(response)
         } catch {
             
             throw NetworkError.failedDecode
@@ -350,15 +335,47 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func deleteOutgoingFriendRequest(userID: String) async throws {
-        let url = URL(string: "\(host)/friends/requests/\(userID)/")!
+    func deleteOutgoingCourtshipRequest(userID: String) async throws {
+        let url = URL(string: "\(host)/courtships/requests/\(userID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "DELETE"
         
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            print("I LOVE SARAH")
+            print(data)
+            print(response)
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // GET
+    func getCourtships(type: String?, users: String?) async throws {
+        var stringBuilder: String = "\(host)/courtships\(type == nil && users == nil ? "" : "?")"
+        
+        if (type != nil) {
+            stringBuilder += "type=\(type!)"
+        }
+        
+        if (users != nil) {
+            stringBuilder += "\(type != nil ? "&" : "")users=\(users!)"
+        }
+        
+        let url = URL(string: stringBuilder)!
+                
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print(response)
+            print(data.prettyPrintedJSONString)
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(GetCourtshipsRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.courtships = decodedResponse.courtships
+            }
             
         } catch {
             throw NetworkError.failedDecode
@@ -366,15 +383,16 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func removeFriend(userID: String) async throws {
-        let url = URL(string: "\(host)/friends/\(userID)/")!
+    func removeCourtship(userID: String) async throws {
+        let url = URL(string: "\(host)/courtships/\(userID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "DELETE"
         
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, resoinse) = try await URLSession.shared.data(for: request)
+           
             
         } catch {
             throw NetworkError.failedDecode

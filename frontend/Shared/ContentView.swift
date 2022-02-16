@@ -96,7 +96,7 @@ struct ContentView: View {
              
              }
              */
-            ProfileView(yourself: true, user: Friend(id: -1, username: "", display_name: ""))
+            ProfileView(yourself: true)
                 .tabItem {
                     VStack {
                         Image(systemName: "person.crop.circle.fill")

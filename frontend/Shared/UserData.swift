@@ -22,12 +22,12 @@ struct UserData {
     
     var buckets: [Bucket]
     
-    var friends: [Friend]
+    var courtships: [Courtship]
     
     var courtshipRequests: [Courtship]
     
-    var incomingFriendRequests: [Friend]
-    var outgoingFriendRequests: [Friend]
+//    var incomingFriendRequests: [Friend]
+//    var outgoingFriendRequests: [Friend]
     
     //var bucketContents: [BucketContents]
     
@@ -183,11 +183,11 @@ struct DeleteUploadRes: Codable {
 }
 
 struct SearchRes: Codable {
-    var users: [Friend]
+    var users: [SharedData]
 }
 
-struct FriendRes: Codable {
-    var friends: [Friend]
+struct FriendReq: Codable {
+    var courtships: [Courtship]
 }
 
 struct CourtshipRequestReq: Codable {
@@ -195,17 +195,22 @@ struct CourtshipRequestReq: Codable {
     var type: String
 }
 
-struct GetCourtshipRequestsRes: Codable {
+struct CourtshipRequestRes: Codable {
     var requests: [Courtship]
 }
 
-struct Courtship: Codable, Identifiable, Equatable {
+struct GetCourtshipsRes: Codable {
+    var courtships: [Courtship]
+}
+
+struct Courtship: Codable, Identifiable {
+    var id: Int?
     var type: String
     var dir: String?
     var user: SharedData
 }
 
-struct UpdateIncomingFriendRequestReq: Codable {
+struct UpdateIncomingCourtshipRequestReq: Codable {
     var status: String
 }
 
