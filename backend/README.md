@@ -345,7 +345,8 @@ Response:
 ```json
 {
     "id": 1,
-    "name": "{bucket name}"
+    "name": "{bucket name}",
+    "size": 0
 }
 ```
 
@@ -364,6 +365,7 @@ Response:
         {
             "id": 1,
             "name": "{bucket name}",
+            "size": 5,
             "last_modified": "{ISO 8601 formatted timestamp}"
         },
         ...
@@ -376,12 +378,12 @@ Response:
 **PUT /buckets/{bucket_id}/**
 
 This route only updates the properties of a bucket. To transfer an upload to another
-bucket, see [edit upload]("#edit-upload").
+bucket, see [edit upload](#edit-upload).
 
 Request:
 ```json
 {
-    "name": "backhand"
+    "name": "{new bucket name}"
 }
 ```
 
@@ -389,7 +391,9 @@ Response:
 ```json
 {
     "id": 1,
-    "name": "{new bucket name}"
+    "name": "{new bucket name}",
+    "size": 5,
+    "last_modified": "{ISO 8601 formatted timestamp}"
 }
 ```
 

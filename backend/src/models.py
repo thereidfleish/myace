@@ -241,13 +241,18 @@ class Bucket(db.Model):
         response = {
             "id": self.id,
             "name": self.name,
+            "size": self._size()
         }
-        last_modified = self.__get_last_modified()
+        last_modified = self._get_last_modified()
         if last_modified is not None:
             response["last_modified"] = last_modified
         return response
 
-    def __get_last_modified(self) -> datetime.datetime:
+    def _size(self) -> int:
+        """:return: A nonnegative count of all associated uploads"""
+        return Upload.query.filter_by(bucket_id=self.id).count()
+
+    def _get_last_modified(self) -> datetime.datetime:
         """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
         most_recent = Upload.query.filter_by(bucket_id=self.id).order_by(Upload.created.desc()).first()
         if most_recent is None:
