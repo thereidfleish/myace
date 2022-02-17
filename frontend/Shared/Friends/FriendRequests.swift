@@ -27,7 +27,7 @@ struct FriendRequests: View {
         Task {
             do {
                 awaiting = true
-                try await nc.createFriendRequest(userID: requestedUserID)
+                //try await nc.createFriendRequest(userID: requestedUserID)
                 print("DONE!")
             } catch {
                 print(error)

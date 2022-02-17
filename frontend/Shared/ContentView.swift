@@ -14,7 +14,6 @@ struct ContentView: View {
     @EnvironmentObject private var networkController: NetworkController
     var body: some View {
         TabView(selection: $selection) {
-            if (networkController.userData.shared.type == 0) {
                 StudentUploadView()
                     .environmentObject(studentInfo)
                     .environmentObject(coachInfo)
@@ -27,21 +26,7 @@ struct ContentView: View {
                         }
                     }
                     .tag(0)
-            }
-            else {
-                CoachMainView()
-                    .environmentObject(coachInfo)
-                    .environmentObject(studentInfo)
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "person.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Coach View")
-                                .foregroundColor(.green)
-                        }
-                    }
-                    .tag(0)
-            }
+            
             
             SearchView()
                 .tabItem {
@@ -111,7 +96,7 @@ struct ContentView: View {
              
              }
              */
-            ProfileView(yourself: true, user: Friend(id: -1, username: "", display_name: "", type: -1))
+            ProfileView(yourself: true)
                 .tabItem {
                     VStack {
                         Image(systemName: "person.crop.circle.fill")

@@ -11,20 +11,20 @@ import GoogleSignIn
 struct ProfileView: View {
     @EnvironmentObject private var nc: NetworkController
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-    @AppStorage("type") private var typeSelection = -1
+    //@AppStorage("type") private var typeSelection = -1
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
     @State private var presentingSettingsSheet = false
     
     var yourself: Bool
-    var user: Friend
+    var user: SharedData?
     
     func initialize() {
         Task {
             do {
                 awaiting = true
-                try await nc.getFriends()
+                try await nc.getCourtships(type: nil, users: nil)
                 awaiting = false
                 print("DONE!")
             } catch {
@@ -34,7 +34,7 @@ struct ProfileView: View {
                 awaiting = false
             }
             
-            print(nc.userData.friends)
+            print(nc.userData.courtships)
         }
         
     }
@@ -47,9 +47,6 @@ struct ProfileView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        
-                        Text(yourself ? (nc.userData.shared.type == 0 ? "Player" : "Coach") : (user.type == 0 ? "Player" : "Coach"))
-                            .profileInfoStyle()
                         
                         HStack {
                             AsyncImage(url: nc.userData.profilePic) { image in
@@ -72,13 +69,13 @@ struct ProfileView: View {
                                 }
                                 
                                 Spacer()
-                                NavigationLink(destination: FriendsView().navigationTitle("Friends").navigationBarTitleDisplayMode(.inline)) {
+                                NavigationLink(destination: FriendsView().navigationTitle("Courtships").navigationBarTitleDisplayMode(.inline)) {
                                     
                                     
                                     VStack {
-                                        Text("\(nc.userData.friends.count)")
+                                        Text("\(nc.userData.courtships.count)")
                                             .profileInfoStyle()
-                                        Text("Friends")
+                                        Text("Courtships")
                                             .profileTextStyle()
                                     }
                                 }
@@ -88,7 +85,7 @@ struct ProfileView: View {
                         }
                         
                         
-                        Text(yourself ? nc.userData.shared.display_name : user.display_name)
+                        Text((yourself ? nc.userData.shared.display_name : user?.display_name) ?? "Unknown")
                             .profileInfoStyle()
                         
                         Text("The users will be able to write a description of themselves here, like on Instagram.")
@@ -97,7 +94,7 @@ struct ProfileView: View {
                         
                         Spacer()
                         
-                        Text("\(nc.userData.shared.email) | User ID: \(yourself ? nc.userData.shared.id : user.id)")
+                        Text("\(nc.userData.shared.id) | User ID: \(yourself ? nc.userData.shared.id : user?.id ?? -1)")
                             .font(.footnote)
                             .foregroundColor(Color.green)
                         
@@ -105,12 +102,12 @@ struct ProfileView: View {
                     }.padding(.horizontal)
                     
                     
-                }.navigationTitle(yourself ? nc.userData.shared.username : user.username)
+                }.navigationTitle((yourself ? nc.userData.shared.username : user?.username) ?? "Unknown")
                     .navigationBarItems(leading: Button(action: {
                         if (yourself) {
                             GIDSignIn.sharedInstance.signOut()
-                            nc.userData.shared.type = -1
-                            typeSelection = -1
+                            print("logged out")
+                            //typeSelection = -1
                         } else {
                             self.presentationMode.wrappedValue.dismiss()
                         }

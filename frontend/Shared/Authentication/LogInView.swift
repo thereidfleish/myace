@@ -33,7 +33,7 @@ struct LogInView: View {
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
     @State private var awaiting = true
-    @AppStorage("type") private var typeSelection = -1
+    //@AppStorage("type") private var typeSelection = -1
     
     var body: some View {
         ZStack {
@@ -55,14 +55,6 @@ struct LogInView: View {
                 } else if (showingError) {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
-                    Text("Are you a player or a coach?")
-                        .bucketTextInternalStyle()
-                    
-                    Picker("Are you a player or a coach?", selection: $typeSelection) {
-                        Text("Player").tag(0)
-                        Text("Coach").tag(1)
-                    } .pickerStyle(.segmented)
-                    
                     
                     Button(action: {
                         //                Task {
@@ -82,8 +74,7 @@ struct LogInView: View {
                     }, label: {
                         Text("Sign In With Google")
                             .buttonStyle()
-                            .opacity(typeSelection == -1 ? 0.75 : 1)
-                    }).disabled(typeSelection == -1)
+                    })
                 }
                 
                 Spacer()
@@ -165,7 +156,7 @@ struct LogInView: View {
     }
     
     func tokenSignIn(idToken: String) {
-        let json: [String: Any] = ["token": idToken, "type": typeSelection]
+        let json: [String: Any] = ["token": idToken]
         print(idToken)
         
         //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
@@ -196,6 +187,7 @@ struct LogInView: View {
             do {
                 let decodedResponse = try decoder.decode(SharedData.self, from: data)
                 nc.userData.shared = decodedResponse
+                nc.userData.loggedIn = true
                 
                 // Handle the new user
                 if (response.debugDescription.contains("Status Code: 201")) {
@@ -230,8 +222,8 @@ struct LogInView: View {
     
 }
 
-struct LogInView_Previews: PreviewProvider {
-    static var previews: some View {
-        LogInView()
-    }
-}
+//struct LogInView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        LogInView()
+//    }
+//}
