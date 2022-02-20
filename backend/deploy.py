@@ -16,7 +16,7 @@ def build() -> None:
 
 def push() -> int:
     """Push the Docker image to Lightsail and get the image version"""
-    result = subprocess.run(["aws", "lightsail", "push-container-image", "--region", "us-east-2", "--service-name", "tennistrainerapi", "--label", "tennistrainer", "--image", "myace-api-prod"], 
+    result = subprocess.run(["aws", "lightsail", "push-container-image", "--region", "us-east-2", "--service-name", "tennistrainerapi", "--label", "tennistrainer", "--image", "myace-api-prod"],
         capture_output=True, text=True
     )
     assert result.returncode == 0, f"Failed to push image. Here's some info: \n{result.stdout}\n{result.stderr}"
@@ -39,24 +39,31 @@ def _get_active_env() -> dict:
 
 def deploy(image_version: int) -> int:
     """Deploy the specified image version on Lightsail and return the deployment version"""
-    env = _get_active_env()
-    result = subprocess.run(["aws", "lightsail", "create-container-service-deployment", 
-        "--region",
-        "us-east-2",
-        "--service-name", 
-        "tennistrainerapi", 
-        "--containers", 
-        '{ "tennistrainerapi": { "image": ":tennistrainerapi.tennistrainer.'+ str(image_version) +'","environment": ' + json.dumps(env) + ',"ports": {"6000": "HTTP"}}}',
-        "--public-endpoint",
-        '{"containerName": "tennistrainerapi","containerPort": 6000,"healthCheck": {"path": "/health/","successCodes": "200-499"}}'
-    ], capture_output=True, text=True)
-    assert result.returncode != 254, "Failed to create deployment. Lightsail is already busy activating another deployment! Please wait."
-    assert result.returncode == 0, f"Failed to create deployment. Here's some info: \n{result.stdout}\n{result.stderr}"
-    print("Image deployment created!")
-    # Get deployment version
-    deployment = json.loads(result.stdout)["containerService"]["nextDeployment"]
-    deployment_version = int(deployment["version"])
-    return deployment_version
+    sec_waiting = 0
+    while True:
+        env = _get_active_env()
+        result = subprocess.run(["aws", "lightsail", "create-container-service-deployment",
+            "--region",
+            "us-east-2",
+            "--service-name",
+            "tennistrainerapi",
+            "--containers",
+            '{ "tennistrainerapi": { "image": ":tennistrainerapi.tennistrainer.'+ str(image_version) +'","environment": ' + json.dumps(env) + ',"ports": {"6000": "HTTP"}}}',
+            "--public-endpoint",
+            '{"containerName": "tennistrainerapi","containerPort": 6000,"healthCheck": {"path": "/health/","successCodes": "200-499"}}'
+        ], capture_output=True, text=True)
+        # Repeat if Lightsail is already deploying
+        if result.returncode == 254:
+            print(f"Failed to create deployment because Lightsail is already busy activating another deployment. Waiting for {sec_waiting} seconds.")
+            sec_waiting += 15
+            time.sleep(15)
+            continue
+        assert result.returncode == 0, f"Failed to create deployment. Here's some info: \n{result.stdout}\n{result.stderr}"
+        print("Image deployment created!")
+        # Get deployment version
+        deployment = json.loads(result.stdout)["containerService"]["nextDeployment"]
+        deployment_version = int(deployment["version"])
+        return deployment_version
 
 
 def check_deployment(deployment_version: int) -> int:
