@@ -14,7 +14,7 @@ struct AI_Tennis_CoachApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if (networkController.userData.shared.type == -1 && !networkController.newUser) {
+            if (!networkController.userData.loggedIn && !networkController.newUser) {
                 LogInView()
                     .environmentObject(networkController)
             }

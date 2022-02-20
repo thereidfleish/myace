@@ -22,8 +22,8 @@ struct FriendsView: View {
                 do {
                     
                     awaiting = true
-                    try await nc.getFriends()
-                    try await nc.getFriendRequests()
+                    try await nc.getCourtships(type: nil, users: nil)
+                    try await nc.getCourtshipRequests(type: nil, dir: nil, users: nil)
                     awaiting = false
                     print("DONE!")
                 } catch {
@@ -32,10 +32,6 @@ struct FriendsView: View {
                     showingError = true
                     awaiting = false
                 }
-                
-                print(nc.userData.friends)
-                print(nc.userData.incomingFriendRequests)
-                print(nc.userData.outgoingFriendRequests)
             }
         }
         
@@ -50,46 +46,46 @@ struct FriendsView: View {
             } else {
                 VStack {
                     Picker("", selection: $tabIndex) {
-                        Text("Friends").tag(0)
-                        Text("Friend Requests").tag(1)
+                        Text("Courtships").tag(0)
+                        Text("Courtship Requests").tag(1)
                     } .pickerStyle(.segmented)
                     
                 }.padding(.horizontal)
                 
                 ScrollView {
                     if tabIndex == 0 {
-                        if nc.userData.friends.count == 0 {
-                            Text("Click the + icon to search for and add your friends!")
+                        if nc.userData.courtships.count == 0 {
+                            Text("Click the + icon to search for and add your courtships!")
                                 .bucketTextInternalStyle()
                         }
-                        ForEach(nc.userData.friends) { user in
-                            NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                        ForEach(nc.userData.courtships) { courtship in
+                            NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
                             {
-                                UserCardView(user: user)
+                                UserCardView(user: courtship.user)
                             }
                         }
                         
                     }
                     else  {
                         VStack(alignment: .leading) {
-                            Text(nc.userData.incomingFriendRequests.count == 0 ? "No Incoming Friend Requests" : "Incoming Friend Requests")
+                            Text(nc.userData.courtshipRequests.contains(where: {$0.dir == "in"}) ? "Incoming Courtship Requests" : "No Incoming Courtship Requests")
                                 .bucketTextInternalStyle()
                             
-                            ForEach(nc.userData.incomingFriendRequests) { user in
-                                NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                            ForEach(nc.userData.courtshipRequests.filter({$0.dir == "in"})) { courtship in
+                                NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
                                 {
-                                    UserCardView(user: user)
+                                    UserCardView(user: courtship.user)
                                 }
                             }
                             
-                            Text(nc.userData.outgoingFriendRequests.count == 0 ? "No Outgoing Friend Requests" : "Outgoing Requests")
+                            Text(nc.userData.courtshipRequests.contains(where: {$0.dir == "out"}) ? "Outgoing Courtship Requests" : "No Outgoing Courtship Requests")
                                 .padding(.top)
                                 .bucketTextInternalStyle()
                             
-                            ForEach(nc.userData.outgoingFriendRequests) { user in
-                                NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                            ForEach(nc.userData.courtshipRequests.filter({$0.dir == "out"})) { courtship in
+                                NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
                                 {
-                                    UserCardView(user: user)
+                                    UserCardView(user: courtship.user)
                                 }
                             }
                         }

@@ -13,15 +13,15 @@ struct SearchView: View {
     @State private var awaiting = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var searchedUsers: [Friend] = []
+    @State private var searchedUsers: [SharedData] = []
     
     func search() {
         Task {
             do {
                 awaiting = true
                 try await searchedUsers = nc.searchUser(query: searchText.replacingOccurrences(of: " ", with: ""))
-                try await nc.getFriends()
-                try await nc.getFriendRequests()
+                try await nc.getCourtships(type: nil, users: nil)
+                try await nc.getCourtshipRequests(type: nil, dir: nil, users: nil)
                 print(searchedUsers)
                 awaiting = false
             } catch {
@@ -49,10 +49,9 @@ struct SearchView: View {
                 
                 ScrollView {
                     ForEach(searchedUsers) { user in
-                        NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
-                        {
-                            UserCardView(user: user)
-                        }
+                        
+                        UserCardView(user: user)
+                        
                     }
                 }
             }.navigationTitle("Search")
