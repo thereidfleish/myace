@@ -206,7 +206,7 @@ def login(client: FlaskClient, google_token: str) -> User:
 def logout(client: FlaskClient) -> None:
     """Logout of session."""
     res = client.post(f"{HOST}/logout/")
-    assert res.status_code == 200, log_response(res)
+    assert res.status_code == 204, log_response(res)
     assert not is_logged_in(client)
 
 

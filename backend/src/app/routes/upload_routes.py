@@ -135,7 +135,7 @@ def parse_visibility_req(
 ) -> tuple[VisibilityDefault, list[User]]:
     """Parse the "visibility" request obj.
 
-    :raises BadRequest: if the body is incorrectly formatted
+    :raise BadRequest: if the body is incorrectly formatted
     :return:
         a VisibilityDefault and a list of users with whom an upload is
         individually shared

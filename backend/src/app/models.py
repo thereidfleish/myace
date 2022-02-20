@@ -15,29 +15,65 @@ from . import aws
 # TODO: transition from exposing primary keys in routes to using UUIDs or IDENTITY or SERIAL
 
 
+@enum.unique
+class LoginMethods(enum.Enum):
+    """Login method options"""
+
+    # If you ever modify these values, the database type must be recreated:
+    #   `DROP TYPE "typename";`
+    # I'm using enum.auto() because the names are stored in the DB as strings.
+    # The values are never stored in the DB.
+    EMAIL = enum.auto()
+    GOOGLE = enum.auto()
+
+
 # User Table
 class User(db.Model):
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    google_id = db.Column(db.String, nullable=False, unique=True)
 
     # Matches all characters disallowed in usernames. Allow alphanumeric, underscores, & periods.
     ILLEGAL_UNAME_PATTERN = r"[^\w\.]"
     username = db.Column(db.String, nullable=False, unique=True)
-
+    email = db.Column(db.String, nullable=False, unique=True)
     display_name = db.Column(db.String, nullable=False)
     biography = db.Column(db.String, nullable=False, default="")
-    email = db.Column(db.String, nullable=False, unique=True)
+
+    login_method = db.Column(db.Enum(LoginMethods), nullable=False)
+    password_hash = db.Column(db.String, nullable=True)
+    google_id = db.Column(db.String, nullable=False, unique=True)
+
     uploads = db.relationship("Upload", back_populates="user")
     comments = db.relationship("Comment", back_populates="author")
     buckets = db.relationship("Bucket", back_populates="user")
 
-    def __init__(self, google_id, display_name, email):
-        self.google_id = google_id
-        self.username = self._generate_unique_username(display_name)
+    def __init__(
+        self,
+        display_name,
+        email,
+        username=None,
+        password_hash=None,
+        google_id=None,
+    ):
         self.display_name = display_name
         self.email = email
+        # Generate a username if one is not supplied
+        if username is None:
+            self.username = self._generate_unique_username(display_name)
+        else:
+            self.username = username
+        # Determine login method
+        if password_hash is not None:
+            self.password_hash = password_hash
+            self.login_method = LoginMethods.EMAIL
+        elif google_id is not None:
+            self.google_id = google_id
+            self.login_method = LoginMethods.GOOGLE
+        else:
+            raise Exception(
+                "Cannot construct user because login method cannot be determined."
+            )
 
     def serialize(self, client: User):
         """:return: a serialized User from the perspective of the client"""
