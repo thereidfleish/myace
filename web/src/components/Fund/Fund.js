@@ -2,15 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom'
 import FundCard from './FundCard';
 import Header from '../Header/Header'
+import Timeline from '../Timeline/Timeline';
 
 export default function Fund() {
   const fundCards = [
     {
       title: 'Individuals',
       subtitle: 'Minimum investment: $500',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
-        'ed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut ' +
-        'enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
+      description: 'Option for individuals not associated with a firm or investment fund. ' + 
+      'Friends and family welcome. More details available over call or email.',
       links: [
         {
           text: 'Call Chris',
@@ -23,11 +23,10 @@ export default function Fund() {
       ]
     },
     {
-      title: 'Venture Capital',
+      title: 'Groups',
       subtitle: 'Minimum investment: $25,000',
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
-        'ed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut ' +
-        'enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi',
+      description: 'Option for angel investing groups, venture capital funds, investing firms, etc. ' + 
+      'More details over call or email.',
       links: [
         {
           text: 'Call Chris',
@@ -67,9 +66,8 @@ export default function Fund() {
             <span className="primary-color">about</span>
           </Link>
         </p>
-        
       </div>
+      <Timeline />
     </div>
-    
   );
 }
