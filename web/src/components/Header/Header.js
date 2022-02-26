@@ -18,6 +18,9 @@ export default function Header() {
                 <Link to="/fund" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A', marginRight: '20px'}}>fund</span>
                 </Navbar.Text></Link>
+                <Link to="/alpha" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
+                    <span style={{ color: '#8AD28A', marginRight: '20px' }}>alpha</span>
+                </Navbar.Text></Link>
                 <Link to="/about" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A' }}>about</span>
                 </Navbar.Text></Link>
