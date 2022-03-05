@@ -131,6 +131,7 @@ struct StudentFeedbackView: View {
                     if (showingCommentEditor) {
                         Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
                         TextEditor(text: $createCommentText)
+                            .border(Color.black)
                         Button("Submit") {
                             createComment()
                         }
@@ -145,11 +146,11 @@ struct StudentFeedbackView: View {
                                 ScrollViewReader { proxy in
                                     
                                     // REGEX-ish:
-                                    // To represent the occurance of the comment, place \${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "\$75$my comment"
-                                    // To embed a timestamp in a comment, do \%{seconds}%.
+                                    // To represent the occurance of the comment, place ${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "$75$my comment"
+                                    // To embed a timestamp in a comment, do %{seconds}%.
                                     
                                     
-                                    ForEach(nc.userData.comments) { comment in
+                                    ForEach(nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})) { comment in
                                         HStack {
                                             Text(secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))
                                                 .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
