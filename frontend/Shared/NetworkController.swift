@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], courtships: [], courtshipRequests: [])
+    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], comments: [], courtships: [], courtshipRequests: [])
     @Published var awaiting = false
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
@@ -125,17 +125,46 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // GET
+    func getComments(uploadID: String?, courtship: String?) async throws {
+        var stringBuilder: String = "\(host)/comments\(uploadID == nil && courtship == nil ? "" : "?")"
+        
+        if (uploadID != nil) {
+            stringBuilder += "upload=\(uploadID!)"
+        }
+        
+        if (courtship != nil) {
+            stringBuilder += "\(courtship != nil ? "&" : "")courtship=\(courtship!)"
+        }
+        
+        let url = URL(string: stringBuilder)!
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            //print("JSON Data: \(data.prettyPrintedJSONString)")
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let decodedResponse = try decoder.decode(CommentsRes.self, from: data)
+            DispatchQueue.main.sync {
+                userData.comments = decodedResponse.comments
+            }
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
     
     // POST
-    func addComment(uploadID: String, authorID: String, text: String) async throws {
-        let req: CommentReq = CommentReq(author_id: authorID, text: text)
+    func createComment(uploadID: String, text: String) async throws {
+        let req: CreateCommentReq = CreateCommentReq(upload_id: uploadID, text: text)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/uploads/\(uploadID)/comments/")!
+        let url = URL(string: "\(host)/comments/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -143,14 +172,12 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
-            //            for i in userData.uploads.indices {
-            //                if (userData.uploads[i].id == decodedResponse.upload_id) {
-            //                    userData.uploads[i].comments.append(decodedResponse)
-            //                }
-            //            }
+            
+            userData.comments.append(decodedResponse)
         } catch {
             
             throw NetworkError.failedDecode

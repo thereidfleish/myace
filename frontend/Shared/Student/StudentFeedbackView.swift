@@ -24,6 +24,21 @@ struct StudentFeedbackView: View {
     
     @State private var playerDuration = 0;
     @State private var currentSeconds = 0;
+    @State private var commentsAwaiting = false
+    
+    @State private var attributedString: AttributedString = AttributedString("")
+    @State private var showingCommentEditor = false
+    @State private var createCommentText = ""
+    
+//    init() {
+//        //either like this:
+//        attributedString = AttributedString("Hello, #swift")
+//        let range = attributedString.range(of: "#swift")!
+//        attributedString[range].link = URL(string: "https://www.hackingwithswift.com")!
+//
+//        //or like this:
+//        attributedString = try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)")
+//    }
     
     func initialize() {
         if (!didAppear) {
@@ -33,6 +48,7 @@ struct StudentFeedbackView: View {
                     awaiting = true
                     print(uploadID)
                     try await upload = nc.getUpload(uploadID: uploadID)
+                    getComments()
                     player = AVPlayer(url:  URL(string: upload.url!)!)
                     print(upload.url!)
                     print("DONE!")
@@ -47,9 +63,56 @@ struct StudentFeedbackView: View {
         }
     }
     
+    func getComments() {
+        Task {
+            do {
+                commentsAwaiting = true
+                try await nc.getComments(uploadID: uploadID, courtship: nil)
+                commentsAwaiting = false
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+                commentsAwaiting = false
+            }
+        }
+    }
+    
+    func createComment() {
+        Task {
+            do {
+                try await nc.createComment(uploadID: uploadID, text: "$\(String(currentSeconds))$" + createCommentText)
+                createCommentText = ""
+                withAnimation {
+                    showingCommentEditor = false
+                }
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
+        }
+    }
+    
     
     func secondsToHoursMinutesSeconds(seconds: Int) -> String {
         return "\(seconds / 3600):\((seconds % 3600) / 60):\((seconds % 3600) % 60)"
+    }
+    
+    func returnTimestampAndText(text: String) -> (Int, String) {
+        if (text.firstIndex(of: "$") != nil) {
+            var mutableText = text
+            mutableText.remove(at: mutableText.firstIndex(of: "$")!)
+            var finalText = String(mutableText[mutableText.firstIndex(of: "$")!...])
+            finalText = String(finalText.dropFirst())
+            
+            var timestamp = String(mutableText[...mutableText.firstIndex(of: "$")!])
+            timestamp = String(timestamp.dropLast())
+
+            return (Int(timestamp)!, finalText)
+        }
+        return (0, text)
+        
     }
     
     var body: some View {
@@ -63,48 +126,79 @@ struct StudentFeedbackView: View {
                     VideoPlayer(player: player)
                         .frame(height: 300)
                     
-                    ScrollView {
-                        ScrollViewReader { proxy in
-                            
-                            ForEach(0...playerDuration, id: \.self) { index in
-                                HStack {
-                                    Text(secondsToHoursMinutesSeconds(seconds: index))
-                                        .foregroundColor(index == currentSeconds ? .green : .primary)
-                                    Spacer()
-                                    Button(action: {
-                                        currentSeconds = index
-                                        player.seek(to: CMTimeMakeWithSeconds(Double(index), preferredTimescale: 1))
-                                    }, label: {
-                                        Text("Sample comment!")
-                                            .foregroundColor(index == currentSeconds ? .green : .primary)
-                                    })
-                                }
-                                .padding(.vertical)
-                                
-                            }
-                            
-                            .onChange(of: currentSeconds) { value in
-                                withAnimation {
-                                    proxy.scrollTo(value, anchor: .top)
-                                }
-                            }
+                    //Text(try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)"))
+                    
+                    if (showingCommentEditor) {
+                        Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                        TextEditor(text: $createCommentText)
+                        Button("Submit") {
+                            createComment()
                         }
-                    }
-                    .onAppear(perform: {
-                        DispatchQueue.main.async {
-                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
-                                // Hack to fix concurrency issue at the beginning
-                                if (!player.currentItem!.duration.seconds.isNaN) {
-                                    withAnimation {
-                                        playerDuration = Int(player.currentItem!.duration.seconds)
+                        
+                    } else {
+                        ScrollView {
+                            if (commentsAwaiting) {
+                                ProgressView()
+                            } else if (showingError) {
+                                Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
+                            } else {
+                                ScrollViewReader { proxy in
+                                    
+                                    // REGEX-ish:
+                                    // To represent the occurance of the comment, place \${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "\$75$my comment"
+                                    // To embed a timestamp in a comment, do \%{seconds}%.
+                                    
+                                    
+                                    ForEach(nc.userData.comments) { comment in
+                                        HStack {
+                                            Text(secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))
+                                                .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
+                                            Spacer()
+                                            Button(action: {
+                                                currentSeconds = returnTimestampAndText(text: comment.text).0
+                                                player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                            }, label: {
+                                                Text(returnTimestampAndText(text: comment.text).1)
+                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
+                                            })
+                                        }
+                                        .padding(.vertical)
+                                        
                                     }
                                     
+                                    .onChange(of: currentSeconds) { value in
+                                        withAnimation {
+                                            proxy.scrollTo(value, anchor: .top)
+                                        }
+                                    }
                                 }
-                                
-                                currentSeconds = Int(player.currentTime().seconds)
-                            })
+                            }
                         }
-                    })
+                        .onAppear(perform: {
+                            DispatchQueue.main.async {
+                                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                    // Hack to fix concurrency issue at the beginning
+                                    if (!player.currentItem!.duration.seconds.isNaN) {
+                                        withAnimation {
+                                            playerDuration = Int(player.currentItem!.duration.seconds)
+                                        }
+                                        
+                                    }
+                                    
+                                    currentSeconds = Int(player.currentTime().seconds)
+                                })
+                            }
+                        })
+                    }
+                    
+                    
+                    
+                    Button("Add Comment") {
+                        player.pause()
+                        withAnimation {
+                            showingCommentEditor = true
+                        }
+                    }
                     
                     //                    Button("tap me!") {
                     //                        print(Int(player.currentItem!.duration.seconds))

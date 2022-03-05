@@ -22,6 +22,8 @@ struct UserData {
     
     var buckets: [Bucket]
     
+    var comments: [Comment]
+    
     var courtships: [Courtship]
     
     var courtshipRequests: [Courtship]
@@ -125,12 +127,12 @@ struct UploadsRes: Codable {
 //    var uploads: [Upload]
 //}
 
-struct Comment: Codable {
+struct Comment: Codable, Identifiable {
     var id: Int
     var created: Date
-    var author_id: Int
-    var upload_id: Int
+    var author: SharedData
     var text: String
+    var upload_id: Int
 }
 
 struct Tag: Codable {
@@ -169,9 +171,13 @@ struct Field: Codable {
     var x_amz_signature: String
 }
 
-struct CommentReq: Codable {
-    var author_id: String
+struct CreateCommentReq: Codable {
+    var upload_id: String
     var text: String
+}
+
+struct CommentsRes: Codable {
+    var comments: [Comment]
 }
 
 struct BucketReq: Codable {
