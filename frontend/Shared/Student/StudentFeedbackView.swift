@@ -30,15 +30,15 @@ struct StudentFeedbackView: View {
     @State private var showingCommentEditor = false
     @State private var createCommentText = ""
     
-//    init() {
-//        //either like this:
-//        attributedString = AttributedString("Hello, #swift")
-//        let range = attributedString.range(of: "#swift")!
-//        attributedString[range].link = URL(string: "https://www.hackingwithswift.com")!
-//
-//        //or like this:
-//        attributedString = try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)")
-//    }
+    //    init() {
+    //        //either like this:
+    //        attributedString = AttributedString("Hello, #swift")
+    //        let range = attributedString.range(of: "#swift")!
+    //        attributedString[range].link = URL(string: "https://www.hackingwithswift.com")!
+    //
+    //        //or like this:
+    //        attributedString = try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)")
+    //    }
     
     func initialize() {
         if (!didAppear) {
@@ -108,7 +108,7 @@ struct StudentFeedbackView: View {
             
             var timestamp = String(mutableText[...mutableText.firstIndex(of: "$")!])
             timestamp = String(timestamp.dropLast())
-
+            
             return (Int(timestamp)!, finalText)
         }
         return (0, text)
@@ -193,13 +193,31 @@ struct StudentFeedbackView: View {
                     }
                     
                     
-                    
-                    Button("Add Comment") {
-                        player.pause()
-                        withAnimation {
-                            showingCommentEditor = true
-                        }
+                    HStack {
+                        Spacer()
+                        
+                        Button(action: {
+                            player.pause()
+                            withAnimation {
+                                showingCommentEditor.toggle()
+                            }
+                        }, label: {
+                            Image(systemName: !showingCommentEditor ? "plus.circle.fill" : "x.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                        })
+                        
+                        
+                        
+                        //                        Button("Add Comment") {
+                        //                            player.pause()
+                        //                            withAnimation {
+                        //                                showingCommentEditor = true
+                        //                            }
+                        //                        }
                     }
+                    
                     
                     //                    Button("tap me!") {
                     //                        print(Int(player.currentItem!.duration.seconds))
