@@ -123,18 +123,24 @@ struct StudentFeedbackView: View {
                 Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
             } else {
                 VStack(alignment: .center) {
-                    VideoPlayer(player: player)
-                        .frame(height: 300)
+                    ScrollView {
+                        VideoPlayer(player: player)
+                            .frame(height: 300)
+                    }
                     
                     //Text(try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)"))
                     
                     if (showingCommentEditor) {
-                        Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                        //Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
                         TextEditor(text: $createCommentText)
                             .border(Color.black)
-                        Button("Submit") {
-                            createComment()
-                        }
+                        
+                        // MAKE THIS A BUTTON AND PUT IT TO THE LEFT OF THE X BUTTON
+                        Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                            .buttonStyle()
+//                        Button("Submit") {
+//                            createComment()
+//                        }
                         
                     } else {
                         ScrollView {
@@ -205,7 +211,9 @@ struct StudentFeedbackView: View {
                             Image(systemName: !showingCommentEditor ? "plus.circle.fill" : "x.circle.fill")
                                 .resizable()
                                 .scaledToFill()
+                                .foregroundColor(!showingCommentEditor ? Color.green : Color.red)
                                 .frame(width: 40, height: 40)
+                                .padding(.bottom)
                         })
                         
                         
