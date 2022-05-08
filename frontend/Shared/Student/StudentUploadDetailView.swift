@@ -279,6 +279,13 @@ struct StudentUploadDetailView: View {
                                             Text("Processing video, please wait...")
                                                 .font(.footnote)
                                                 .foregroundColor(Color.green)
+                                                .onAppear {
+                                                    DispatchQueue.main.async {
+                                                        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                                            initialize()
+                                                        })
+                                                    }
+                                                }
                                         }
                                         
                                         else if (true) {

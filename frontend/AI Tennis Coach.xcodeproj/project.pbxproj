@@ -29,6 +29,8 @@
 		256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */; };
 		256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
+		256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
+		256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
 		258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41752773C3E00030D437 /* StudentUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* StudentUploadView.swift */; };
@@ -105,6 +107,7 @@
 		2558E2C72773BA270056DD17 /* Tests_macOSLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOSLaunchTests.swift; sourceTree = "<group>"; };
 		256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		256CBD07279DD593004FCC44 /* UserCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCardView.swift; sourceTree = "<group>"; };
+		256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserCardHomeView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
 		25734AA9277FBEFB00D2B8BE /* AI-Tennis-Coach--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--macOS--Info.plist"; sourceTree = "<group>"; };
 		258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentUploadDetailView.swift; sourceTree = "<group>"; };
@@ -195,6 +198,7 @@
 				256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */,
 				2519DB312798C9C600A91759 /* SearchView.swift */,
 				256CBD07279DD593004FCC44 /* UserCardView.swift */,
+				256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */,
 				9A2C34D02799BCC700FAC339 /* UploadView.swift */,
 				9A2C34E9279E20DA00FAC339 /* SettingsView.swift */,
 				2537F4E5278348BA00596AF6 /* ProfileView.swift */,
@@ -543,6 +547,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */,
 				2552DDAF277CCDA40035EFB4 /* NetworkController.swift in Sources */,
 				9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */,
 				25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */,
@@ -582,6 +587,7 @@
 				25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34C62793CF4900FAC339 /* TextAlert.swift in Sources */,
 				256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
+				256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34D5279A036500FAC339 /* FriendRequests.swift in Sources */,
 				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,

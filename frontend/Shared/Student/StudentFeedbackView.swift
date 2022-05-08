@@ -135,12 +135,6 @@ struct StudentFeedbackView: View {
                         TextEditor(text: $createCommentText)
                             .border(Color.black)
                         
-                        // MAKE THIS A BUTTON AND PUT IT TO THE LEFT OF THE X BUTTON
-                        Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
-                            .buttonStyle()
-//                        Button("Submit") {
-//                            createComment()
-//                        }
                         
                     } else {
                         ScrollView {
@@ -200,7 +194,24 @@ struct StudentFeedbackView: View {
                     
                     
                     HStack {
-                        Spacer()
+                        if (!showingCommentEditor) {
+                            Spacer()
+                        }
+                        
+                        
+                        if (showingCommentEditor) {
+                            Button(action: {
+                                createComment()
+//                                withAnimation {
+//                                    showingCommentEditor.toggle()
+//                                }
+                            }, label: {
+                                Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                                    .buttonStyle()
+                            })
+
+                        }
+
                         
                         Button(action: {
                             player.pause()
@@ -213,19 +224,11 @@ struct StudentFeedbackView: View {
                                 .scaledToFill()
                                 .foregroundColor(!showingCommentEditor ? Color.green : Color.red)
                                 .frame(width: 40, height: 40)
-                                .padding(.bottom)
+                                
                         })
                         
-                        
-                        
-                        //                        Button("Add Comment") {
-                        //                            player.pause()
-                        //                            withAnimation {
-                        //                                showingCommentEditor = true
-                        //                            }
-                        //                        }
                     }
-                    
+                    .padding(.bottom)
                     
                     //                    Button("tap me!") {
                     //                        print(Int(player.currentItem!.duration.seconds))

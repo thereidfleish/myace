@@ -44,84 +44,53 @@ struct StudentUploadView: View {
     var body: some View {
         
         NavigationView {
-            ScrollView {
+            VStack {
                 if (awaiting) {
                     ProgressView()
                 } else if (showingError) {
                     Text(UserData.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
-                    
-                    VStack(alignment: .leading) {
-                        Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
-                            .bucketNameStyle()
-                            .foregroundColor(Color.green)
-                        
-                        ForEach(nc.userData.buckets) { bucket in
-                            NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)", name: bucket.name).navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
-                            {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(bucket.name)
-                                            .bucketNameStyle()
-                                            .foregroundColor(Color.white)
-                                        
-                                        HStack {
-                                            Image(systemName: "person.fill")
-                                                .foregroundColor(Color.white)
-                                                .frame(width: 15)
-                                            Text("Trainer names will go here")
-                                                .bucketTextExternalStyle()
-                                        }
-                                        
-                                        HStack {
-                                            Image(systemName: "text.bubble.fill")
-                                                .foregroundColor(.white)
-                                                .frame(width: 15)
-                                            if (/*studentInfo.numFeedback[i]*/ 0 == 0) {
-                                                Text(/*"\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                                    .bucketTextExternalStyle()
-                                            }
-                                            else {
-                                                Text(/*"*\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                                    .unreadBucketTextExternalStyle()
-                                            }
-                                            
-                                        }
-                                        
-                                        HStack {
-                                            Image(systemName: "clock.fill")
-                                                .foregroundColor(.white)
-                                                .frame(width: 15)
-                                            
-                                            Text(bucket.last_modified?.formatted() ?? "No uploads yet")
-                                                .bucketTextExternalStyle()
-                                            //                                            Text("\(nc.userData.buckets[i].id)")
-                                            //                                                .font(.subheadline)
-                                            //                                                .foregroundColor(Color.white)
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right.square.fill")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .foregroundColor(Color.white)
-                                        .frame(width: 20, height: 20)
+                    GeometryReader { geometry in
+                        VStack(alignment: .leading) {
+                            Text("\(UserData.computeWelcome()) \(UserData.firstName(name: nc.userData.shared.display_name))!")
+                                .bucketNameStyle()
+                                .foregroundColor(Color.green)
+                                .padding(.bottom, 5)
+                            
+                            Text("Your Coaches")
+                                .sectionHeadlineStyle()
+                                .foregroundColor(Color.green)
+                                .padding(.bottom, -5)
+                            
+                            ScrollView {
+                                ForEach(nc.userData.buckets) { bucket in
+                                    UserCardHomeView(user: SharedData(id: -1, username: "", display_name: ""), bucket: bucket)
                                 }
-                                .navigationLinkStyle()
-                            }
+                            }.frame(height: geometry.size.height/2.5)
+                            
+                            Text("Your Students")
+                                .sectionHeadlineStyle()
+                                .foregroundColor(Color.green)
+                                .padding(.top, 5)
+                                .padding(.bottom, -5)
+                            
+                            ScrollView {
+                                ForEach(nc.userData.buckets) { bucket in
+                                    UserCardHomeView(user: SharedData(id: -1, username: "", display_name: ""), bucket: bucket)
+                                }
+                            }.frame(height: geometry.size.height/2.5)
+                            
+                        }.sheet(isPresented: $showingNewBucketView) {
+                            NewBucketView()
+                            
                         }
-                        
-                    }.sheet(isPresented: $showingNewBucketView) {
-                        NewBucketView()
-                        
+                    
                     }
                 }
                 
             }.padding(.horizontal)
                 .onAppear(perform: {initialize()})
-                .navigationTitle("Uploads"/*, displayMode: .inline*/)
+                .navigationBarTitle("Home", displayMode: .inline)
                 .navigationBarItems(leading: Button(action: {
                     didAppear = false
                     initialize()
