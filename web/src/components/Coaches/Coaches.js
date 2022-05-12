@@ -23,7 +23,6 @@ export default function Coaches() {
 
   return (
     <div>
-        <Header />
         Coaches
         Become a coach
         <GoogleLogin

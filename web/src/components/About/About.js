@@ -1,15 +1,11 @@
 import React from 'react';
-import Header from '../Header/Header';
-import Timeline from '../Timeline/Timeline'
 import Team from './Team'
 
 export default function About() {
 
   return (
-    <div>
-      <Header />
+    <div id="about">
       <div style={{ padding: '20px 50px'}}>
-        <Timeline />
         <h2>The motivation</h2>
         <p>
           My-Ace is focused on driving player-coach interactions. 

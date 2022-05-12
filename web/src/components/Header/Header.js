@@ -14,7 +14,7 @@ export default function Header() {
             <Navbar.Collapse className="justify-content-end">
                 {/* <Link to="/coaches" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A', marginRight: '20px' }}>coaches</span>
-                </Navbar.Text></Link> */}
+                </Navbar.Text></Link>
                 <Link to="/fund" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A', marginRight: '20px'}}>fund</span>
                 </Navbar.Text></Link>
@@ -24,6 +24,7 @@ export default function Header() {
                 <Link to="/about" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
                     <span style={{ color: '#8AD28A' }}>about</span>
                 </Navbar.Text></Link>
+            */}
             </Navbar.Collapse>
         </Navbar>
     )

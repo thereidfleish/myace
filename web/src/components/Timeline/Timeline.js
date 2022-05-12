@@ -29,7 +29,7 @@ export default function Timeline() {
 
     return (
         <div>
-            <h3 style={{ textAlign: 'center' }}>Project Timeline</h3>
+            <h2 style={{ textAlign: 'center' }}>Project Timeline</h2>
             <div id="vertical-timeline" className='d-flex justify-content-center'>
                 {
                     timelines.map((timeline, i) => {

@@ -1,22 +1,25 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router } from 'react-router-dom'
+import Header from './components/Header/Header'
 import Home from './components/Home/Home';
+import Timeline from './components/Timeline/Timeline'
 import Fund from './components/Fund/Fund'
 import About from './components/About/About'
-import Coaches from './components/Coaches/Coaches';
+// import Coaches from './components/Coaches/Coaches';
 import Alpha from './components/Alpha/Alpha'
 import './App.scss'
 
 function App() {
-  return (
+return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/fund" element={<Fund/>} />
-        <Route path="/about" element={<About/>} />
-        <Route path="/coaches" element={<Coaches/>} />
-        <Route path="/alpha" element={<Alpha/>} />
-      </Routes>
-      
+      <div>
+        <Header />
+        <Home />
+        <Timeline />
+        <About />
+        {/* <Coaches /> */}
+        <Fund />
+        <Alpha />
+      </div>
     </Router>
   );
 }
