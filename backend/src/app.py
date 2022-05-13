@@ -357,11 +357,10 @@ def delete_upload(upload_id):
 
     # Delete upload
     db.session.delete(upload)
-    found = aws.delete_uploads(upload_id)
+    aws.delete_uploads(upload_id)
     db.session.commit()
 
-    # Alert client of inconsistency if present.
-    return success_response(code=204) if found else success_response(data={'message': 'Found entry in database but not in S3.'}, code=200)
+    return success_response(code=204)
 
 
 @app.route("/uploads/<int:upload_id>/download/")

@@ -147,11 +147,10 @@ class AWS:
         status = response['Job']['Status']
         return status
 
-    def delete_uploads(self, *upload_ids: int) -> bool:
+    def delete_uploads(self, *upload_ids: int) -> None:
         """Delete videos with listed upload_ids from S3.
 
         :param upload_ids: upload_ids of the videos to be deleted.
-        :return: True if objects matching the upload_id were found (and most likely deleted), False if nothing was found
         """
 
         found = False
@@ -179,9 +178,7 @@ class AWS:
             if len(delete_keys['Objects']):
                 self.s3.delete_objects(Bucket=self.s3_bucket_name, Delete=delete_keys)
                 found = True
-
-            return found
-
+        assert found, "Expected to find uploads."
 
 def main() -> None:
     from dotenv import load_dotenv
