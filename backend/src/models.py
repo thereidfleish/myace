@@ -235,6 +235,7 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     uploads = db.relationship("Upload", cascade="delete", back_populates="bucket")
 
     def serialize(self):
@@ -244,8 +245,7 @@ class Bucket(db.Model):
             "size": self._size()
         }
         last_modified = self._get_last_modified()
-        if last_modified is not None:
-            response["last_modified"] = last_modified
+        response["last_modified"] = self.created.isoformat() if last_modified is None else last_modified
         return response
 
     def _size(self) -> int:

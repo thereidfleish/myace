@@ -344,7 +344,7 @@ Response:
 
 **GET /buckets/**
 
-This route gets every bucket associated with the user. If there are no uploads in a bucket, `last_modified` will be omitted.
+This route gets every bucket associated with the user. If there are no uploads in a bucket, `last_modified` will be the bucket's creation datetime.
 
 Request: N/A
 
@@ -389,7 +389,7 @@ Response:
 
 ### Delete a bucket
 
-**PUT /buckets/{bucket_id}/**
+**DELETE /buckets/{bucket_id}/**
 
 This route deletes a bucket and all of its associated uploads.
 
