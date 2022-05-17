@@ -10,8 +10,9 @@ from cookiesigner import CookieSigner
 from botocore.client import Config
 
 from flask import Flask
-from flask import request
 from flask import make_response
+from flask import send_file
+from flask import request
 import flask_login
 
 from models import User
@@ -47,6 +48,7 @@ DB_USERNAME = os.environ.get("DB_USERNAME")
 G_CLIENT_IDS = os.environ.get("G_CLIENT_IDS").split(",")
 S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
 S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
+VIEW_DOCS_KEY = os.environ.get("VIEW_DOCS_KEY") or os.urandom(24)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
@@ -82,6 +84,7 @@ def load_user(user_id):
 def unauthorized():
     return failure_response("User not authorized.", 401)
 
+
 # Routes
 @app.route("/health/")
 def health_check():
@@ -91,6 +94,14 @@ def health_check():
 @app.route("/host/")
 def get_host():
     return request.host_url
+
+
+@app.route("/docs")
+def docs():
+    key = request.args.get("key")
+    if key != VIEW_DOCS_KEY:
+        return failure_response("Invalid key!", 401)
+    return send_file("docs.html")
 
 
 @app.route("/login/", methods=["POST"])

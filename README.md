@@ -6,10 +6,10 @@ Tennis is a highly technical sport that requires more critical feedback than oth
 
 ## Alpha ➡️ Beta
 
-[Backend API Specification](backend/README.md)
+[Backend API Specification](https://api.myace.ai/docs?key=981F6E1DB1BD9B1A841FCE74D3621)
 
 ### ⌛ Timeline
-- [ ] **02/14/22 - 02/21/22, Week 9** Reid - integrated all of Backend's changes, Adler - Login implemented, Ventures Accelerated - accepted.
+- [x] **02/14/22 - 02/21/22, Week 9** Reid - integrated all of Backend's changes, Adler - Login implemented, Ventures Accelerated - accepted.
 - [x] **02/07/22 - 02/14/22, Week 8** **Backend** - Grant = Login, Adler = Editing/Deleting Bucket, Request Doubles Partners, **Web development** - Alex = Get Static, starting web app with Auth, **Frontend** - Reid & Andrew = Display comments and time stamps,
 - [x] **01/31/22 - 02/07/22, Week 7** Same as week 6, automate deployment
 - [x] **01/24/22 - 01/31/22, Week 6** Timeline view, marketing website, email/password login, bucket overhaul, combine player/coach accounts, user interaction

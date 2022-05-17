@@ -1,9 +1,11 @@
 openapi: 3.0.0
 info:
   version: '1'
-  title: 'MyAce'
-  license:
-    name: MIT
+  title: 'MyAce API Documentation'
+  x-logo:
+    url: 'https://myace.ai/logo.svg'
+    # backgroundColor: '#FFFFFF'
+    altText: 'MyAce logo'
 servers:
   - url: 'https://api.myace.ai'
 paths:
@@ -12,8 +14,7 @@ paths:
       summary: Login
       description: This route establishes a session and returns a user. If the user does not exist, the user is created.
       tags:
-        - authentication
-        - user
+        - User
       requestBody:
         description: Google OAuth token
         required: true
@@ -53,8 +54,7 @@ paths:
       summary: Logout
       description: This route ends a user session. All sensitive routes will return error code 401 until the user's session is reestablished.
       tags:
-        - authentication
-        - user
+        - User
       responses:
         '200':
           description: 'Logout successful.'
@@ -70,7 +70,7 @@ paths:
       summary: Update current user
       description: This route edits the profile of the user who is currently logged in.
       tags:
-        - user
+        - User
       requestBody:
         description: All fields are optional
         required: false
@@ -105,7 +105,7 @@ paths:
       description: Without any query parameters, get a list of the current user's uploads.
       operationId: "getUploads" # keeping operationId here so i don't forget about i
       tags:
-        - uploads
+        - Uploads
       parameters:
         - name: bucket
           in: query
@@ -132,12 +132,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /uploads/{upload_id}:
+  /uploads/{upload_id}/:
     get:
       summary: Get upload by ID
       description: This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist and setting cookies which enable temporary URL access. If stream_ready is false, the url and thumbnail fields will be omitted from the response.
       tags:
-        - uploads
+        - Uploads
       parameters:
         - name: upload_id
           in: path
@@ -169,6 +169,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+    put:
+      summary: Edit upload
+      description: This route edits the attributes of an upload.
+      tags:
+        - Uploads
+      parameters:
+        - name: upload_id
+          in: path
+          description: Numeric ID of the upload to edit
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        description: All fields are optional
+        required: false
+        content:
+          'application/json':
+              schema:
+                type: object
+                properties:
+                  display_title:
+                    type: string
+                    example: "Winning volley against Nadal"
+                  bucket_id:
+                    type: integer
+                    format: int64
+                    minimum: 1
+      responses:
+        '200':
+          description: Updated upload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Upload'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete upload
+      description: This route permanently deletes a specified upload.
+      tags:
+        - Uploads
+      parameters:
+        - name: upload_id
+          in: path
+          description: Numeric ID of the upload to delete
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '204':
+          description: Deleted upload.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /uploads/:
     post:
@@ -176,7 +242,7 @@ paths:
       # TODO: what happens if an upload fails?
       description: This route returns a presigned URL, which must be used to upload a video file directly to AWS using a POST request. The POST request to the AWS url must contain the specified fields. Furthermore, all field names containing underscores within fields, such as x_amz_date, must be hyphenated (ex. x-amz-date) when uploading to AWS. After a successful upload, the client should request to convert the media to a streamable format.
       tags:
-        - uploads
+        - Uploads
       requestBody:
         required: true
         content:
@@ -253,7 +319,7 @@ paths:
       summary: Convert upload to stream-ready
       description: This route begins converting an upload into a streamable format.
       tags:
-        - uploads
+        - Uploads
       parameters:
         - name: upload_id
           in: path
@@ -273,81 +339,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-
-  /uploads/{upload_id}/:
-    put:
-      summary: Edit upload
-      description: This route edits the attributes of an upload.
-      tags:
-        - uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to edit
-          required: true
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      requestBody:
-        description: All fields are optional
-        required: false
-        content:
-          'application/json':
-              schema:
-                type: object
-                properties:
-                  display_title:
-                    type: string
-                    example: "Winning volley against Nadal"
-                  bucket_id:
-                    type: integer
-                    format: int64
-                    minimum: 1
-      responses:
-        '200':
-          description: Updated upload.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Upload'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete upload
-      description: This route permanently deletes a specified upload.
-      tags:
-        - uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to delete
-          required: true
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '204':
-          description: Deleted upload.
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /uploads/{upload_id}/download/:
     post:
       summary: Get download URL
       description: This route returns a presigned URL which can be used to download the originally uploaded file directly from AWS. If a user can see a post, they are permitted to download it.
       tags:
-        - uploads
+        - Uploads
       parameters:
         - name: upload_id
           in: path
@@ -382,7 +379,7 @@ paths:
       summary: Get all comments
       description: Without any query parameters, get a list of comments authored by the current user.
       tags:
-        - comments
+        - Comments
       parameters:
         - name: upload
           in: query
@@ -424,7 +421,7 @@ paths:
       summary: Create comment
       description: This route posts a comment under a certain upload. As of now, the only user allowed to comment is the upload owner.
       tags:
-        - comments
+        - Comments
       requestBody:
         required: true
         content:
@@ -452,7 +449,7 @@ paths:
       summary: Delete comment
       description: This route permanently deletes a specified comment. Upload owners may delete all comments under their uploads, and comment authors may delete their comments.
       tags:
-        - comments
+        - Comments
       parameters:
         - name: comment_id
           in: path
@@ -477,7 +474,7 @@ paths:
       summary: Create bucket
       description: This route creates a bucket specific to the user. A user cannot have multiple buckets of the same name. A user must create at least one bucket before uploading a video.
       tags:
-        - buckets
+        - Buckets
       requestBody:
         required: true
         content:
@@ -504,7 +501,7 @@ paths:
       summary: Get all buckets
       description: Get a list of buckets owned by the current user.
       tags:
-        - buckets
+        - Buckets
       responses:
         '200':
           description: 'Retrieved buckets'
@@ -527,7 +524,7 @@ paths:
       summary: Edit bucket
       description: This route only updates the properties of a bucket. To transfer an upload to another bucket, see edit upload.
       tags:
-        - buckets
+        - Buckets
       parameters:
         - name: bucket_id
           in: path
@@ -566,7 +563,7 @@ paths:
       summary: Delete bucket
       description: This route permanently deletes a specified bucket and all its associated uploads.
       tags:
-        - buckets
+        - Buckets
       parameters:
         - name: bucket_id
           in: path
@@ -591,8 +588,8 @@ paths:
       summary: Search for users
       description: This route returns a list of users given a search query. 
       tags:
-        - courtships
-        - user
+        - Courtships
+        - User
       parameters:
         - name: query
           in: query
@@ -628,7 +625,7 @@ paths:
       summary: Create courtship request
       description: This route begins the courting process, ha ha 😐. Request that another user become your friend, student, xor coach. The current user cannot have an existing relationship with the specified user. For example, requesting to friend someone who has already requested to friend you will yield an error. As another example, requesting to coach your friend will yield an error until you unfriend them.
       tags:
-        - courtships
+        - Courtships
       requestBody:
         required: true
         content:
@@ -704,7 +701,7 @@ paths:
                 </tr>
             </table>
       tags:
-        - courtships
+        - Courtships
       parameters:
         - name: type
           in: query
@@ -758,7 +755,7 @@ paths:
       summary: Update incoming courtship request
       description: This route responds to an incoming courtship request.
       tags:
-        - courtships
+        - Courtships
       parameters:
         - name: other_user_id
           in: path
@@ -796,7 +793,7 @@ paths:
     delete:
       summary: Delete outgoing courtship request
       tags:
-        - courtships
+        - Courtships
       parameters:
         - name: other_user_id
           in: path
@@ -841,7 +838,7 @@ paths:
             </tr>
             </table>
       tags:
-        - courtships
+        - Courtships
       parameters:
         - name: type
           in: query
@@ -885,7 +882,7 @@ paths:
     delete:
       summary: Remove courtship
       tags:
-        - courtships
+        - Courtships
       parameters:
         - name: other_user_id
           in: path
@@ -1098,13 +1095,9 @@ components:
     Error:
       type: object
       required:
-        - code
-        - message
+        - error
       properties:
-        code:
-          type: integer
-          format: int64
-        message:
+        error:
           type: string
 
   securitySchemes:
