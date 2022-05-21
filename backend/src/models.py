@@ -7,6 +7,7 @@ import random
 import re
 import string
 from flask_sqlalchemy import SQLAlchemy
+from typing import List
 
 db = SQLAlchemy()
 
@@ -26,7 +27,7 @@ class User(db.Model):
 
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False, unique=True)
-    uploads = db.relationship("Upload", cascade="delete")
+    uploads = db.relationship("Upload", cascade="delete", back_populates="user")
     comments = db.relationship("Comment", cascade="delete", back_populates="author")
     buckets = db.relationship("Bucket", cascade="delete")
 
@@ -56,10 +57,34 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
         return b_to_a
 
+    def coaches(self, other: User) -> bool:
+        UserRelationship.query.filter_by(user_a_id=self.id, user_b_id=other.id, type=RelationshipType.A_COACHES_B).exists()
+
+    def friends_with(self, other: User) -> bool:
+        rel = self.get_relationship_with(other)
+        return rel.type == RelationshipType.FRIENDS
+
     def can_view_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to view a given upload"""
-        # TODO add public, friends & coaches, just coaches, and private visibility field
-        return self.id == upload.user_id
+        # upload owners can always view their uploads
+        if self.id == upload.user_id:
+            return True
+        # individual sharing trumps default visibility
+        if self in upload.get_shared_with():
+            return True
+        # default visibility
+        coaches_uploader = self.coaches(upload.user)
+        friends_w_uploader = self.friends_with(upload.user)
+        if upload.visibility == VisibilityDefaults.PUBLIC:
+            return True
+        elif upload.visibility == VisibilityDefaults.FRIENDS_AND_COACHES:
+            return coaches_uploader or friends_w_uploader
+        elif upload.visibility == VisibilityDefaults.COACHES_ONLY:
+            return coaches_uploader
+        elif upload.visibility == VisibilityDefaults.FRIENDS_ONLY:
+            return friends_w_uploader
+        else:
+            return False
 
     def can_modify_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to modify a given upload's properties"""
@@ -86,6 +111,12 @@ class User(db.Model):
         owns_comment = self.id == comment.author_id
         return owns_upload or owns_comment
 
+    def can_view_bucket(self, bucket: Bucket) -> bool:
+        """:return: True if the user is allowed to view a given bucket"""
+        # a bucket is viewable if at least one upload in it is viewable
+        n_viewable = len(filter(lambda u: self.can_view_upload(u), bucket.uploads))
+        return n_viewable > 0
+
     def can_modify_bucket(self, bucket: Bucket) -> bool:
         """:return: True if the user is allowed to edit a given bucket's contents and properties"""
         return self.id == bucket.user_id
@@ -109,6 +140,20 @@ class User(db.Model):
     def is_username_unique(username: str) -> bool:
         """:return: if a username is unique"""
         return User.query.filter_by(username=username).first() is None
+
+    @staticmethod
+    def get_users_by_ids(user_ids: List[int]) -> List[User]:
+        """:return: a list of ids to a list of users.
+
+           Invalid IDs are ignored.
+       """
+        # naive implementation. TODO: optimize query
+        users = []
+        for id in user_ids:
+            u = User.query.filter_by(id=id).first()
+            if u is not None:
+                users.append(u)
+        return users
 
     # Methods required by Flask-Login
 
@@ -161,7 +206,7 @@ class UserRelationship(db.Model):
     __tablename__ = 'user_relationship'
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
     # However, a duplicate relationship can still be exist if the user IDs are reversed.
-    # This must never happen.
+    # It is an invariant that this must never happen.
     user_a_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
     user_b_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
     # Stores enum variable names as strings in DB. For now I think this is OK
@@ -172,14 +217,70 @@ class UserRelationship(db.Model):
     last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
 
 
+vis = {
+}
+@enum.unique
+class VisibilityDefaults(enum.Enum):
+    """Exclusive visibility modes that are assigned to uploads in addition to individual sharing"""
+    # If you ever modify these values, the database type must be recreated:
+    #   `DROP TYPE "typename";`
+    # I'm using enum.auto() because the names are stored in the DB as strings.
+    # The values are never stored in the DB.
+    # shared with nobody except author
+    PRIVATE = enum.auto()
+    # shared with just the user's coaches
+    COACHES_ONLY = enum.auto()
+    # shared with just the user's friends
+    FRIENDS_ONLY = enum.auto()
+    # shared with the user's friends and coaches
+    FRIENDS_AND_COACHES = enum.auto()
+    # shared with every user
+    PUBLIC = enum.auto()
+
+    def __str__(self):
+        v_map = {
+            VisibilityDefaults.PRIVATE: "private",
+            VisibilityDefaults.COACHES_ONLY: "coaches-only",
+            VisibilityDefaults.FRIENDS_ONLY: "friends-only",
+            VisibilityDefaults.FRIENDS_AND_COACHES: "friends-and-coaches",
+            VisibilityDefaults.PUBLIC: "public",
+        }
+        s = v_map.get(self)
+        if s is None:
+            raise Exception("Default visibility does not have a corresponding string.")
+        return s
+
+    @classmethod
+    def of_str(s: str) -> VisibilityDefaults | None:
+        """:return: a VisibilityDefaults value or None if DNE"""
+        v_map = {
+            "private": VisibilityDefaults.PRIVATE,
+            "coaches-only": VisibilityDefaults.COACHES_ONLY,
+            "friends-only": VisibilityDefaults.FRIENDS_ONLY,
+            "friends-and-coaches": VisibilityDefaults.FRIENDS_AND_COACHES,
+            "public": VisibilityDefaults.PUBLIC,
+        }
+        return v_map.get(s)
+
+
+# Visibility settings on an individual level
+class UploadAlsoSharedWith(db.Model):
+    __tablename__ = 'upload_shared_with'
+    # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
+    upload_id = db.Column(db.ForeignKey('upload.id'), primary_key=True)
+    user_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
+
+
 # Upload Table
 class Upload(db.Model):
     __tablename__ = 'upload'
     id = db.Column(db.Integer, primary_key=True)
     created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", back_populates="uploads")
     filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
+    visibility = db.Column(db.Enum(VisibilityDefaults), nullable=False)
     # Mediaconvert
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
@@ -201,11 +302,33 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
-            "bucket": self.bucket.serialize()
+            "bucket": self.bucket.serialize(),
+            "visibility": {
+                "default": str(self.visibility),
+                "also_shared_with": [u.serialize() for u in self.get_shared_with()]
+            }
         }
         if self.stream_ready:
             response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
         return response
+
+    def get_shared_with(self) -> List[User]:
+        """:return: A list of all Users with whom this upload has been individually shared"""
+        shares = UploadAlsoSharedWith.query.filter_by(upload_id=self.id)
+        return [User.query.filter_by(id=s.user_id) for s in shares]
+
+    def share_with(self, users: List[User]) -> None:
+        """Share this upload with a list of users"""
+        for u in users:
+            s = UploadAlsoSharedWith(upload_id=self.id, user_id=u.id)
+            db.session.add(s)
+        db.session.commit()
+
+    def unshare_with_all(self) -> None:
+        """Unshare this upload with all individuals"""
+        UploadAlsoSharedWith.query.filter_by(upload_id=self.id).delete()
+        db.session.commit()
+
 
 # Comment Table
 class Comment(db.Model):

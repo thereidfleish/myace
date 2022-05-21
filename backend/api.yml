@@ -107,6 +107,14 @@ paths:
       tags:
         - Uploads
       parameters:
+        - name: user
+          in: query
+          description: Filter response to uploads by a given user ID.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
         - name: bucket
           in: query
           description: Filter response to uploads in a given bucket ID.
@@ -198,6 +206,9 @@ paths:
                     type: integer
                     format: int64
                     minimum: 1
+                  visibility:
+                    type: object
+                    $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '200':
           description: Updated upload.
@@ -253,6 +264,7 @@ paths:
                   - filename
                   - display_title
                   - bucket_id
+                  - visibility
                 properties:
                     filename:
                         type: string
@@ -264,6 +276,9 @@ paths:
                         type: integer
                         format: int64
                         minimum: 1
+                    visibility:
+                        type: object
+                        $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '201':
           description: Upload URL created.
@@ -496,12 +511,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    
+
+  /buckets:
     get:
       summary: Get all buckets
-      description: Get a list of buckets owned by the current user.
+      description: Without any query parameters, get a list of buckets owned by the current user.
       tags:
         - Buckets
+      parameters:
+        - name: user
+          in: query
+          description: Filter response to buckets owned by a given user ID.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
       responses:
         '200':
           description: 'Retrieved buckets'
@@ -940,23 +965,47 @@ components:
                 type: object
                 $ref: "#/components/schemas/VisibilitySetting"
 
-    VisibilitySetting:
+    VisibilitySettingReq:
       type: object
       required:
-        - mode
+        - default
         - also_shared_with
       properties:
-        mode:
+        default:
           type: string
-          description: "The default visibility mode."
+          description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
           enum:
             - private
             - coaches-only
+            - friends-only
             - friends-and-coaches
             - public
         also_shared_with:
           type: array
-          description: "The default visibility mode."
+          description: "A list of user IDs who are exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+
+    VisibilitySetting:
+      type: object
+      required:
+        - default
+        - also_shared_with
+      properties:
+        default:
+          type: string
+          description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
+          enum:
+            - private
+            - coaches-only
+            - friends-only
+            - friends-and-coaches
+            - public
+        also_shared_with:
+          type: array
+          description: "Exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
           items:
             type: object
             $ref: "#/components/schemas/UserOverview"
@@ -992,7 +1041,7 @@ components:
         display_name:
           type: string
           example: John Smith
-          
+
     Courtship:
       type: object
       required:
@@ -1039,7 +1088,7 @@ components:
             size:
               type: integer
               format: int32
-              minimum: 1
+              minimum: 0
               example: 5
               description: "The quantity of uploads in this bucket."
             last_modified:
@@ -1047,7 +1096,7 @@ components:
               format: date-time
               description: "If the bucket is empty, the bucket's creation datetime."
         - $ref: '#/components/schemas/BucketRequest'
-    
+
     BucketRequest:
       type: object
       required:

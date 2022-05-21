@@ -21,6 +21,7 @@ from models import RelationshipType
 from models import Upload
 from models import Comment
 from models import Bucket
+from models import VisibilityDefaults
 from models import db
 
 from sqlalchemy import or_
@@ -214,8 +215,14 @@ def edit_me():
 @app.route("/uploads")
 @flask_login.login_required
 def get_all_uploads():
-    user = flask_login.current_user
-    uploads = Upload.query.filter_by(user_id=user.id)
+    me = flask_login.current_user
+    user_id = request.args.get("user")
+    if user_id is None:
+        # Default behavior: get my uploads
+        uploads = Upload.query.filter_by(user_id=me.id)
+    else:
+        # Optionally filter by user and ensure I can view upload
+        uploads = db.session.query(Upload).filter(Upload.user_id == user_id and me.can_view_upload(Upload))
 
     # Optionally filter by bucket
     bucket_id = request.args.get("bucket")
@@ -257,6 +264,31 @@ def get_upload(upload_id):
     return success_response(response)
 
 
+class BadRequest(Exception):
+    """Representative of the 400 HTTP response code"""
+
+
+def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefaults, list[User]]:
+    """Parse the "visibility" request obj.
+
+    :return: a VisibilityDefaults enum value and a list of users with whom an upload is individually shared
+    :raise BadRequest: if the body is incorrectly formatted
+    """
+    if visibility is None:
+        raise BadRequest("Missing visibility.")
+    default = VisibilityDefaults.of_str(visibility.get("default"))
+    if default is None:
+        raise BadRequest("Invalid default visibility.")
+    also_shared_ids = visibility.get("also_shared_with")
+    if also_shared_ids is None:
+        raise BadRequest("Missing also_shared_with.")
+    also_shared_users = User.get_users_by_ids(also_shared_ids)
+    invalid_ids = set(also_shared_ids) - set([u.id for u in also_shared_ids])
+    if len(invalid_ids) > 0:
+        raise BadRequest("Invalid also_shared_with. Contains invalid user IDs.")
+    return default, also_shared_users
+
+
 @app.route("/uploads/", methods=['POST'])
 @flask_login.login_required
 def create_upload_url():
@@ -272,17 +304,25 @@ def create_upload_url():
         return failure_response("Invalid display title.", 400)
     bucket_id = body.get("bucket_id")
     if bucket_id is None:
-        return failure_response("Missing bucket id.")
+        return failure_response("Missing bucket id.", 400)
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
         return failure_response("Bucket not found.")
     if not user.can_modify_bucket(bucket):
         return failure_response("User forbidden to modify bucket.", 403)
+    # parse visibility field
+    visibility = body.get("visibility")
+    try:
+        vis_default, shared_with = parse_visibility_req(visibility)
+    except BadRequest as b:
+        return failure_response(b, 400)
 
-    # Create upload row
-    new_upload = Upload(filename=filename, display_title=display_title, user_id=user.id, bucket_id=bucket_id)
+    # Create upload
+    new_upload = Upload(filename=filename, display_title=display_title, user_id=user.id, bucket_id=bucket_id, visibility=vis_default)
     db.session.add(new_upload)
     db.session.commit()
+    # Share upload
+    new_upload.share_with(shared_with)
 
     # Create upload URL
     res = {'id': new_upload.id}
@@ -348,6 +388,17 @@ def edit_upload(upload_id):
         if not user.can_modify_bucket(bucket):
             return failure_response("User forbidden to modify bucket.", 403)
         upload.bucket_id = new_bucket_id
+
+    # Update visibility settting
+    visibility = body.get("visibility")
+    if visibility is not None:
+        try:
+            vis_default, shared_with = parse_visibility_req(visibility)
+            upload.visibility = vis_default
+            upload.unshare_with_all()
+            upload.share_with(shared_with)
+        except BadRequest as b:
+            return failure_response(b, 400)
 
     db.session.commit()
     return success_response(upload.serialize(aws))
@@ -502,11 +553,19 @@ def create_bucket():
     return success_response(bucket.serialize(), 201)
 
 
-@app.route("/buckets/")
+@app.route("/buckets")
 @flask_login.login_required
 def get_buckets():
-    user = flask_login.current_user
-    return success_response({"buckets": [b.serialize() for b in user.buckets]})
+    me = flask_login.current_user
+    user_id = request.args.get("user")
+    if user_id is None:
+        # Default behavior: get my buckets
+        buckets = Bucket.query.filter_by(user_id=me.id)
+    else:
+        # Optionally filter by user and ensure I can view bucket
+        buckets = db.session.query(Bucket).filter(Bucket.user_id == user_id and me.can_view_bucket(Bucket))
+
+    return success_response({"buckets": [b.serialize() for b in buckets]})
 
 
 @app.route("/buckets/<int:bucket_id>/", methods=['PUT'])
