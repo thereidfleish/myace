@@ -28,7 +28,9 @@ struct UserData {
     
     var courtships: [Courtship] = []
     
-    var courtshipRequests: [Courtship] = []
+    var incomingCourtshipRequests: [Courtship] = []
+    
+    var outgoingCourtshipRequests: [Courtship] = []
     
 //    var incomingFriendRequests: [Friend]
 //    var outgoingFriendRequests: [Friend]
