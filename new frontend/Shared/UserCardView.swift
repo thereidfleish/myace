@@ -20,7 +20,8 @@ struct UserCardView: View {
             do {
                 awaiting = true
                 try await nc.getCourtships(type: nil, users: nil)
-                try await nc.getCourtshipRequests(type: nil, dir: nil, users: nil)
+                try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
+                try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
                 awaiting = false
             } catch {
                 statusMessage = error.localizedDescription
@@ -30,7 +31,7 @@ struct UserCardView: View {
         }
     }
     
-    func createCourtshipRequest(userID: String, type: String) {
+    func createCourtshipRequest(userID: String, type: CourtshipType) {
         Task {
             do {
                 awaiting = true
@@ -53,7 +54,7 @@ struct UserCardView: View {
         Task {
             do {
                 awaiting = true
-                try await nc.deleteOutgoingCourtshipRequest(userID: userID)
+                try await nc.deleteOutgoingCourtshipRequest(otherUserID: userID)
                 updateData()
                 withAnimation {
                     statusMessage = "Removed courtship request."
@@ -72,7 +73,7 @@ struct UserCardView: View {
         Task {
             do {
                 awaiting = true
-                try await nc.updateIncomingCourtshipRequest(status: status, userID: userID)
+                try await nc.updateIncomingCourtshipRequest(status: status, otherUserID: userID)
                 updateData()
                 withAnimation {
                     statusMessage = status == "accepted" ? "Accepted courtship request." : "Declined courtship request."
@@ -92,7 +93,7 @@ struct UserCardView: View {
         Task {
             do {
                 awaiting = true
-                try await nc.removeCourtship(userID: userID)
+                try await nc.removeCourtship(otherUserID: userID)
                 updateData()
                 withAnimation {
                     statusMessage = "Removed courtship :("
@@ -143,7 +144,7 @@ struct UserCardView: View {
                             Image(systemName: "person.text.rectangle.fill")
                                 .foregroundColor(Color.white)
                                 .frame(width: 15)
-                            Text(nc.userData.courtships.first(where :{$0.user.id == user.id})?.type.capitalized ?? "")
+                            Text(nc.userData.courtships.first(where :{$0.user.id == user.id})?.type.rawValue.capitalized ?? "")
                                 .bucketTextExternalStyle()
                         }
                     }
@@ -169,7 +170,7 @@ struct UserCardView: View {
                     }
                     
                     // Handle if the user is not a courtship but sent you a courtship request
-                    else if (nc.userData.courtshipRequests.contains(where: {$0.dir == "in" && $0.user.id == user.id})) {
+                    else if (nc.userData.incomingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
                         HStack {
                             Button(action: {
                                 updateFriendRequest(status: "accept", userID: String(user.id))
@@ -193,7 +194,7 @@ struct UserCardView: View {
                     }
                     
                     // Handle if the user sent an outgoing friend request to this user
-                    else if (nc.userData.courtshipRequests.contains(where: {$0.dir == "out" && $0.user.id == user.id})) {
+                    else if (nc.userData.outgoingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
                         Button(action: {
                             deleteOutgoingFriendRequest(userID: String(user.id))
                         }, label: {
@@ -210,19 +211,19 @@ struct UserCardView: View {
                     else {
                         Menu {
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: "friend")
+                                createCourtshipRequest(userID: String(user.id), type: .friend)
                             } label: {
                                 Label("Add Friend", systemImage: "face.smiling.fill")
                             }
                             
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: "student")
+                                createCourtshipRequest(userID: String(user.id), type: .student)
                             } label: {
                                 Label("Add Student", systemImage: "graduationcap.fill")
                             }
                             
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: "coach")
+                                createCourtshipRequest(userID: String(user.id), type: .coach)
                             } label: {
                                 Label("Add Coach", systemImage: "person.text.rectangle.fill")
                             }

@@ -363,19 +363,15 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getCourtshipRequests(type: CourtshipType?, dir: String?, users: String?) async throws {
-        var stringBuilder: String = "\(host)/courtships/requests\(type == nil && dir == nil && users == nil ? "" : "?")"
+    func getCourtshipRequests(type: CourtshipType?, dir: String, users: String?) async throws {
+        var stringBuilder: String = "\(host)/courtships/requests?dir=\(dir)"
         
         if (type != nil) {
-            stringBuilder += "type=\(type!)"
-        }
-        
-        if (dir != nil) {
-            stringBuilder += "\(type != nil ? "&" : "")dir=\(dir!)"
+            stringBuilder += "&type=\(type!)"
         }
         
         if (users != nil) {
-            stringBuilder += "\(type != nil || dir != nil ? "&" : "")users=\(users!)"
+            stringBuilder += "&users=\(users!)"
         }
         
         let url = URL(string: stringBuilder)!
@@ -385,7 +381,12 @@ class NetworkController: ObservableObject {
             let decoder = JSONDecoder()
             let decodedResponse = try decoder.decode(CourtshipRequestRes.self, from: data)
             DispatchQueue.main.sync {
-                userData.courtshipRequests = decodedResponse.requests
+                if dir == "in" {
+                    userData.incomingCourtshipRequests = decodedResponse.requests
+                }
+                else {
+                    userData.outgoingCourtshipRequests = decodedResponse.requests
+                }
             }
             
         } catch {

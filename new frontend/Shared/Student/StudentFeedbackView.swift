@@ -70,7 +70,7 @@ struct StudentFeedbackView: View {
         Task {
             do {
                 commentsAwaiting = true
-                try await nc.getComments(uploadID: uploadID, courtship: nil)
+                try await nc.getComments(uploadID: uploadID, courtshipType: nil)
                 commentsAwaiting = false
             } catch {
                 print(error)
