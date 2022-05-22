@@ -15,13 +15,29 @@ struct StudentUploadView: View {
     @State private var awaiting = false
     @State var didAppear = false
     
+    //@State private var coaches: [Courtship] = []
+    
+//    lazy var load: () -> Void = {
+//        do {
+//            awaiting = true
+//            try await nc.getCourtships(type: nil, users: nil)
+//            awaiting = false
+//            print("DONE!")
+//        } catch {
+//            print(error)
+//            errorMessage = error.localizedDescription
+//            showingError = true
+//            awaiting = false
+//        }
+//    }()
+    
     func initialize() {
         if (!didAppear) {
             didAppear = true
             Task {
                 do {
                     awaiting = true
-                    try await nc.getBuckets()
+                    try await nc.getCourtships(type: nil, users: nil)
                     awaiting = false
                     print("DONE!")
                 } catch {
@@ -30,8 +46,6 @@ struct StudentUploadView: View {
                     showingError = true
                     awaiting = false
                 }
-                
-                print(nc.userData.buckets)
             }
         }
         
@@ -46,42 +60,27 @@ struct StudentUploadView: View {
                 } else if (showingError) {
                     Text(Helper.computeErrorMessage(errorMessage: errorMessage)).padding()
                 } else {
-                    GeometryReader { geometry in
                         VStack(alignment: .leading) {
                             Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
                                 .bucketNameStyle()
                                 .foregroundColor(Color.green)
-                                .padding(.bottom, 5)
                             
                             Text("Your Coaches")
                                 .sectionHeadlineStyle()
                                 .foregroundColor(Color.green)
-                                .padding(.bottom, -5)
                             
                             ScrollView {
-                                ForEach(nc.userData.buckets) { bucket in
-                                    UserCardHomeView(user: SharedData(id: -1, username: "", display_name: ""), bucket: bucket)
+                                ForEach(nc.userData.courtships.filter {$0.type == .coach}, id: \.self.user.id) { coach in
+                                    UserCardHomeView(user: coach.user)
                                 }
-                            }.frame(height: geometry.size.height/2.5)
-                            
-                            Text("Your Students")
-                                .sectionHeadlineStyle()
-                                .foregroundColor(Color.green)
-                                .padding(.top, 5)
-                                .padding(.bottom, -5)
-                            
-                            ScrollView {
-                                ForEach(nc.userData.buckets) { bucket in
-                                    UserCardHomeView(user: SharedData(id: -1, username: "", display_name: ""), bucket: bucket)
-                                }
-                            }.frame(height: geometry.size.height/2.5)
+                            }
                             
                         }.sheet(isPresented: $showingNewBucketView) {
                             NewBucketView()
                             
                         }
                     
-                    }
+                    
                 }
                 
             }.padding(.horizontal)
@@ -100,6 +99,14 @@ struct StudentUploadView: View {
                         .foregroundColor(Color.green)
                         .fontWeight(.bold)
                 }))
+                .refreshable {
+                    do {
+                        try await nc.getCourtships(type: nil, users: nil)
+                    } catch {
+                        errorMessage = error.localizedDescription
+                    }
+                    
+                }
         }
     }
 }

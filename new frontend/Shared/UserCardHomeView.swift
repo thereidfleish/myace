@@ -13,16 +13,15 @@ struct UserCardHomeView: View {
     @State private var showingStatus = false
     @State private var statusMessage = ""
     @State var user: SharedData
-    @State var bucket: Bucket
     
     var body: some View {
         
         VStack {
             HStack {
-                NavigationLink(destination: StudentUploadDetailView(student: true, bucketID: "\(bucket.id)", name: bucket.name).navigationTitle(bucket.name).navigationBarTitleDisplayMode(.inline))
+                NavigationLink(destination: StudentUploadDetailView(otherUser: user).navigationTitle("bucket.name").navigationBarTitleDisplayMode(.inline))
                 {
                     VStack(alignment: .leading) {
-                        Text("Coach name")
+                        Text(user.display_name)
                             .bucketNameStyle()
                             .foregroundColor(Color.white)
                         HStack {
@@ -53,7 +52,7 @@ struct UserCardHomeView: View {
                                 .foregroundColor(.white)
                                 .frame(width: 15)
                             
-                            Text(bucket.last_modified?.formatted() ?? "No uploads yet")
+                            Text("last modified here")
                                 .bucketTextExternalStyle()
                         }
 

@@ -309,8 +309,9 @@ class NetworkController: ObservableObject {
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode([Upload].self, from: data)
             DispatchQueue.main.sync {
-                userData.bucketContents = decodedResponse
-                userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                //userData.bucketContents = decodedResponse
+                //userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                userData.uploads = decodedResponse
                 print("Got given bucket in nc!")
             }
             

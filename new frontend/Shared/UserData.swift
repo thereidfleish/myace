@@ -18,9 +18,11 @@ struct UserData {
     var profilePic: URL? = nil
     
     // Student data
-    var bucketContents: UploadsRes = UploadsRes()
+    //var bucketContents: UploadsRes = UploadsRes()
     
     var buckets: [Bucket] = []
+    
+    var uploads: [Upload] = []
     
     var comments: [Comment] = []
     
@@ -104,6 +106,10 @@ struct Upload: Codable, Identifiable {
     var thumbnail: String? = nil
     var visibility: Visibility = Visibility()
     var url: String? = nil
+    
+//    var isVisible: Bool {
+//        
+//    }
 }
 
 struct Visibility: Codable {
