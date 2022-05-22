@@ -100,25 +100,39 @@ struct Upload: Codable, Identifiable {
     var created: Date = Date()
     var display_title: String = ""
     var stream_ready: Bool = false
-    var bucket: Bucket? = nil
-    var url: String? = nil
+    var bucket: Bucket = Bucket()
     var thumbnail: String? = nil
+    var visibility: Visibility = Visibility()
+    var url: String? = nil
 }
 
-struct BucketRes: Codable {
-    var buckets: [Bucket] = []
+struct Visibility: Codable {
+    var `default`: VisibilityOptions = .private
+    var also_shared_with: [SharedData] = []
 }
+
+enum VisibilityOptions: String, Codable {
+    case `private` = "private"
+    case coaches_only = "coaches-only"
+    case friends_only = "friends-only"
+    case friends_and_coaches = "friends-and-coaches"
+    case `public` = "public"
+}
+
+//struct BucketRes: Codable {
+//    var buckets: [Bucket] = []
+//}
 
 struct Bucket: Codable, Identifiable {
     var id: Int = -1
+    var size: Int = -1
+    var last_modified: Date = Date()
     var name: String = ""
-    //var user_id: Int
-    var last_modified: Date? = nil
 }
 
-struct UploadsRes: Codable {
-    var uploads: [Upload] = []
-}
+//struct UploadsRes: Codable {
+//    var uploads: [Upload] = []
+//}
 
 //struct BucketContents: Codable {
 //    var id: Int
@@ -128,18 +142,10 @@ struct UploadsRes: Codable {
 //    var uploads: [Upload]
 //}
 
-struct Comment: Codable, Identifiable {
-    var id: Int = -1
-    var created: Date = Date()
-    var author: SharedData = SharedData()
-    var text: String = ""
-    var upload_id: Int = -1
-}
-
-struct Tag: Codable {
-    var tagID: Int = -1
-    var name: String = ""
-}
+//struct Tag: Codable {
+//    var tagID: Int = -1
+//    var name: String = ""
+//}
 
 // Helpers
 struct AuthReq: Codable {
@@ -172,14 +178,22 @@ struct Field: Codable {
     var x_amz_signature: String
 }
 
-struct CreateCommentReq: Codable {
-    var upload_id: String
-    var text: String
+struct Comment: Codable, Identifiable {
+    var id: Int = -1
+    var created: Date = Date()
+    var author: SharedData = SharedData()
+    var text: String = ""
+    var upload_id: Int = -1
 }
 
-struct CommentsRes: Codable {
-    var comments: [Comment]
+struct CreateCommentReq: Codable {
+    var text: String
+    var upload_id: String
 }
+
+//struct CommentsRes: Codable {
+//    var comments: [Comment]
+//}
 
 struct BucketReq: Codable {
     var name: String
@@ -189,17 +203,23 @@ struct DeleteUploadRes: Codable {
     var message: String
 }
 
-struct SearchRes: Codable {
-    var users: [SharedData]
-}
+//struct SearchRes: Codable {
+//    var users: [SharedData]
+//}
 
 struct FriendReq: Codable {
     var courtships: [Courtship]
 }
 
+enum CourtshipType: String, Codable {
+    case friend = "friend"
+    case coach = "coach"
+    case student = "student"
+}
+
 struct CourtshipRequestReq: Codable {
     var user_id: Int
-    var type: String
+    var type: CourtshipType
 }
 
 struct CourtshipRequestRes: Codable {
@@ -210,10 +230,15 @@ struct GetCourtshipsRes: Codable {
     var courtships: [Courtship]
 }
 
-struct Courtship: Codable, Identifiable {
-    var id: Int?
-    var type: String
-    var dir: String?
+//struct Courtship: Codable, Identifiable {
+//    var id: Int?
+//    var type: String
+//    var dir: String?
+//    var user: SharedData
+//}
+
+struct Courtship: Codable {
+    var type: CourtshipType
     var user: SharedData
 }
 
@@ -222,5 +247,7 @@ struct UpdateIncomingCourtshipRequestReq: Codable {
 }
 
 struct EditUploadReq: Codable {
-    var display_title: String
+    var display_title: String? = nil
+    var bucket_id: Int? = nil
+    var visibility: Visibility? = nil
 }

@@ -57,8 +57,8 @@ class NetworkController: ObservableObject {
     }
     
     // PUT
-    func editUpload(uploadID: String, displayTitle: String) async throws {
-        let req: EditUploadReq = EditUploadReq(display_title: displayTitle)
+    func editUpload(uploadID: String, displayTitle: String?, bucketID: Int?, visibility: Visibility?) async throws {
+        let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkError.failedEncode
@@ -113,31 +113,23 @@ class NetworkController: ObservableObject {
             let (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString!)
             print(response)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            if (try? decoder.decode(DeleteUploadRes.self, from: data)) != nil {
-                
-                print(data.prettyPrintedJSONString!)
-                print(response)
-            }
         } catch {
             throw NetworkError.failedDecode
         }
     }
     
     // GET
-    func getComments(uploadID: String?, courtship: String?) async throws {
-        var stringBuilder: String = "\(host)/comments\(uploadID == nil && courtship == nil ? "" : "?")"
-        
-        if (uploadID != nil) {
-            stringBuilder += "upload=\(uploadID!)"
+    func getComments(uploadID: String?, courtshipType: CourtshipType?) async throws {
+        var url: URL
+        if (uploadID != nil && courtshipType != nil) {
+            url = URL(string: "\(host)/comments?upload=\(uploadID!)&courtship=\(courtshipType!)")!
+        } else if let uploadID = uploadID {
+            url = URL(string: "\(host)/comments?upload=\(uploadID)")!
+        } else if let courtshipType = courtshipType {
+            url = URL(string: "\(host)/comments?courtship=\(courtshipType)")!
+        } else {
+            url = URL(string: "\(host)/comments/")! // Get a list of comments authored by the current user
         }
-        
-        if (courtship != nil) {
-            stringBuilder += "\(courtship != nil ? "&" : "")courtship=\(courtship!)"
-        }
-        
-        let url = URL(string: stringBuilder)!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
@@ -145,9 +137,9 @@ class NetworkController: ObservableObject {
             //print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(CommentsRes.self, from: data)
+            let decodedResponse = try decoder.decode([Comment].self, from: data)
             DispatchQueue.main.sync {
-                userData.comments = decodedResponse.comments
+                userData.comments = decodedResponse
             }
             
         } catch {
@@ -157,7 +149,7 @@ class NetworkController: ObservableObject {
     
     // POST
     func createComment(uploadID: String, text: String) async throws {
-        let req: CreateCommentReq = CreateCommentReq(upload_id: uploadID, text: text)
+        let req: CreateCommentReq = CreateCommentReq(text: text, upload_id: uploadID)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             
@@ -184,8 +176,25 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // DELETE
+    func deleteComment(commentID: String) async throws {
+        let url = URL(string: "\(host)/comments/\(commentID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            print(data.prettyPrintedJSONString!)
+            print(response)
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
     // POST
-    func addBucket(name: String) async throws {
+    func createBucket(name: String) async throws {
         let req: BucketReq = BucketReq(name: name)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -215,12 +224,81 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getUploads(getSpecificID: Bool, bucketID: String) async throws {
+    func getBuckets(userID: String?) async throws {
         var url: URL
-        if (getSpecificID) {
+        if let userID = userID {
+            url = URL(string: "\(host)/buckets?user=\(userID)")!
+        } else {
+            url = URL(string: "\(host)/buckets/")!
+        }
+        
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            
+            //print("JSON Data: \(data.prettyPrintedJSONString)")
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let decodedResponse = try decoder.decode([Bucket].self, from: data)
+            DispatchQueue.main.sync {
+                userData.buckets = decodedResponse
+            }
+            
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // PUT
+    func editBucket(bucketID: String, newName: String) async throws {
+        let req: BucketReq = BucketReq(name: newName)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/buckets/\(bucketID)/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "PUT"
+        
+        do {
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(data.prettyPrintedJSONString!)
+            print(response)
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // DELETE
+    func deleteBucket(bucketID: String) async throws {
+        let url = URL(string: "\(host)/buckets/\(bucketID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            print(data.prettyPrintedJSONString!)
+            print(response)
+        } catch {
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // GET
+    func getUploads(userID: Int?, bucketID: String?) async throws {
+        var url: URL
+        if (userID != nil && bucketID != nil) {
+            url = URL(string: "\(host)/uploads?user=\(userID!)&bucket=\(bucketID!)")!
+        } else if let userID = userID {
+            url = URL(string: "\(host)/uploads?user=\(userID)")!
+        } else if let bucketID = bucketID {
             url = URL(string: "\(host)/uploads?bucket=\(bucketID)")!
         } else {
-            url = URL(string: "\(host)/uploads")!
+            url = URL(string: "\(host)/uploads/")!
         }
         
         do {
@@ -229,31 +307,11 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
+            let decodedResponse = try decoder.decode([Upload].self, from: data)
             DispatchQueue.main.sync {
                 userData.bucketContents = decodedResponse
                 userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
                 print("Got given bucket in nc!")
-            }
-            
-        } catch {
-            throw NetworkError.failedDecode
-        }
-    }
-    
-    // GET
-    func getBuckets() async throws {
-        let url = URL(string: "\(host)/buckets/")!
-        
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            
-            //print("JSON Data: \(data.prettyPrintedJSONString)")
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(BucketRes.self, from: data)
-            DispatchQueue.main.sync {
-                userData.buckets = decodedResponse.buckets
             }
             
         } catch {
@@ -268,9 +326,9 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode(SearchRes.self, from: data)
+            let decodedResponse = try decoder.decode([SharedData].self, from: data)
             print(data.prettyPrintedJSONString!)
-            return decodedResponse.users
+            return decodedResponse
             
         } catch {
             throw NetworkError.failedDecode
@@ -279,7 +337,7 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func createCourtshipRequest(userID: String, type: String) async throws {
+    func createCourtshipRequest(userID: String, type: CourtshipType) async throws {
         let req: CourtshipRequestReq = CourtshipRequestReq(user_id: Int(userID)!, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -305,7 +363,7 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getCourtshipRequests(type: String?, dir: String?, users: String?) async throws {
+    func getCourtshipRequests(type: CourtshipType?, dir: String?, users: String?) async throws {
         var stringBuilder: String = "\(host)/courtships/requests\(type == nil && dir == nil && users == nil ? "" : "?")"
         
         if (type != nil) {
@@ -336,7 +394,7 @@ class NetworkController: ObservableObject {
     }
     
     // PUT
-    func updateIncomingCourtshipRequest(status: String, userID: String) async throws {
+    func updateIncomingCourtshipRequest(status: String, otherUserID: String) async throws {
         let req: UpdateIncomingCourtshipRequestReq = UpdateIncomingCourtshipRequestReq(status: status)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -344,7 +402,7 @@ class NetworkController: ObservableObject {
             throw NetworkError.failedEncode
         }
         
-        let url = URL(string: "\(host)/courtships/requests/\(userID)/")!
+        let url = URL(string: "\(host)/courtships/requests/\(otherUserID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -352,7 +410,6 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
-            print("I LOVE EDEN")
             print(data)
             print(response)
         } catch {
@@ -362,8 +419,8 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func deleteOutgoingCourtshipRequest(userID: String) async throws {
-        let url = URL(string: "\(host)/courtships/requests/\(userID)/")!
+    func deleteOutgoingCourtshipRequest(otherUserID: String) async throws {
+        let url = URL(string: "\(host)/courtships/requests/\(otherUserID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -371,7 +428,6 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            print("I LOVE SARAH")
             print(data)
             print(response)
             
@@ -381,7 +437,7 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getCourtships(type: String?, users: String?) async throws {
+    func getCourtships(type: CourtshipType?, users: String?) async throws {
         var stringBuilder: String = "\(host)/courtships\(type == nil && users == nil ? "" : "?")"
         
         if (type != nil) {
@@ -410,8 +466,8 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func removeCourtship(userID: String) async throws {
-        let url = URL(string: "\(host)/courtships/\(userID)/")!
+    func removeCourtship(otherUserID: String) async throws {
+        let url = URL(string: "\(host)/courtships/\(otherUserID)/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
