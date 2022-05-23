@@ -113,7 +113,10 @@ class User(db.Model):
 
     def can_view_bucket(self, bucket: Bucket) -> bool:
         """:return: True if the user is allowed to view a given bucket"""
-        # a bucket is viewable if at least one upload in it is viewable
+        # Bucket owners can view all their buckets
+        if self.id == bucket.user_id:
+            return True
+        # A bucket is viewable if it contains >=1 viewable uploads
         for u in bucket.uploads:
             if self.can_view_upload(u):
                 return True
