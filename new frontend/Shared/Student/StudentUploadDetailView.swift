@@ -41,7 +41,9 @@ struct StudentUploadDetailView: View {
         Task {
             do {
                 awaiting = true
-                try await nc.getBuckets(userID: String(nc.userData.shared.id))
+                print("getting buckets")
+                try await nc.getBuckets(userID: nil)
+                print("getting uploads")
                 try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
                 //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
                 print("Finsihed init")
@@ -71,21 +73,21 @@ struct StudentUploadDetailView: View {
         }
     }
     
-    func editUpload(jj: String)  {
-        Task {
-            do {
-                awaiting = true
-                try await nc.editUpload(uploadID: jj, displayTitle: uploadName)
-                awaiting = false
-                initialize()
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
-            }
-        }
-    }
+//    func editUpload(jj: String)  {
+//        Task {
+//            do {
+//                awaiting = true
+//                try await nc.editUpload(uploadID: jj, displayTitle: uploadName)
+//                awaiting = false
+//                initialize()
+//            } catch {
+//                print(error)
+//                errorMessage = error.localizedDescription
+//                showingError = true
+//                awaiting = false
+//            }
+//        }
+//    }
     
     var body: some View {
         ScrollView {
@@ -134,7 +136,7 @@ struct StudentUploadDetailView: View {
                                         self.url = []
                                     }
                                 }.sheet(isPresented: $showsUploadAlert, onDismiss: {initialize()}) {
-                                    UploadView(url: url, bucketID: bucketID)
+                                    UploadView(url: url, bucketID: nil) // place this in each bucket so that 
                                     
                                     
                                 }
@@ -163,10 +165,10 @@ struct StudentUploadDetailView: View {
                         HStack {
                             Text(bucket.name)
                         }
-                        
-                        
+
+
                         ForEach(nc.userData.uploads.filter { $0.bucket.id == bucket.id && ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) }) { upload in
-                            
+
                             HStack {
                                 if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
                                     //HStack {
@@ -176,9 +178,9 @@ struct StudentUploadDetailView: View {
                                             uploadName = upload.display_title
                                             originalName = uploadName
                                         })
-                                    
+
                                     Button(action: {
-                                        editUpload(jj: "\(upload.id)")
+                                        //editUpload(jj: "\(upload.id)")
                                         showingEditingName = false
                                     }, label: {
                                         Text("Save")
@@ -188,7 +190,7 @@ struct StudentUploadDetailView: View {
                                         .disabled(uploadName == originalName)
                                     //}.padding(.horizontal)
                                 }
-                                
+
                                 if (showingDelete && String(upload.id) == showingDeleteUploadID) {
                                     //HStack {
                                     Text("Are you sure you want to delete this video?  This cannot be undone!")
@@ -202,12 +204,12 @@ struct StudentUploadDetailView: View {
                                     })
                                     //}.padding(.horizontal)
                                 }
-                                
+
                             }
-                            
+
                             Spacer()
-                            
-                            
+
+
                             HStack {
                                 NavigationLink(destination: StudentFeedbackView(text: "SJ", student: true, showOnlyVideo: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
                                 {
@@ -223,11 +225,11 @@ struct StudentUploadDetailView: View {
                                         .frame(maxWidth: 200, maxHeight: 150)
                                         .cornerRadius(10)
                                         .shadow(radius: 5)
-                                        
+
                                     }
-                                    
+
                                 }.disabled(!upload.stream_ready)
-                                
+
                                 //                                 Button(action: {
                                 //                                     showingFeedback.toggle()
                                 //                                 }, label: {
@@ -245,23 +247,23 @@ struct StudentUploadDetailView: View {
                                 //                                 }).sheet(isPresented: $showingFeedback) {
                                 //                                     StudentFeedbackView(text: "This is some sample feedback", student: student, showOnlyVideo: true, uploadID: "\(upload.id)")
                                 //                                 }
-                                
+
                                 VStack(alignment: .leading) {
                                     Text(upload.display_title == "" ? "Untitled" : upload.display_title)
                                         .videoInfoStyle()
                                         .foregroundColor(Color.green)
-                                    
+
                                     Text(upload.created.formatted())
                                         .font(.subheadline)
                                         .foregroundColor(Color.green)
-                                    
+
                                     Text("\(upload.id)")
-                                    
+
                                     HStack {
                                         Button(action: {
                                             showingFeedback.toggle()
                                         }, label: {
-                                            
+
                                             if (!upload.stream_ready) {
                                                 Text("Processing video, please wait...")
                                                     .font(.footnote)
@@ -274,7 +276,7 @@ struct StudentUploadDetailView: View {
                                                         }
                                                     }
                                             }
-                                            
+
 //                                            else if (true) {
 //                                                Image(systemName: student ? "person.crop.circle.badge.clock.fill" : "plus.bubble.fill")
 //                                                    .resizable()
@@ -297,10 +299,10 @@ struct StudentUploadDetailView: View {
                                             //                                        .foregroundColor(Color.gray)
                                             //                                        .frame(width: 25, height: 25)
                                             //                                }
-                                            
+
                                         })
                                         //.disabled(upload.comments.count == 0 && student ? true : false)
-                                        
+
                                         Menu {
                                             Button {
                                                 withAnimation {
@@ -314,12 +316,12 @@ struct StudentUploadDetailView: View {
                                                     }
                                                     showingEditingNameUploadID = String(upload.id)
                                                 }
-                                                
-                                                
+
+
                                             } label: {
                                                 Label("Rename", systemImage: "pencil")
                                             }
-                                            
+
                                             Button(role: .destructive) {
                                                 withAnimation {
                                                     if (showingEditingName) {
@@ -332,11 +334,11 @@ struct StudentUploadDetailView: View {
                                                     }
                                                     showingDeleteUploadID = String(upload.id)
                                                 }
-                                                
+
                                             } label: {
                                                 Label("Delete", systemImage: "trash")
                                             }
-                                            
+
                                         } label: {
                                             Image(systemName: "ellipsis.circle.fill")
                                                 .resizable()
@@ -344,24 +346,24 @@ struct StudentUploadDetailView: View {
                                                 .frame(width: 25, height: 25)
                                         }
                                         .padding(.leading)
-                                        
+
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     //                                                                 Text("\(studentInfo.times[i]) | \(studentInfo.sizes[i])")
                                     //                                                                     .font(.footnote)
                                     //                                                                     .foregroundColor(Color.green)
-                                    
-                                    
-                                    
+
+
+
                                 }
                             }
                         }
-                        
-                        
-                        
-                        
+
+
+
+
                     }
                 }
             }.padding(.horizontal)

@@ -229,14 +229,15 @@ class NetworkController: ObservableObject {
         if let userID = userID {
             url = URL(string: "\(host)/buckets?user=\(userID)")!
         } else {
-            url = URL(string: "\(host)/buckets/")!
+            url = URL(string: "\(host)/buckets")!
         }
         
-        
+        print(url)
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
             
-            //print("JSON Data: \(data.prettyPrintedJSONString)")
+            print("JSON Data: \(data.prettyPrintedJSONString)")
+            print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode([Bucket].self, from: data)

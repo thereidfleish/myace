@@ -21,9 +21,9 @@ struct UploadView: View {
     @State private var uploadName = ""
     @State private var uploadBucketName = ""
     var url: [URL]
-    @State var bucketID: String
+    @State var bucketID: String?
     @State private var visibility: Visibility = Visibility()
-    private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+    @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
                                                    .coaches_only: "Coaches Only",
                                                    .friends_only: "Friends Only",
                                                    .friends_and_coaches: "Friends and Coaches Only",
@@ -32,8 +32,10 @@ struct UploadView: View {
     
     func computeBucketName() -> String {
         for bucket in nc.userData.buckets {
-            if (bucket.id == Int(bucketID)) {
-                return "The video will be uploaded into \"\(bucket.name)\""
+            if bucketID != nil {
+                if (bucket.id == Int(bucketID!)) {
+                    return "The video will be uploaded into \"\(bucket.name)\""
+                }
             }
         }
         return "Choose a stroke to upload the video into"
@@ -129,7 +131,7 @@ struct UploadView: View {
                 uploading = true
                 uploadingStatus = "Uploading..."
                 print(bucketID)
-                try await upload(display_title: uploadName == "" ? "My Video" : uploadName, bucket_id: Int(bucketID)!, visibility: visibility, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
+                try await upload(display_title: uploadName == "" ? "My Video" : uploadName, bucket_id: Int(bucketID!)!, visibility: visibility, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
