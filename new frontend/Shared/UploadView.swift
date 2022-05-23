@@ -22,6 +22,13 @@ struct UploadView: View {
     @State private var uploadBucketName = ""
     var url: [URL]
     @State var bucketID: String
+    @State private var visibility: Visibility = Visibility()
+    private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+                                                   .coaches_only: "Coaches Only",
+                                                   .friends_only: "Friends Only",
+                                                   .friends_and_coaches: "Friends and Coaches Only",
+                                                   .`public`: "Public"]
+    @State private var alsoSharedWith = []
     
     func computeBucketName() -> String {
         for bucket in nc.userData.buckets {
@@ -58,6 +65,17 @@ struct UploadView: View {
                             Text("Choose A Stroke")
                                 .buttonStyle()
                         }
+                        Menu {
+                            ForEach(Array(visOptions.keys), id: \.self) { visOp in
+                                Button(visOptions[visOp]!) {
+                                    visibility.default = visOp
+                                }
+                            }
+                        } label: {
+                            Text("Set Visibility")
+                                .buttonStyle()
+                        }
+                        
                     } else {
                         ProgressView()
                     }
@@ -111,7 +129,7 @@ struct UploadView: View {
                 uploading = true
                 uploadingStatus = "Uploading..."
                 print(bucketID)
-                try await upload(display_title: uploadName == "" ? "My Video" : uploadName, bucket_id: Int(bucketID)!, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
+                try await upload(display_title: uploadName == "" ? "My Video" : uploadName, bucket_id: Int(bucketID)!, visibility: visibility, uid: "\(nc.userData.shared.id)", fileURL: fileURL)
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -121,9 +139,9 @@ struct UploadView: View {
     }
     
     // POST
-    func upload(display_title: String, bucket_id: Int, uid: String, fileURL: URL) async throws {
+    func upload(display_title: String, bucket_id: Int, visibility: Visibility, uid: String, fileURL: URL) async throws {
         
-        let req: VideoReq = VideoReq(filename: fileURL.lastPathComponent, display_title: display_title, bucket_id: bucket_id)
+        let req: VideoReq = VideoReq(filename: fileURL.lastPathComponent, display_title: display_title, bucket_id: bucket_id, visibility: visibility)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkController.NetworkError.failedEncode

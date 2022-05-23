@@ -169,6 +169,7 @@ struct VideoReq: Codable {
     var filename: String
     var display_title: String
     var bucket_id: Int
+    var visibility: Visibility
 }
 
 struct VideoRes: Codable {
