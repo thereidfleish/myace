@@ -154,20 +154,54 @@ struct StudentFeedbackView: View {
                                     
                                     
                                     ForEach(nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})) { comment in
-                                        HStack {
-                                            Text(secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))
-                                                .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
-                                            Spacer()
-                                            Button(action: {
-                                                currentSeconds = returnTimestampAndText(text: comment.text).0
-                                                player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
-                                            }, label: {
-                                                Text(returnTimestampAndText(text: comment.text).1)
-                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
-                                            })
+                                        if(nc.userData.shared.username == comment.author.username) {
+                                            HStack {
+                                                
+                                                VStack(alignment: .trailing) {
+                                                    Text("\(comment.author.display_name) (\(comment.author.username), you)")
+                                                        .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                                    Text((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0)))
+                                                        .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                                  
+                                                    Button(action: {
+                                                        currentSeconds = returnTimestampAndText(text: comment.text).0
+                                                        player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                                    }, label: {
+                                                        Text(returnTimestampAndText(text: comment.text).1)
+                                                            .foregroundColor(/*returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary*/.white)
+                                                    })
+                                                        //.frame(maxWidth: .infinity)
+                                                        .background(Color.green)
+                                                        .cornerRadius(10)
+                                                        .foregroundColor(.white)
+                                               
+
+                                                }
+                                            }
+                                        } else {
+                                            HStack {
+                                                VStack {
+                                                    Text("\(comment.author.display_name) (\(comment.author.username))")
+                                                        .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0)).padding([.bottom, .top], 10)
+
+                                                        Button(action: {
+                                                            currentSeconds = returnTimestampAndText(text: comment.text).0
+                                                            player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                                        }, label: {
+                                                            Text(returnTimestampAndText(text: comment.text).1)
+                                                                .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
+                                                        })
+                                                        .padding(.vertical, 15)
+                                                        .frame(maxWidth: .infinity)
+                                                        .cornerRadius(10)
+                                                        .foregroundColor(.white)
+                                                    
+
+                                                }
+                                                Text((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0)))
+                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0)).padding([.leading,.trailing, .bottom, .top], 20)
+                                            }
                                         }
-                                        .padding(.vertical)
-                                        
                                     }
                                     
                                     .onChange(of: currentSeconds) { value in

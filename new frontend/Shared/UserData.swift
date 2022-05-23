@@ -200,9 +200,9 @@ struct CreateCommentReq: Codable {
     var upload_id: String
 }
 
-//struct CommentsRes: Codable {
-//    var comments: [Comment]
-//}
+struct CommentsRes: Codable {
+    var comments: [Comment]
+}
 
 struct BucketReq: Codable {
     var name: String

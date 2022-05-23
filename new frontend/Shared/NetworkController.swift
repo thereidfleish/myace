@@ -137,9 +137,9 @@ class NetworkController: ObservableObject {
             //print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode([Comment].self, from: data)
+            let decodedResponse = try decoder.decode(CommentsRes.self, from: data)
             DispatchQueue.main.sync {
-                userData.comments = decodedResponse
+                userData.comments = decodedResponse.comments
             }
             
         } catch {

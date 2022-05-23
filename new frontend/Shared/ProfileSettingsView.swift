@@ -14,6 +14,7 @@ struct ProfileSettingsView: View {
     @State private var awaiting = false
     @State private var showingError = false
     @State private var errorMessage = ""
+    @State private var showingNewBucketView = false
     var isNewUser: Bool
     
     func updateUser()  {
@@ -45,6 +46,9 @@ struct ProfileSettingsView: View {
                     .onAppear(perform: {
                         username = nc.userData.shared.username
                         displayName = nc.userData.shared.display_name
+                        if(isNewUser) {
+                            nc.userData.buckets = []
+                        }
                     })
                 TextField("Edit Username", text: $username)
                     .textFieldStyle()
@@ -59,6 +63,23 @@ struct ProfileSettingsView: View {
                 TextField("Edit Display Name", text: $displayName)
                     .textFieldStyle()
                 
+                if(isNewUser) {
+                    Text("Before getting started, you must create at least one bucket. Buckets are where you store videos.")
+                        .padding(.top, 20)
+                        .bucketTextInternalStyle()
+                    Button(action: {
+                        showingNewBucketView.toggle()
+                    }, label: {
+                        Text("Create New Bucket")
+                            .buttonStyle()
+                    })
+                    ForEach(nc.userData.buckets) { bucket in
+                        VStack(alignment: .leading) {
+                            Text(bucket.name)
+                        }
+                    }
+                }
+                
                 Spacer()
                 
                 Button(action: {
@@ -66,10 +87,15 @@ struct ProfileSettingsView: View {
                 }, label: {
                     Text(isNewUser ? "Continue" : "Save")
                         .buttonStyle()
-                })
+                }).disabled(isNewUser && nc.userData.buckets.count == 0)
+                    .opacity(isNewUser && nc.userData.buckets.count == 0 ? 0.5 : 1)
                 
                 
             }.padding(.horizontal)
+                .sheet(isPresented: $showingNewBucketView) {
+                    NewBucketView()
+                    
+                }
         }
         
         
