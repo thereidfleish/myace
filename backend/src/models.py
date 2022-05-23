@@ -217,7 +217,7 @@ class UserRelationship(db.Model):
     type = db.Column(db.Enum(RelationshipType), nullable=False)
     # The datetime of the last type change. Interpreted differently depending
     # on the type. Ex. if type is FRIENDS then means 'when users became friends'
-    last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
 
 vis = {
@@ -253,8 +253,8 @@ class VisibilityDefaults(enum.Enum):
             raise Exception("Default visibility does not have a corresponding string.")
         return s
 
-    @classmethod
-    def of_str(s: str) -> VisibilityDefaults | None:
+    @staticmethod
+    def of_str(cls, s: str) -> VisibilityDefaults | None:
         """:return: a VisibilityDefaults value or None if DNE"""
         v_map = {
             "private": VisibilityDefaults.PRIVATE,
@@ -278,7 +278,7 @@ class UploadAlsoSharedWith(db.Model):
 class Upload(db.Model):
     __tablename__ = 'upload'
     id = db.Column(db.Integer, primary_key=True)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     user = db.relationship("User", back_populates="uploads")
     filename = db.Column(db.String, nullable=False)
@@ -341,7 +341,7 @@ class Comment(db.Model):
     author = db.relationship("User", back_populates="comments")
     upload_id = db.Column(db.Integer, db.ForeignKey("upload.id"), nullable=False)
     upload = db.relationship("Upload", back_populates="comments")
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     text = db.Column(db.String, nullable=False)
 
     def serialize(self):
@@ -361,7 +361,7 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     uploads = db.relationship("Upload", cascade="delete", back_populates="bucket")
 
     def serialize(self):
