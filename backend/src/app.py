@@ -23,6 +23,7 @@ from models import Comment
 from models import Bucket
 from models import VisibilityDefaults
 from models import db
+from models import visib_of_str
 
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -276,7 +277,7 @@ def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefaults, list[Use
     """
     if visibility is None:
         raise BadRequest("Missing visibility.")
-    default = VisibilityDefaults.of_str(visibility.get("default"))
+    default = visib_of_str(visibility.get("default"))
     if default is None:
         raise BadRequest("Invalid default visibility.")
     also_shared_ids = visibility.get("also_shared_with")
