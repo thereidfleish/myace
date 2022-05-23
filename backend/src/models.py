@@ -61,7 +61,7 @@ class User(db.Model):
         UserRelationship.query.filter_by(user_a_id=self.id, user_b_id=other.id, type=RelationshipType.A_COACHES_B).exists()
 
     def friends_with(self, other: User) -> bool:
-        rel = self.get_relationship_with(other)
+        rel = self.get_relationship_with(other.id)
         return rel.type == RelationshipType.FRIENDS
 
     def can_view_upload(self, upload: Upload) -> bool:
@@ -114,8 +114,11 @@ class User(db.Model):
     def can_view_bucket(self, bucket: Bucket) -> bool:
         """:return: True if the user is allowed to view a given bucket"""
         # a bucket is viewable if at least one upload in it is viewable
-        n_viewable = len(filter(lambda u: self.can_view_upload(u), bucket.uploads))
-        return n_viewable > 0
+        n_viewable = 0
+        for u in bucket.uploads:
+            if self.can_view_upload(u):
+                return True
+        return False
 
     def can_modify_bucket(self, bucket: Bucket) -> bool:
         """:return: True if the user is allowed to edit a given bucket's contents and properties"""
