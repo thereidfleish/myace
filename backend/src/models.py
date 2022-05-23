@@ -75,13 +75,13 @@ class User(db.Model):
         # default visibility
         coaches_uploader = self.coaches(upload.user)
         friends_w_uploader = self.friends_with(upload.user)
-        if upload.visibility == VisibilityDefaults.PUBLIC:
+        if upload.visibility == VisibilityDefault.PUBLIC:
             return True
-        elif upload.visibility == VisibilityDefaults.FRIENDS_AND_COACHES:
+        elif upload.visibility == VisibilityDefault.FRIENDS_AND_COACHES:
             return coaches_uploader or friends_w_uploader
-        elif upload.visibility == VisibilityDefaults.COACHES_ONLY:
+        elif upload.visibility == VisibilityDefault.COACHES_ONLY:
             return coaches_uploader
-        elif upload.visibility == VisibilityDefaults.FRIENDS_ONLY:
+        elif upload.visibility == VisibilityDefault.FRIENDS_ONLY:
             return friends_w_uploader
         else:
             return False
@@ -99,7 +99,7 @@ class User(db.Model):
         if not self.can_view_upload(comment.upload):
             return False
         # Prohibit viewing coach comments on uploads that the user doesn't own
-        # TODO: fix this
+        # TODO: fix can_view_comment
         # if comment.author.type == 1 and self.id != comment.upload.user_id:
         #     return False
         return True
@@ -205,6 +205,12 @@ class RelationshipType(enum.Enum):
     # both users have blocked each other
     MUTUAL_BLOCKED = enum.auto()
 
+    def is_request(self):
+        """:return: True if this relationship type is still pending"""
+        return (self == self.FRIEND_REQUESTED
+             or self == self.COACH_REQUESTED
+             or self == self.STUDENT_REQUESTED)
+
 
 # User relationship association object
 class UserRelationship(db.Model):
@@ -221,9 +227,57 @@ class UserRelationship(db.Model):
     # on the type. Ex. if type is FRIENDS then means 'when users became friends'
     last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
+    def serialize(self, client: User):
+        """:return: a serialized UserRelationship from the perspective of client"""
+        assert client.id == self.user_a_id or client.id == self.user_b_id, "Precondition failed. Cannot serialize a UserRelationship if the client isn't involved."
+        res = {
+            "type": self.role_of_other(client),
+            "user": self.get_other(client).serialize()
+        }
+        # add "dir" field if relationship is a request
+        if self.type.is_request():
+            res["dir"] = "out" if self.user_a_id == client.id else "in"
+        return res
+
+    def get_other(self, client) -> User:
+        """:return: the other User involved in this relationship"""
+        other_id = self.user_b_id if User.id == self.user_a_id else self.user_a_id
+        return db.session.query(User).get(other_id)
+
+    def role_of_other(self, client: User) -> str:
+        """:return: the string represented role of the other user in this relationship from the perspective of the client"""
+        if self.type == RelationshipType.FRIENDS:
+            return "friend"
+        elif self.type == RelationshipType.A_COACHES_B and self.user_a_id == client.id:
+            # the other user is the student
+            return "student"
+        elif self.type == RelationshipType.A_COACHES_B and self.user_b_id == client.id:
+            # the other user is the coach
+            return "coach"
+        elif self.type == RelationshipType.FRIEND_REQUESTED:
+            return "friend-req"
+        elif self.type == RelationshipType.STUDENT_REQUESTED:
+            return "student-req"
+        elif self.type == RelationshipType.COACH_REQUESTED:
+            return "coach-req"
+        else:
+            raise Exception("RelationshipType does not have a corresponding string.")
+
+
+def rel_req_of_str(s: str) -> RelationshipType | None:
+    """:return: the pending (requested) RelationshipType representation of a string or None if DNE"""
+    if s == "friend-req":
+        return RelationshipType.FRIEND_REQUESTED
+    elif s == "coach-req":
+        return RelationshipType.COACH_REQUESTED
+    elif s == "student-req":
+        return RelationshipType.STUDENT_REQUESTED
+    else:
+        return None
+
 
 @enum.unique
-class VisibilityDefaults(enum.Enum):
+class VisibilityDefault(enum.Enum):
     """Exclusive visibility modes that are assigned to uploads in addition to individual sharing"""
     # If you ever modify these values, the database type must be recreated:
     #   `DROP TYPE "typename";`
@@ -241,26 +295,26 @@ class VisibilityDefaults(enum.Enum):
     PUBLIC = enum.auto()
 
 
-v_map = {
-    VisibilityDefaults.PRIVATE: "private",
-    VisibilityDefaults.COACHES_ONLY: "coaches-only",
-    VisibilityDefaults.FRIENDS_ONLY: "friends-only",
-    VisibilityDefaults.FRIENDS_AND_COACHES: "friends-and-coaches",
-    VisibilityDefaults.PUBLIC: "public"
+_v_map = {
+    VisibilityDefault.PRIVATE: "private",
+    VisibilityDefault.COACHES_ONLY: "coaches-only",
+    VisibilityDefault.FRIENDS_ONLY: "friends-only",
+    VisibilityDefault.FRIENDS_AND_COACHES: "friends-and-coaches",
+    VisibilityDefault.PUBLIC: "public"
 }
 
 
-def visib_to_str(v : VisibilityDefaults) -> str:
-    """:return: string representation of a VisibilityDefaults value"""
-    s = v_map.get(v)
+def visib_to_str(v : VisibilityDefault) -> str:
+    """:return: string representation of a VisibilityDefault"""
+    s = _v_map.get(v)
     if s is None:
-        raise Exception("Default visibility does not have a corresponding string.")
+        raise Exception("VisibilityDefault does not have a corresponding string.")
     return s
 
 
-def visib_of_str(s: str) -> VisibilityDefaults | None:
-    """:return: a VisibilityDefaults value or None if DNE"""
-    for k, v in v_map.items():
+def visib_of_str(s: str) -> VisibilityDefault | None:
+    """:return: a VisibilityDefault or None if DNE"""
+    for k, v in _v_map.items():
         if v == s:
             return k
     return None
@@ -283,7 +337,7 @@ class Upload(db.Model):
     user = db.relationship("User", back_populates="uploads")
     filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
-    visibility = db.Column(db.Enum(VisibilityDefaults), nullable=False)
+    visibility = db.Column(db.Enum(VisibilityDefault), nullable=False)
     # Mediaconvert
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
@@ -345,14 +399,13 @@ class Comment(db.Model):
     text = db.Column(db.String, nullable=False)
 
     def serialize(self):
-        res = {
+        return {
             "id": self.id,
             "created": self.created.isoformat(),
             "author": self.author.serialize(),
             "text": self.text,
             "upload_id": self.upload_id
         }
-        return res
 
 
 # Bucket Table

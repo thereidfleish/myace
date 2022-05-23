@@ -21,9 +21,9 @@ from models import RelationshipType
 from models import Upload
 from models import Comment
 from models import Bucket
-from models import VisibilityDefaults
+from models import VisibilityDefault
 from models import db
-from models import visib_of_str
+from models import visib_of_str, rel_req_of_str
 
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -269,10 +269,10 @@ class BadRequest(Exception):
     """Representative of the 400 HTTP response code"""
 
 
-def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefaults, list[User]]:
+def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefault, list[User]]:
     """Parse the "visibility" request obj.
 
-    :return: a VisibilityDefaults enum value and a list of users with whom an upload is individually shared
+    :return: a VisibilityDefault and a list of users with whom an upload is individually shared
     :raise BadRequest: if the body is incorrectly formatted
     """
     if visibility is None:
@@ -466,7 +466,7 @@ def get_all_comments():
             return failure_response("User forbidden to view upload.", 403)
         comments = Comment.query.filter_by(upload_id=upload.id)
     # Optionally filter by courtship
-    # TODO: fix this
+    # TODO: fix filtering comments by courtship
     # user_type = request.args.get("courtship", type=str)
     # if user_type is not None:
     #     if user_type != "0" and user_type != "1":
@@ -635,7 +635,7 @@ def search_users():
 @app.route("/courtships/requests/", methods=['POST'])
 @flask_login.login_required
 def create_courtship_request():
-    user = flask_login.current_user
+    me = flask_login.current_user
 
     # Check for valid request body
     body = json.loads(request.data)
@@ -647,96 +647,75 @@ def create_courtship_request():
         return failure_response("User not found.")
 
     type = body.get("type")
-    if type == "friend":
-        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.FRIEND_REQUESTED)
-    elif type == "coach":
-        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.COACH_REQUESTED)
-    elif type == "student":
-        courtship = UserRelationship(user_a_id=user.id, user_b_id=other.id, type=RelationshipType.STUDENT_REQUESTED)
-    else:
+    type = rel_req_of_str(body.get("type"))
+    if type is None:
         return failure_response("Invalid type.", 400)
+    courtship = UserRelationship(user_a_id=me.id, user_b_id=other.id, type=type)
 
     # Check if user is allowed to create courtship request
     # TODO: add support for blocking users
-    if other_id == user.id:
+    if other_id == me.id:
         return failure_response("Cannot court yourself.", 400)
-    if user.get_relationship_with(other.id) is not None:
+    if me.get_relationship_with(other.id) is not None:
         return failure_response("A courtship already exists with this user.", 400)
 
     # Create courtship request
     db.session.add(courtship)
     db.session.commit()
 
-    return success_response(code=201)
+    return success_response(courtship.serialize(me), code=201)
 
 
 @app.route("/courtships/requests")
 @flask_login.login_required
 def get_courtship_requests():
-    user = flask_login.current_user
+    me = flask_login.current_user
     # Get all UserRelationships involving the user
-    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == user.id, UserRelationship.user_b_id == user.id))
+    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == me.id, UserRelationship.user_b_id == me.id))
     # filter relationships to courtship requests only
     courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIEND_REQUESTED,
                                        UserRelationship.type == RelationshipType.COACH_REQUESTED,
                                        UserRelationship.type == RelationshipType.STUDENT_REQUESTED))
     # Optionally filter by request type
-    request_type = request.args.get("type", type=str)
-    if request_type is not None:
-        if request_type == "friend":
-            courtships = courtships.filter_by(type=RelationshipType.FRIEND_REQUESTED)
-        elif request_type == "coach":
-            courtships = courtships.filter_by(type=RelationshipType.COACH_REQUESTED)
-        elif request_type == "student":
-            courtships = courtships.filter_by(type=RelationshipType.STUDENT_REQUESTED)
-        else:
+    type = request.args.get("type", type=str)
+    if type is not None:
+        # Ensure type string is valid enum
+        type = rel_req_of_str(type)
+        if type is None:
             return failure_response("Invalid request type.", 400)
+        courtships = courtships.filter_by(type=type)
 
     # Optionally filter by request direction
     direction = request.args.get("dir", type=str)
     if direction is not None:
         if direction == "in":
-            courtships = courtships.filter_by(user_b_id=user.id)
+            courtships = courtships.filter_by(user_b_id=me.id)
         elif direction == "out":
-            courtships = courtships.filter_by(user_a_id=user.id)
+            courtships = courtships.filter_by(user_a_id=me.id)
         else:
             return failure_response("Invalid dir.", 400)
-
-    # Given two IDs in which one of the IDs is the current user's, return the other ID
-    get_other_id = lambda id1, id2: id1 if user.id == id2 else id2
 
     # Optionally filter by user IDs
     user_ids_str = request.args.get("users", type=str)
     if user_ids_str is not None:
+        # TODO: fix filtering courtship requests by UIDs
         user_ids = user_ids_str.split(",")
-        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != user.id, UserRelationship.user_a_id.in_(user_ids)),
-                                           and_(UserRelationship.user_b_id != user.id, UserRelationship.user_b_id.in_(user_ids))))
+        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != me.id, UserRelationship.user_a_id.in_(user_ids)),
+                                           and_(UserRelationship.user_b_id != me.id, UserRelationship.user_b_id.in_(user_ids))))
 
-    # Create response
-    # map RelationshipTypes to their string forms
-    type_strings = {RelationshipType.FRIEND_REQUESTED: "friend", RelationshipType.STUDENT_REQUESTED: "student", RelationshipType.COACH_REQUESTED: "coach"}
-    response = {
-        "requests": [{
-            "type": type_strings[c.type],
-            "dir": "out" if c.user_a_id == user.id else "in",
-            "user": db.session.query(User).get(get_other_id(c.user_a_id, c.user_b_id)).serialize()
-        } for c in courtships]
-    }
-    return success_response(response)
+    return success_response({"requests": [c.serialize(me) for c in courtships]})
 
 
 @app.route("/courtships/requests/<int:other_user_id>/", methods=["PUT"])
 @flask_login.login_required
 def update_incoming_courtship_request(other_user_id):
-    user = flask_login.current_user
+    me = flask_login.current_user
 
     # Verify incoming courtship request exists
-    rel = user.get_relationship_with(other_user_id)
+    rel = me.get_relationship_with(other_user_id)
     if (rel is None
-        or rel.type not in (RelationshipType.FRIEND_REQUESTED,
-                            RelationshipType.STUDENT_REQUESTED,
-                            RelationshipType.COACH_REQUESTED)
-        or rel.user_b_id != user.id):
+        or not rel.type.is_request()
+        or rel.user_b_id != me.id):
         return failure_response("Incoming courtship request not found.", 404)
 
     # Check for valid request body
@@ -747,7 +726,7 @@ def update_incoming_courtship_request(other_user_id):
 
     # Change relationship status
     if status == 'accept':
-        assert rel.user_b_id == user.id, "Cannot accept an outgoing request!"
+        assert rel.user_b_id == me.id, "Cannot accept an outgoing request!"
 
         # User A requests that current_user becomes his friend.
         if rel.type == RelationshipType.FRIEND_REQUESTED:
@@ -784,9 +763,7 @@ def delete_outgoing_courtship_request(other_user_id):
     # Verify outgoing courtship request exists
     rel = user.get_relationship_with(other_user_id)
     if (rel is None
-        or rel.type not in (RelationshipType.FRIEND_REQUESTED,
-                            RelationshipType.STUDENT_REQUESTED,
-                            RelationshipType.COACH_REQUESTED)
+        or rel.type.is_request()
         or rel.user_a_id != user.id):
         return failure_response("Outgoing courtship request not found.", 404)
 
@@ -800,9 +777,9 @@ def delete_outgoing_courtship_request(other_user_id):
 @app.route("/courtships")
 @flask_login.login_required
 def get_all_courtships():
-    user = flask_login.current_user
+    me = flask_login.current_user
     # Get all UserRelationships involving the user
-    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == user.id, UserRelationship.user_b_id == user.id))
+    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == me.id, UserRelationship.user_b_id == me.id))
     # filter relationships to courtships only (no requests)
     courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIENDS,
                                        UserRelationship.type == RelationshipType.A_COACHES_B))
@@ -812,34 +789,21 @@ def get_all_courtships():
         if type == "friend":
             courtships = courtships.filter_by(type=RelationshipType.FRIENDS)
         elif type == "coach":
-            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_b_id=user.id)
+            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_b_id=me.id)
         elif type == "student":
-            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_a_id=user.id)
+            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_a_id=me.id)
         else:
             return failure_response("Invalid type.", 400)
-
-    # Given two IDs in which one of the IDs is the current user's, return the other ID
-    get_other_id = lambda id1, id2: id1 if user.id == id2 else id2
 
     # Optionally filter by user ID
     user_ids_str = request.args.get("users", type=str)
     if user_ids_str is not None:
         user_ids = user_ids_str.split(",")
-        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != user.id, UserRelationship.user_a_id.in_(user_ids)),
-                                           and_(UserRelationship.user_b_id != user.id, UserRelationship.user_b_id.in_(user_ids))))
+        # TODO: fix filtering courtships by UIDs
+        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != me.id, UserRelationship.user_a_id.in_(user_ids)),
+                                           and_(UserRelationship.user_b_id != me.id, UserRelationship.user_b_id.in_(user_ids))))
 
-    # Create response
-    # Return the string representation of a UserRelationship in which current_user is involved.
-    get_type_str = lambda rel: ("friend" if rel.type == RelationshipType.FRIENDS
-                                         else ("student" if rel.type == RelationshipType.A_COACHES_B and rel.user_a_id == user.id
-                                         else "coach"))
-    response = {
-        "courtships": [{
-            "type": get_type_str(c),
-            "user": db.session.query(User).get(get_other_id(c.user_a_id, c.user_b_id)).serialize()
-        } for c in courtships]
-    }
-    return success_response(response)
+    return success_response({"courtships": [c.serialize(me) for c in courtships]})
 
 
 @app.route("/courtships/<int:other_user_id>/", methods=["DELETE"])
