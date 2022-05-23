@@ -23,6 +23,7 @@ from models import Comment
 from models import Bucket
 from models import VisibilityDefaults
 from models import db
+from models import visib_of_str
 
 from sqlalchemy import or_
 from sqlalchemy import and_
@@ -276,7 +277,7 @@ def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefaults, list[Use
     """
     if visibility is None:
         raise BadRequest("Missing visibility.")
-    default = VisibilityDefaults.of_str(visibility.get("default"))
+    default = visib_of_str(visibility.get("default"))
     if default is None:
         raise BadRequest("Invalid default visibility.")
     also_shared_ids = visibility.get("also_shared_with")
@@ -620,16 +621,15 @@ def delete_bucket(bucket_id):
 @app.route("/users/search")
 @flask_login.login_required
 def search_users():
+    me = flask_login.current_user
     # Check for query params
-    query = request.args.get("query")
+    query = request.args.get("q")
     if query is None:
         return failure_response("Missing query URL parameter.", 400)
     # Search
-    users = []
-    found = User.query.filter_by(username=query).first()
-    if found is not None:
-        users.append(found)
-    return success_response({"users": [u.serialize() for u in users]})
+    found = User.query.filter(User.username.startswith(query))
+    # Exclude current user from search results
+    return success_response({"users": [u.serialize() for u in found if u != me]})
 
 
 @app.route("/courtships/requests/", methods=['POST'])

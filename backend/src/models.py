@@ -113,8 +113,10 @@ class User(db.Model):
 
     def can_view_bucket(self, bucket: Bucket) -> bool:
         """:return: True if the user is allowed to view a given bucket"""
-        # a bucket is viewable if at least one upload in it is viewable
-        n_viewable = 0
+        # Bucket owners can view all their buckets
+        if self.id == bucket.user_id:
+            return True
+        # A bucket is viewable if it contains >=1 viewable uploads
         for u in bucket.uploads:
             if self.can_view_upload(u):
                 return True
@@ -220,8 +222,6 @@ class UserRelationship(db.Model):
     last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
 
-vis = {
-}
 @enum.unique
 class VisibilityDefaults(enum.Enum):
     """Exclusive visibility modes that are assigned to uploads in addition to individual sharing"""
@@ -240,30 +240,30 @@ class VisibilityDefaults(enum.Enum):
     # shared with every user
     PUBLIC = enum.auto()
 
-    def __str__(self):
-        v_map = {
-            VisibilityDefaults.PRIVATE: "private",
-            VisibilityDefaults.COACHES_ONLY: "coaches-only",
-            VisibilityDefaults.FRIENDS_ONLY: "friends-only",
-            VisibilityDefaults.FRIENDS_AND_COACHES: "friends-and-coaches",
-            VisibilityDefaults.PUBLIC: "public",
-        }
-        s = v_map.get(self)
-        if s is None:
-            raise Exception("Default visibility does not have a corresponding string.")
-        return s
 
-    @staticmethod
-    def of_str(cls, s: str) -> VisibilityDefaults | None:
-        """:return: a VisibilityDefaults value or None if DNE"""
-        v_map = {
-            "private": VisibilityDefaults.PRIVATE,
-            "coaches-only": VisibilityDefaults.COACHES_ONLY,
-            "friends-only": VisibilityDefaults.FRIENDS_ONLY,
-            "friends-and-coaches": VisibilityDefaults.FRIENDS_AND_COACHES,
-            "public": VisibilityDefaults.PUBLIC,
-        }
-        return v_map.get(s)
+v_map = {
+    VisibilityDefaults.PRIVATE: "private",
+    VisibilityDefaults.COACHES_ONLY: "coaches-only",
+    VisibilityDefaults.FRIENDS_ONLY: "friends-only",
+    VisibilityDefaults.FRIENDS_AND_COACHES: "friends-and-coaches",
+    VisibilityDefaults.PUBLIC: "public"
+}
+
+
+def visib_to_str(v : VisibilityDefaults) -> str:
+    """:return: string representation of a VisibilityDefaults value"""
+    s = v_map.get(v)
+    if s is None:
+        raise Exception("Default visibility does not have a corresponding string.")
+    return s
+
+
+def visib_of_str(s: str) -> VisibilityDefaults | None:
+    """:return: a VisibilityDefaults value or None if DNE"""
+    for k, v in v_map.items():
+        if v == s:
+            return k
+    return None
 
 
 # Visibility settings on an individual level
@@ -307,7 +307,7 @@ class Upload(db.Model):
             "stream_ready": self.stream_ready,
             "bucket": self.bucket.serialize(),
             "visibility": {
-                "default": str(self.visibility),
+                "default": visib_to_str(self.visibility),
                 "also_shared_with": [u.serialize() for u in self.get_shared_with()]
             }
         }

@@ -611,14 +611,14 @@ paths:
   /users/search:
     get:
       summary: Search for users
-      description: This route returns a list of users given a search query. 
+      description: This route returns a list of users given a search query. The current user is excluded from the response.
       tags:
         - Courtships
         - User
       parameters:
-        - name: query
+        - name: q
           in: query
-          description: The search query. Currently must match usernames exactly.
+          description: The search query.
           required: true
           schema:
             type: string
