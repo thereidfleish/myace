@@ -318,7 +318,7 @@ class Upload(db.Model):
     def get_shared_with(self) -> List[User]:
         """:return: A list of all Users with whom this upload has been individually shared"""
         shares = UploadAlsoSharedWith.query.filter_by(upload_id=self.id)
-        return [User.query.filter_by(id=s.user_id) for s in shares]
+        return [User.query.filter_by(id=s.user_id).first() for s in shares]
 
     def share_with(self, users: List[User]) -> None:
         """Share this upload with a list of users"""

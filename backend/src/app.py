@@ -284,7 +284,7 @@ def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefaults, list[Use
     if also_shared_ids is None:
         raise BadRequest("Missing also_shared_with.")
     also_shared_users = User.get_users_by_ids(also_shared_ids)
-    invalid_ids = set(also_shared_ids) - set([u.id for u in also_shared_ids])
+    invalid_ids = set(also_shared_ids) - set([id for id in also_shared_ids])
     if len(invalid_ids) > 0:
         raise BadRequest("Invalid also_shared_with. Contains invalid user IDs.")
     return default, also_shared_users
