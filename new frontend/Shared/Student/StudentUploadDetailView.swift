@@ -160,7 +160,10 @@ struct StudentUploadDetailView: View {
                     }
                     
                     ForEach(nc.userData.buckets) { bucket in
-                        Text(bucket.name)
+                        HStack {
+                            Text(bucket.name)
+                        }
+                        
                         
                         ForEach(nc.userData.uploads.filter { $0.bucket.id == bucket.id && ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) }) { upload in
                             
