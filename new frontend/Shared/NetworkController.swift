@@ -209,7 +209,9 @@ class NetworkController: ObservableObject {
         request.httpMethod = "POST"
         
         do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(data.prettyPrintedJSONString)
+            print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Bucket.self, from: data)
@@ -232,17 +234,16 @@ class NetworkController: ObservableObject {
             url = URL(string: "\(host)/buckets")!
         }
         
-        print(url)
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             
             print("JSON Data: \(data.prettyPrintedJSONString)")
-            print(response)
+            //print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode([Bucket].self, from: data)
+            let decodedResponse = try decoder.decode(BucketRes.self, from: data)
             DispatchQueue.main.sync {
-                userData.buckets = decodedResponse
+                userData.buckets = decodedResponse.buckets
             }
             
         } catch {
@@ -308,11 +309,11 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode([Upload].self, from: data)
+            let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
                 //userData.bucketContents = decodedResponse
                 //userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
-                userData.uploads = decodedResponse
+                userData.uploads = decodedResponse.uploads
                 print("Got given bucket in nc!")
             }
             
@@ -323,14 +324,15 @@ class NetworkController: ObservableObject {
     
     // GET
     func searchUser(query: String) async throws -> [SharedData] {
-        let url = URL(string: "\(host)/users/search?query=\(query)")!
+        let url = URL(string: "\(host)/users/search?q=\(query)")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            let decodedResponse = try decoder.decode([SharedData].self, from: data)
             print(data.prettyPrintedJSONString!)
-            return decodedResponse
+            let decoder = JSONDecoder()
+            let decodedResponse = try decoder.decode(SearchRes.self, from: data)
+            print("yay")
+            return decodedResponse.users
             
         } catch {
             throw NetworkError.failedDecode

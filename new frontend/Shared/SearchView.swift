@@ -19,6 +19,7 @@ struct SearchView: View {
         Task {
             do {
                 awaiting = true
+                print("searching")
                 try await searchedUsers = nc.searchUser(query: searchText.replacingOccurrences(of: " ", with: ""))
                 try await nc.getCourtships(type: nil, users: nil)
                 try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)

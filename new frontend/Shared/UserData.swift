@@ -127,9 +127,9 @@ enum VisibilityOptions: String, Codable {
     case `public` = "public"
 }
 
-//struct BucketRes: Codable {
-//    var buckets: [Bucket] = []
-//}
+struct BucketRes: Codable {
+    var buckets: [Bucket] = []
+}
 
 struct Bucket: Codable, Identifiable {
     var id: Int = -1
@@ -138,9 +138,9 @@ struct Bucket: Codable, Identifiable {
     var name: String = ""
 }
 
-//struct UploadsRes: Codable {
-//    var uploads: [Upload] = []
-//}
+struct UploadsRes: Codable {
+    var uploads: [Upload] = []
+}
 
 //struct BucketContents: Codable {
 //    var id: Int
@@ -212,9 +212,9 @@ struct DeleteUploadRes: Codable {
     var message: String
 }
 
-//struct SearchRes: Codable {
-//    var users: [SharedData]
-//}
+struct SearchRes: Codable {
+    var users: [SharedData]
+}
 
 struct FriendReq: Codable {
     var courtships: [Courtship]

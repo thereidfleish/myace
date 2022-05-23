@@ -24,17 +24,17 @@ struct UploadView: View {
     @State var bucketID: String?
     @State private var visibility: Visibility = Visibility()
     @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
-                                                   .coaches_only: "Coaches Only",
-                                                   .friends_only: "Friends Only",
-                                                   .friends_and_coaches: "Friends and Coaches Only",
-                                                   .`public`: "Public"]
+                                                                  .coaches_only: "Coaches Only",
+                                                                  .friends_only: "Friends Only",
+                                                                  .friends_and_coaches: "Friends and Coaches Only",
+                                                                  .`public`: "Public"]
     @State private var alsoSharedWith = []
     
     func computeBucketName() -> String {
         for bucket in nc.userData.buckets {
             if bucketID != nil {
                 if (bucket.id == Int(bucketID!)) {
-                    return "The video will be uploaded into \"\(bucket.name)\""
+                    return bucket.name
                 }
             }
         }
@@ -52,11 +52,13 @@ struct UploadView: View {
                         .textFieldStyle()
                     
                     
-                    Text(computeBucketName())
+                    Text("Options")
                         .padding(.top)
                         .bucketTextInternalStyle()
                     
-                    if (!uploading) {
+                    HStack {
+                        Text("Stroke: \(computeBucketName())")
+                        
                         Menu {
                             ForEach(nc.userData.buckets) { bucket in
                                 Button(bucketID == "\(bucket.id)" ? "\(bucket.name)  🎾" : bucket.name) {
@@ -64,9 +66,14 @@ struct UploadView: View {
                                 }
                             }
                         } label: {
-                            Text("Choose A Stroke")
-                                .buttonStyle()
-                        }
+                            Image(systemName: "pencil.circle.fill")
+                                .resizable()
+                                .circularButtonStyle()
+                            
+                        }.disabled(uploading)
+                    }
+                    
+                    if (!uploading) {
                         Menu {
                             ForEach(Array(visOptions.keys), id: \.self) { visOp in
                                 Button(visOptions[visOp]!) {
@@ -203,21 +210,21 @@ struct UploadView: View {
             multipartFormData.append(videoData, withName: "file", fileName: fileURL.lastPathComponent)
             
         }, to: url)
-            .uploadProgress { progress in // main queue by default
-                //                print("Upload Progress: \(progress.fractionCompleted)")
-                //                print("Upload Estimated Time Remaining: \(String(describing: progress.estimatedTimeRemaining))")
-                //                print("Upload Total Unit count: \(progress.totalUnitCount)")
-                //                print("Upload Completed Unit Count: \(progress.completedUnitCount)")
-                progressPercent = "\(Double(round(progress.fractionCompleted * 100 * 10) / 10.0))%"
-                
+        .uploadProgress { progress in // main queue by default
+            //                print("Upload Progress: \(progress.fractionCompleted)")
+            //                print("Upload Estimated Time Remaining: \(String(describing: progress.estimatedTimeRemaining))")
+            //                print("Upload Total Unit count: \(progress.totalUnitCount)")
+            //                print("Upload Completed Unit Count: \(progress.completedUnitCount)")
+            progressPercent = "\(Double(round(progress.fractionCompleted * 100 * 10) / 10.0))%"
+            
+        }
+        .responseJSON(completionHandler: { response in
+            if response.error == nil {
+                completionHandler(.success(response.data ?? "success".data(using: .utf8)!))
+            } else {
+                completionHandler(.failure(response.error!))
             }
-            .responseJSON(completionHandler: { response in
-                if response.error == nil {
-                    completionHandler(.success(response.data ?? "success".data(using: .utf8)!))
-                } else {
-                    completionHandler(.failure(response.error!))
-                }
-            })
+        })
         
         //throw NetworkError.failedUpload
     }

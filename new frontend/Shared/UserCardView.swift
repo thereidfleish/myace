@@ -38,7 +38,7 @@ struct UserCardView: View {
                 try await nc.createCourtshipRequest(userID: userID, type: type)
                 updateData()
                 withAnimation {
-                    statusMessage = userID == String(nc.userData.shared.id) ? "Lol you can't send a courtship request to yourself!!" : "Sent \(type) request."
+                    statusMessage = userID == String(nc.userData.shared.id) ? "We're sorry that you don't have any friends, but you still can't send a courtship request to yourself :(" : "Sent \(type) request."
                     showingStatus = true
                 }
                 awaiting = false

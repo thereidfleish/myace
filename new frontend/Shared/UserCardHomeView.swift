@@ -18,7 +18,7 @@ struct UserCardHomeView: View {
         
         VStack {
             HStack {
-                NavigationLink(destination: StudentUploadDetailView(otherUser: user).navigationTitle("bucket.name").navigationBarTitleDisplayMode(.inline))
+                NavigationLink(destination: StudentUploadDetailView(otherUser: user).navigationTitle(user.display_name).navigationBarTitleDisplayMode(.inline))
                 {
                     VStack(alignment: .leading) {
                         Text(user.display_name)

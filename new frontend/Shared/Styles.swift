@@ -20,6 +20,17 @@ struct button: ViewModifier {
 }
 
 /* General button style */
+struct circularButton: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .scaledToFill()
+            .frame(width: 25, height: 25)
+            .foregroundColor(.green)
+            
+    }
+}
+
+/* General button style */
 struct textField: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -143,6 +154,9 @@ struct friendStatusBackground: ViewModifier {
 extension View {
     func buttonStyle() -> some View {
         modifier(button())
+    }
+    func circularButtonStyle() -> some View {
+        modifier(circularButton())
     }
     func textFieldStyle() -> some View {
         modifier(textField())
