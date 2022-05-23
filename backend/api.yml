@@ -398,22 +398,22 @@ paths:
       parameters:
         - name: upload
           in: query
-          description: Return all comments under a specific upload ID. Currently the user may only view comments on their own uploads.
+          description: Return all comments under a specific upload ID.
           required: false
           schema:
             type: integer
             format: int64
             minimum: 1
-        - name: courtship
-          in: query
-          description: "Filter response to comments created by a specific type of user. The user may only view coach comments on their own uploads. TODO: this needs to be fixed"
-          required: false
-          schema:
-            type: string
-            enum:
-              - friend
-              - coach
-              - student
+        # - name: courtship
+        #   in: query
+        #   description: "Filter response to comments created by a specific type of user. The user may only view coach comments on their own uploads. TODO: this needs to be fixed"
+        #   required: false
+        #   schema:
+        #     type: string
+        #     enum:
+        #       - friend
+        #       - coach
+        #       - student
       responses:
         '200':
           description: 'Retrieved comments'
@@ -434,7 +434,7 @@ paths:
   /comments/:
     post:
       summary: Create comment
-      description: This route posts a comment under a certain upload. As of now, the only user allowed to comment is the upload owner.
+      description: This route posts a comment under a specified upload.
       tags:
         - Comments
       requestBody:
@@ -675,6 +675,12 @@ paths:
       responses:
         '201':
           description: Courtship request created
+          # TODO: respond w newly created courtship req
+          # content:
+          #   application/json:
+          #     schema:
+          #       type: object
+          #       $ref: '#/components/schemas/CourtshipReqResponse'
         default:
           description: Unexpected error
           content:
@@ -767,7 +773,7 @@ paths:
                     type: array
                     items:
                         type: object
-                        $ref: "#/components/schemas/Comment"
+                        $ref: '#/components/schemas/CourtshipReqResponse'
         default:
           description: Unexpected error
           content:

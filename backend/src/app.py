@@ -221,15 +221,15 @@ def get_all_uploads():
         # Default behavior: get my uploads
         uploads = Upload.query.filter_by(user_id=me.id)
     else:
-        # Optionally filter by user and ensure I can view upload
-        uploads = db.session.query(Upload).filter(Upload.user_id == user_id and me.can_view_upload(Upload))
+        # Optionally filter by user ID
+        uploads = Upload.query.filter_by(user_id=user_id)
 
     # Optionally filter by bucket
     bucket_id = request.args.get("bucket")
     if bucket_id is not None:
         uploads = uploads.filter_by(bucket_id=bucket_id)
 
-    return success_response({"uploads": [up.serialize(aws) for up in uploads]})
+    return success_response({"uploads": [up.serialize(aws) for up in uploads if me.can_view_upload(up)]})
 
 
 @app.route("/uploads/<int:upload_id>/")
@@ -562,10 +562,10 @@ def get_buckets():
         # Default behavior: get my buckets
         buckets = Bucket.query.filter_by(user_id=me.id)
     else:
-        # Optionally filter by user and ensure I can view bucket
-        buckets = db.session.query(Bucket).filter(Bucket.user_id == user_id and me.can_view_bucket(Bucket))
+        # Optionally filter by user ID
+        buckets = Bucket.query.filter_by(user_id=user_id)
 
-    return success_response({"buckets": [b.serialize() for b in buckets]})
+    return success_response({"buckets": [b.serialize() for b in buckets if me.can_view_bucket(b)]})
 
 
 @app.route("/buckets/<int:bucket_id>/", methods=['PUT'])
