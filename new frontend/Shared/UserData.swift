@@ -227,9 +227,9 @@ struct FriendReq: Codable {
 }
 
 enum CourtshipType: String, Codable {
-    case friend = "friend-req"
-    case coach = "coach-req"
-    case student = "student-req"
+    case friend = "friend"
+    case coach = "coach"
+    case student = "student"
 }
 
 struct CourtshipRequestReq: Codable {
