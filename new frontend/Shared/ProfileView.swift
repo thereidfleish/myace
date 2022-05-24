@@ -19,22 +19,35 @@ struct ProfileView: View {
     
     var yourself: Bool
     var user: SharedData?
+    @State private var didAppear = false
     
     func initialize() {
-        Task {
-            do {
-                awaiting = true
-                try await nc.getCourtships(type: nil, users: nil)
-                awaiting = false
-                print("DONE!")
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
+        if(!didAppear) {
+            didAppear = true
+            Task {
+                do {
+                    awaiting = true
+                    try await nc.getCourtships(type: nil, users: nil)
+                    
+                    if(!yourself) {
+                        try await nc.getBuckets(userID: String(user?.id ?? -1))
+                        try await nc.getUploads(userID: user?.id ?? -1, bucketID: nil)
+                        
+                    } else {
+                        try await nc.getBuckets(userID: String(nc.userData.shared.id))
+                        try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
+                    }
+                    awaiting = false
+                    print("DONE!")
+                } catch {
+                    print(error)
+                    errorMessage = error.localizedDescription
+                    showingError = true
+                    awaiting = false
+                }
+                
+                print(nc.userData.courtships)
             }
-            
-            print(nc.userData.courtships)
         }
         
     }
@@ -61,7 +74,7 @@ struct ProfileView: View {
                             
                             HStack {
                                 VStack {
-                                    Text("42")
+                                    Text("\(nc.userData.uploads.count)")
                                         .videoInfoStyle()
                                         .foregroundColor(Color.green)
                                     Text("Videos")
@@ -98,7 +111,7 @@ struct ProfileView: View {
                             .font(.footnote)
                             .foregroundColor(Color.green)
                         
-                        StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
+                        StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads).onAppear(perform: {initialize()})
                         
                     }.padding(.horizontal)
                     
@@ -131,7 +144,7 @@ struct ProfileView: View {
                 
             }
         }
-        .onAppear(perform: {initialize()})
+        //.onAppear(perform: {initialize()})
         .sheet(isPresented: $presentingSettingsSheet, onDismiss: {initialize()}) {
             SettingsView()
         }
