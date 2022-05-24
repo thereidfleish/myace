@@ -239,15 +239,15 @@ struct StrokesView: View {
                                         Text("Processing video, please wait...")
                                             .font(.footnote)
                                             .foregroundColor(Color.green)
-                                            .onAppear {
-                                                DispatchQueue.main.async {
-                                                    Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { _ in
-                                                        Task {
-                                                            await initialize()
-                                                        }
-                                                    })
-                                                }
-                                            }
+//                                            .onAppear {
+//                                                DispatchQueue.main.async {
+//                                                    Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { _ in
+//                                                        Task {
+//                                                            await initialize()
+//                                                        }
+//                                                    })
+//                                                }
+//                                            }
                                     }
                                     
                                     //                                            else if (true) {
