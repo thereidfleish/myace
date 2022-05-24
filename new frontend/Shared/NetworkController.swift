@@ -111,7 +111,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             print(response)
         } catch {
             throw NetworkError.failedDecode
@@ -348,7 +348,7 @@ class NetworkController: ObservableObject {
             
             throw NetworkError.failedEncode
         }
-        
+        print(req)
         let url = URL(string: "\(host)/courtships/requests/")!
         
         var request = URLRequest(url: url)

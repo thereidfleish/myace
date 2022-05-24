@@ -10,6 +10,7 @@ import SwiftUI
 struct CameraView: View {
     @ObservedObject var camera = CameraCapture()
     //@ObservedObject var vp = VideoPlayback.getInstance()
+    var otherUser: SharedData?
     @State var isRecording = false
     @EnvironmentObject private var nc: NetworkController
     var body: some View {
@@ -41,7 +42,7 @@ struct CameraView: View {
                 })
             }
             .sheet(isPresented: $nc.uploadURLSaved) {
-                UploadView(url: [nc.uploadURL], bucketID: "")
+                UploadView(url: [nc.uploadURL], bucketID: "", otherUser: otherUser)
             }
             /*
             if vp.videoURL != nil {

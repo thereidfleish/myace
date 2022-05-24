@@ -25,7 +25,6 @@ struct circularButton: ViewModifier {
         content
             .scaledToFill()
             .frame(width: 25, height: 25)
-            .foregroundColor(.green)
             
     }
 }
@@ -94,6 +93,16 @@ struct unreadBucketTextExternal: ViewModifier {
 /* Bucket info displayed when editing */
 struct bucketTextInternal: ViewModifier {
     let font = Font.system(.headline).weight(.bold)
+    func body(content: Content) -> some View {
+        content
+            .font(font)
+            .foregroundColor(Color.green)
+    }
+}
+
+/* Bucket info displayed when editing */
+struct smallestSubsection: ViewModifier {
+    let font = Font.system(.subheadline).weight(.bold)
     func body(content: Content) -> some View {
         content
             .font(font)
@@ -172,6 +181,9 @@ extension View {
     }
     func bucketTextExternalStyle() -> some View {
         modifier(bucketTextExternal())
+    }
+    func smallestSubsectionStyle() -> some View {
+        modifier(smallestSubsection())
     }
     func unreadBucketTextExternalStyle() -> some View {
         modifier(unreadBucketTextExternal())

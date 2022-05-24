@@ -22,13 +22,15 @@ struct UploadView: View {
     @State private var uploadBucketName = ""
     var url: [URL]
     @State var bucketID: String?
+    var otherUser: SharedData?
     @State private var visibility: Visibility = Visibility()
     @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
                                                                   .coaches_only: "Coaches Only",
                                                                   .friends_only: "Friends Only",
                                                                   .friends_and_coaches: "Friends and Coaches Only",
                                                                   .`public`: "Public"]
-    @State private var alsoSharedWith = []
+    //@State private var alsoSharedWith: [SharedData] = []
+    @State private var searchText = ""
     
     func computeBucketName() -> String {
         for bucket in nc.userData.buckets {
@@ -41,23 +43,51 @@ struct UploadView: View {
         return "Choose a stroke to upload the video into"
     }
     
+    func computeVisibilityStatus() -> String {
+        var stringBuilder = "Shared with"
+        
+        switch visibility.default {
+        case .private:
+            stringBuilder += "No one."
+        case .friends_only:
+            stringBuilder += "Friends only."
+        case .coaches_only:
+            stringBuilder += "Coaches only"
+        case .friends_and_coaches:
+            stringBuilder += "Friends and Coaches."
+        case .public:
+            stringBuilder += "Everyone in the world!"
+        }
+        
+        if otherUser != nil {
+            stringBuilder += otherUser!.display_name
+        }
+        return "Choose a stroke to upload the video into"
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading) {
+                    
                     Text("Set Video Title")
                         .bucketTextInternalStyle()
+                        .onAppear {
+                            if otherUser != nil {
+                                visibility.also_shared_with.append(otherUser!)
+                            }
+                        }
                     
                     TextField("My Video", text: $uploadName)
                         .textFieldStyle()
                     
                     
-                    Text("Options")
+                    Text("Stroke")
                         .padding(.top)
                         .bucketTextInternalStyle()
                     
                     HStack {
-                        Text("Stroke: \(computeBucketName())")
+                        Text(computeBucketName())
                         
                         Menu {
                             ForEach(nc.userData.buckets) { bucket in
@@ -73,21 +103,72 @@ struct UploadView: View {
                         }.disabled(uploading)
                     }
                     
-                    if (!uploading) {
-                        Menu {
-                            ForEach(Array(visOptions.keys), id: \.self) { visOp in
-                                Button(visOptions[visOp]!) {
-                                    visibility.default = visOp
+                    Group {
+                        Text("Visibility")
+                            .padding(.top)
+                            .bucketTextInternalStyle()
+                        
+                        Text("Global:")
+                            .padding(.top, 5.0)
+                            .smallestSubsectionStyle()
+                        
+                        HStack {
+                            Text(visOptions[visibility.default]!)
+                            
+                            Menu {
+                                ForEach(Array(visOptions.keys), id: \.self) { visOp in
+                                    Button(visOptions[visOp]!) {
+                                        visibility.default = visOp
+                                    }
                                 }
-                            }
-                        } label: {
-                            Text("Set Visibility")
-                                .buttonStyle()
+                            } label: {
+                                Image(systemName: "pencil.circle.fill")
+                                    .resizable()
+                                    .circularButtonStyle()
+                            }.disabled(uploading)
                         }
                         
-                    } else {
-                        ProgressView()
+                        Text("Overrides:")
+                            .padding(.top, 5.0)
+                            .smallestSubsectionStyle()
+                        
+                        ForEach(visibility.also_shared_with.indices, id: \.self) { index in
+                            HStack {
+                                Text("\(visibility.also_shared_with[index].display_name) (\(visibility.also_shared_with[index].username))")
+                                
+                                Button(action: {
+                                    visibility.also_shared_with.remove(at: index)
+                                }, label: {
+                                    Image(systemName: "trash.circle.fill")
+                                        .resizable()
+                                        .circularButtonStyle()
+                                        .foregroundColor(.red)
+                                }).disabled(uploading)
+                            }
+                            
+                        }
+                        
+                        TextField("Search for users...", text: $searchText)
+                            .textFieldStyle()
+                        
+                        ForEach(nc.userData.courtships.filter { ($0.user.display_name.lowercased().contains(searchText.lowercased()) || $0.user.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0.user)) }, id: \.self.user.id) { courtship in
+                            
+                            Button(action: {
+                                withAnimation {
+                                    visibility.also_shared_with.append(courtship.user)
+                                }
+                                
+                            }, label: {
+                                Text("\(courtship.user.display_name) (\(courtship.user.username))")
+                                    .buttonStyle()
+                            }).disabled(uploading)
+                        }
                     }
+                    
+                    
+                    
+                    
+                    
                     
                     Text("Preview Video")
                         .padding(.top)
@@ -135,6 +216,7 @@ struct UploadView: View {
     func uploadInit(fileURL: URL, uploadName: String) {
         Task {
             do {
+                //visibility.also_shared_with = alsoSharedWith
                 uploading = true
                 uploadingStatus = "Uploading..."
                 print(bucketID)
@@ -150,7 +232,17 @@ struct UploadView: View {
     // POST
     func upload(display_title: String, bucket_id: Int, visibility: Visibility, uid: String, fileURL: URL) async throws {
         
-        let req: VideoReq = VideoReq(filename: fileURL.lastPathComponent, display_title: display_title, bucket_id: bucket_id, visibility: visibility)
+        // have to convert the visibility into an array of user IDs
+        var newVisibility = NewVisibility()
+        newVisibility.default = visibility.default
+        for user in visibility.also_shared_with {
+            newVisibility.also_shared_with.append(user.id)
+        }
+        
+        
+        let req: VideoReq = VideoReq(filename: fileURL.lastPathComponent, display_title: display_title, bucket_id: bucket_id, visibility: newVisibility)
+        
+        print(req)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkController.NetworkError.failedEncode
@@ -163,8 +255,9 @@ struct UploadView: View {
         request.httpMethod = "POST"
         
         do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
-            print(data.prettyPrintedJSONString!)
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(response)
+            print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(VideoRes.self, from: data)

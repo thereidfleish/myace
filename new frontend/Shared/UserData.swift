@@ -91,7 +91,7 @@ struct Helper {
     }
 }
 
-struct SharedData: Codable, Identifiable {
+struct SharedData: Codable, Identifiable, Equatable {
     var id: Int = -1
     var username: String = ""
     var display_name: String = ""
@@ -117,6 +117,12 @@ struct Upload: Codable, Identifiable {
 struct Visibility: Codable {
     var `default`: VisibilityOptions = .private
     var also_shared_with: [SharedData] = []
+}
+
+// Used in UploadView
+struct NewVisibility: Codable {
+    var `default`: VisibilityOptions = .private
+    var also_shared_with: [Int] = []
 }
 
 enum VisibilityOptions: String, Codable {
@@ -169,7 +175,7 @@ struct VideoReq: Codable {
     var filename: String
     var display_title: String
     var bucket_id: Int
-    var visibility: Visibility
+    var visibility: NewVisibility
 }
 
 struct VideoRes: Codable {

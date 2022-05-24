@@ -28,7 +28,7 @@ struct UserCardHomeView: View {
                             Image(systemName: "person.fill")
                                 .foregroundColor(Color.white)
                                 .frame(width: 15)
-                            Text("Bucket names")
+                            Text("@\(user.username)")
                                 .bucketTextExternalStyle()
                         }
                         

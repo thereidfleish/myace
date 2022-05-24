@@ -14,18 +14,27 @@ struct ContentView: View {
     @EnvironmentObject private var networkController: NetworkController
     var body: some View {
         TabView(selection: $selection) {
-                StudentUploadView()
-//                    .environmentObject(studentInfo)
-//                    .environmentObject(coachInfo)
+            StudentUploadView(coach: false)
                     .tabItem {
                         VStack {
                             Image(systemName: "square.and.arrow.up.circle.fill")
                                 .foregroundColor(.green)
-                            Text("Student View")
+                            Text("Your Coaches")
                                 .foregroundColor(.green)
                         }
                     }
                     .tag(0)
+            
+            StudentUploadView(coach: true)
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "square.and.arrow.up.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Your Students")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .tag(1)
             
             
             SearchView()
@@ -37,9 +46,9 @@ struct ContentView: View {
                             .foregroundColor(.green)
                     }
                 }
-                .tag(1)
+                .tag(2)
             
-            CameraView()
+            CameraView(otherUser: nil)
                 .tabItem {
                     VStack {
                         Image(systemName: "camera.fill")
@@ -48,7 +57,7 @@ struct ContentView: View {
                             .foregroundColor(.green)
                     }
                 }
-                .tag(2)
+                .tag(3)
             /*
              .sheet(isPresented: $showsUploadAlert) {
              NavigationView {
@@ -105,7 +114,7 @@ struct ContentView: View {
                             .foregroundColor(.green)
                     }
                 }
-                .tag(3)
+                .tag(4)
             
             
         }.accentColor(Color.green)
