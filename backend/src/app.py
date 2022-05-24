@@ -262,7 +262,9 @@ def get_all_uploads():
     return success_response(
         {
             "uploads": [
-                up.serialize(aws) for up in uploads if me.can_view_upload(up)
+                up.serialize(me, aws)
+                for up in uploads
+                if me.can_view_upload(up)
             ]
         }
     )
@@ -271,6 +273,7 @@ def get_all_uploads():
 @app.route("/uploads/<int:upload_id>/")
 @flask_login.login_required
 def get_upload(upload_id):
+    me = flask_login.current_user
     upload = Upload.query.filter_by(id=upload_id).first()
 
     if upload is None:
@@ -281,7 +284,7 @@ def get_upload(upload_id):
         return failure_response("User forbidden to view upload.", 403)
 
     # Create response
-    response = upload.serialize(aws)
+    response = upload.serialize(me, aws)
 
     if upload.stream_ready:
         signer = CookieSigner(
@@ -442,8 +445,8 @@ def edit_upload(upload_id):
     if upload is None:
         return failure_response("Upload not found.")
 
-    user = flask_login.current_user
-    if not user.can_modify_upload(upload):
+    me = flask_login.current_user
+    if not me.can_modify_upload(upload):
         return failure_response("User forbidden to modify upload.", 403)
 
     body = json.loads(request.data)
@@ -461,7 +464,7 @@ def edit_upload(upload_id):
         bucket = Bucket.query.filter_by(id=new_bucket_id).first()
         if bucket is None:
             return failure_response("Bucket not found.")
-        if not user.can_modify_bucket(bucket):
+        if not me.can_modify_bucket(bucket):
             return failure_response("User forbidden to modify bucket.", 403)
         upload.bucket_id = new_bucket_id
 
@@ -477,7 +480,7 @@ def edit_upload(upload_id):
             return failure_response(b, 400)
 
     db.session.commit()
-    return success_response(upload.serialize(aws))
+    return success_response(upload.serialize(me, aws))
 
 
 @app.route("/uploads/<int:upload_id>/", methods=["DELETE"])
@@ -530,20 +533,20 @@ def get_download_url(upload_id):
 @app.route("/comments")
 @flask_login.login_required
 def get_all_comments():
-    user = flask_login.current_user
+    me = flask_login.current_user
     # Check for optional query params
     upload_id = request.args.get("upload")
     if upload_id is None:
         # Default behavior. Get all comments authored by user
         # I could use 'user.comments' here but the InstrumentedList obj does not
         # allow chaining filtering like the Query obj
-        comments = Comment.query.filter_by(author_id=user.id)
+        comments = Comment.query.filter_by(author_id=me.id)
     else:
         # Get all comments under upload ID
         upload = Upload.query.filter_by(id=upload_id).first()
         if upload is None:
             return failure_response("Upload not found.")
-        if not user.can_view_upload(upload):
+        if not me.can_view_upload(upload):
             return failure_response("User forbidden to view upload.", 403)
         comments = Comment.query.filter_by(upload_id=upload.id)
     # Optionally filter by courtship
@@ -558,7 +561,7 @@ def get_all_comments():
     return success_response(
         {
             "comments": [
-                c.serialize() for c in comments if user.can_view_comment(c)
+                c.serialize(me) for c in comments if me.can_view_comment(c)
             ]
         }
     )
@@ -594,7 +597,7 @@ def create_comment():
     db.session.add(comment)
     db.session.commit()
 
-    return success_response(comment.serialize(), 201)
+    return success_response(comment.serialize(author), 201)
 
 
 @app.route("/comments/<int:comment_id>/", methods=["DELETE"])
@@ -622,7 +625,7 @@ def delete_comment(comment_id):
 @app.route("/buckets/", methods=["POST"])
 @flask_login.login_required
 def create_bucket():
-    user = flask_login.current_user
+    me = flask_login.current_user
 
     # Get name from request body
     body = json.loads(request.data)
@@ -632,15 +635,15 @@ def create_bucket():
             "Could not get bucket name from request body.", 400
         )
 
-    if Bucket.query.filter_by(name=name, user_id=user.id).first() is not None:
+    if Bucket.query.filter_by(name=name, user_id=me.id).first() is not None:
         return failure_response("A bucket of this name already exists.", 400)
 
     # Create the bucket
-    bucket = Bucket(user_id=user.id, name=name)
+    bucket = Bucket(user_id=me.id, name=name)
     db.session.add(bucket)
     db.session.commit()
 
-    return success_response(bucket.serialize(), 201)
+    return success_response(bucket.serialize(me), 201)
 
 
 @app.route("/buckets")
@@ -656,20 +659,24 @@ def get_buckets():
         buckets = Bucket.query.filter_by(user_id=user_id)
 
     return success_response(
-        {"buckets": [b.serialize() for b in buckets if me.can_view_bucket(b)]}
+        {
+            "buckets": [
+                b.serialize(me) for b in buckets if me.can_view_bucket(b)
+            ]
+        }
     )
 
 
 @app.route("/buckets/<int:bucket_id>/", methods=["PUT"])
 @flask_login.login_required
 def edit_bucket(bucket_id):
-    user = flask_login.current_user
-    bucket = Bucket.query.filter_by(id=bucket_id, user_id=user.id).first()
+    me = flask_login.current_user
+    bucket = Bucket.query.filter_by(id=bucket_id, user_id=me.id).first()
 
     if bucket is None:
         return failure_response("Bucket by user not found.")
 
-    if not user.can_modify_bucket(bucket):
+    if not me.can_modify_bucket(bucket):
         return failure_response("User forbidden to modify bucket.", 403)
 
     body = json.loads(request.data)
@@ -680,7 +687,7 @@ def edit_bucket(bucket_id):
         if new_name.isspace():
             return failure_response("Invalid title.", 400)
         if (
-            Bucket.query.filter_by(name=new_name, user_id=user.id).first()
+            Bucket.query.filter_by(name=new_name, user_id=me.id).first()
             is not None
         ):
             return failure_response(
@@ -689,7 +696,7 @@ def edit_bucket(bucket_id):
         bucket.name = new_name
 
     db.session.commit()
-    return success_response(bucket.serialize())
+    return success_response(bucket.serialize(me))
 
 
 @app.route("/buckets/<int:bucket_id>/", methods=["DELETE"])

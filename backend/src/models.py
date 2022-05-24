@@ -9,6 +9,7 @@ import string
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_, and_
 from typing import List, Optional
+from aws import AWS
 
 db = SQLAlchemy()
 
@@ -423,7 +424,8 @@ class Upload(db.Model):
     # Comments
     comments = db.relationship("Comment", back_populates="upload")
 
-    def serialize(self, aws):
+    def serialize(self, client: User, aws: AWS):
+        """:return: a serialized Upload from the perspective of the client"""
         # Check stream_ready
         if not self.stream_ready and self.mediaconvert_job_id is not None:
             status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
@@ -435,11 +437,11 @@ class Upload(db.Model):
             "created": self.created.isoformat(),
             "display_title": self.display_title,
             "stream_ready": self.stream_ready,
-            "bucket": self.bucket.serialize(),
+            "bucket": self.bucket.serialize(client),
             "visibility": {
                 "default": visib_to_str(self.visibility),
                 "also_shared_with": [
-                    u.serialize() for u in self.get_shared_with()
+                    u.serialize(client) for u in self.get_shared_with()
                 ],
             },
         }
@@ -482,11 +484,11 @@ class Comment(db.Model):
     )
     text = db.Column(db.String, nullable=False)
 
-    def serialize(self):
+    def serialize(self, client: User):
         return {
             "id": self.id,
             "created": self.created.isoformat(),
-            "author": self.author.serialize(),
+            "author": self.author.serialize(client),
             "text": self.text,
             "upload_id": self.upload_id,
         }
@@ -504,7 +506,8 @@ class Bucket(db.Model):
     )
     uploads = db.relationship("Upload", back_populates="bucket")
 
-    def serialize(self):
+    def serialize(self, client: User):
+        """:return: a serialized Bucket from the perspective of the client"""
         response = {"id": self.id, "name": self.name, "size": self._size()}
         last_modified = self._get_last_modified()
         response["last_modified"] = (
