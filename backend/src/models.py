@@ -100,9 +100,7 @@ class User(db.Model):
         a_to_b = db.session.query(UserRelationship).get((self.id, other.id))
         if a_to_b is not None:
             return a_to_b
-        b_to_a = db.session.query(UserRelationship).get(
-            (other_user_id, self.id)
-        )
+        b_to_a = db.session.query(UserRelationship).get((other.id, self.id))
         return b_to_a
 
     def coaches(self, other: User) -> bool:
