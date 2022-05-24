@@ -341,7 +341,7 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func createCourtshipRequest(userID: String, type: CourtshipType) async throws {
+    func createCourtshipRequest(userID: String, type: CourtshipRequestType) async throws {
         let req: CourtshipRequestReq = CourtshipRequestReq(user_id: Int(userID)!, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -466,6 +466,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -483,6 +484,7 @@ class NetworkController: ObservableObject {
            
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }

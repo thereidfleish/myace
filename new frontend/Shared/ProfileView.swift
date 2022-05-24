@@ -98,6 +98,7 @@ struct ProfileView: View {
                             .font(.footnote)
                             .foregroundColor(Color.green)
                         
+                        StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
                         
                     }.padding(.horizontal)
                     

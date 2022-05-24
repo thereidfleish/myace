@@ -52,6 +52,7 @@ class NetworkController: ObservableObject {
                 userData.shared = decodedResponse
             }
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -95,6 +96,7 @@ class NetworkController: ObservableObject {
                 return decodedResponse
             }
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
         throw NetworkError.noReturn
@@ -151,6 +153,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -237,6 +240,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -257,6 +261,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -331,6 +336,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }
@@ -405,6 +411,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("Hiiiii")
             throw NetworkError.failedDecode
         }
     }

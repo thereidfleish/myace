@@ -28,9 +28,9 @@ struct UserData {
     
     var courtships: [Courtship] = []
     
-    var incomingCourtshipRequests: [Courtship] = []
+    var incomingCourtshipRequests: [CourtshipRequest] = []
     
-    var outgoingCourtshipRequests: [Courtship] = []
+    var outgoingCourtshipRequests: [CourtshipRequest] = []
     
 //    var incomingFriendRequests: [Friend]
 //    var outgoingFriendRequests: [Friend]
@@ -227,6 +227,12 @@ struct FriendReq: Codable {
 }
 
 enum CourtshipType: String, Codable {
+    case friend = "friend"
+    case coach = "coach"
+    case student = "student"
+}
+
+enum CourtshipRequestType: String, Codable {
     case friend = "friend-req"
     case coach = "coach-req"
     case student = "student-req"
@@ -234,11 +240,11 @@ enum CourtshipType: String, Codable {
 
 struct CourtshipRequestReq: Codable {
     var user_id: Int
-    var type: CourtshipType
+    var type: CourtshipRequestType
 }
 
 struct CourtshipRequestRes: Codable {
-    var requests: [Courtship]
+    var requests: [CourtshipRequest]
 }
 
 struct GetCourtshipsRes: Codable {
@@ -254,6 +260,11 @@ struct GetCourtshipsRes: Codable {
 
 struct Courtship: Codable {
     var type: CourtshipType
+    var user: SharedData
+}
+
+struct CourtshipRequest: Codable {
+    var type: CourtshipRequestType
     var user: SharedData
 }
 

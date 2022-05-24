@@ -152,6 +152,7 @@ struct StrokesView: View {
                         }
                         
                     }.disabled(!upload.stream_ready)
+                        .padding([.trailing], 5)
                     
                     //                                 Button(action: {
                     //                                     showingFeedback.toggle()

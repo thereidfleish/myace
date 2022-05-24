@@ -31,7 +31,7 @@ struct UserCardView: View {
         }
     }
     
-    func createCourtshipRequest(userID: String, type: CourtshipType) {
+    func createCourtshipRequest(userID: String, type: CourtshipRequestType) {
         Task {
             do {
                 awaiting = true
