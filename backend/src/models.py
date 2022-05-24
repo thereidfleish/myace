@@ -7,7 +7,7 @@ import random
 import re
 import string
 from flask_sqlalchemy import SQLAlchemy
-from typing import List
+from typing import List, Optional
 
 db = SQLAlchemy()
 
@@ -16,7 +16,7 @@ db = SQLAlchemy()
 
 # User Table
 class User(db.Model):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
     google_id = db.Column(db.String, nullable=False, unique=True)
@@ -27,8 +27,12 @@ class User(db.Model):
 
     display_name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False, unique=True)
-    uploads = db.relationship("Upload", cascade="delete", back_populates="user")
-    comments = db.relationship("Comment", cascade="delete", back_populates="author")
+    uploads = db.relationship(
+        "Upload", cascade="delete", back_populates="user"
+    )
+    comments = db.relationship(
+        "Comment", cascade="delete", back_populates="author"
+    )
     buckets = db.relationship("Bucket", cascade="delete")
 
     def __init__(self, google_id, display_name, email):
@@ -42,27 +46,37 @@ class User(db.Model):
         response = {
             "id": self.id,
             "username": self.username,
-            "display_name": self.display_name
+            "display_name": self.display_name,
         }
         # private profile information
         if show_private:
             response["email"] = self.email
         return response
 
-    def get_relationship_with(self, other_user_id: int) -> UserRelationship | None:
+    def get_relationship_with(
+        self, other_user_id: int
+    ) -> Optional[UserRelationship]:
         """:return: a relationship with another user, or None if DNE"""
-        a_to_b = db.session.query(UserRelationship).get((self.id, other_user_id))
+        a_to_b = db.session.query(UserRelationship).get(
+            (self.id, other_user_id)
+        )
         if a_to_b is not None:
             return a_to_b
-        b_to_a = db.session.query(UserRelationship).get((other_user_id, self.id))
+        b_to_a = db.session.query(UserRelationship).get(
+            (other_user_id, self.id)
+        )
         return b_to_a
 
     def coaches(self, other: User) -> bool:
-        UserRelationship.query.filter_by(user_a_id=self.id, user_b_id=other.id, type=RelationshipType.A_COACHES_B).exists()
+        return UserRelationship.query.filter_by(
+            user_a_id=self.id,
+            user_b_id=other.id,
+            type=RelationshipType.A_COACHES_B,
+        ).exists()
 
     def friends_with(self, other: User) -> bool:
         rel = self.get_relationship_with(other.id)
-        return rel.type == RelationshipType.FRIENDS
+        return rel is not None and rel.type == RelationshipType.FRIENDS
 
     def can_view_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to view a given upload"""
@@ -133,7 +147,9 @@ class User(db.Model):
         sanitized = re.sub(cls.ILLEGAL_UNAME_PATTERN, "", display_name).lower()
         # If sanitized display name is empty, use 3 random characters
         if sanitized == "":
-            sanitized = "".join(random.choice(string.ascii_lowercase) for _ in range(3))
+            sanitized = "".join(
+                random.choice(string.ascii_lowercase) for _ in range(3)
+            )
         # Add random digit
         username = sanitized + random.choice(string.digits)
         # Continue adding digits until unique
@@ -150,8 +166,8 @@ class User(db.Model):
     def get_users_by_ids(user_ids: List[int]) -> List[User]:
         """:return: a list of ids to a list of users.
 
-           Invalid IDs are ignored.
-       """
+        Invalid IDs are ignored.
+        """
         # naive implementation. TODO: optimize query
         users = []
         for id in user_ids:
@@ -185,6 +201,7 @@ class User(db.Model):
 @enum.unique
 class RelationshipType(enum.Enum):
     """Exclusive states that may exist between two users"""
+
     # If you ever modify these values, the database type must be recreated:
     #   `DROP TYPE "typename";`
     # I'm using enum.auto() because the names are stored in the DB as strings.
@@ -207,32 +224,38 @@ class RelationshipType(enum.Enum):
 
     def is_request(self):
         """:return: True if this relationship type is still pending"""
-        return (self == self.FRIEND_REQUESTED
-             or self == self.COACH_REQUESTED
-             or self == self.STUDENT_REQUESTED)
+        return (
+            self == self.FRIEND_REQUESTED
+            or self == self.COACH_REQUESTED
+            or self == self.STUDENT_REQUESTED
+        )
 
 
 # User relationship association object
 class UserRelationship(db.Model):
-    __tablename__ = 'user_relationship'
+    __tablename__ = "user_relationship"
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
     # However, a duplicate relationship can still be exist if the user IDs are reversed.
     # It is an invariant that this must never happen.
-    user_a_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
-    user_b_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
+    user_a_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
+    user_b_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
     # Stores enum variable names as strings in DB. For now I think this is OK
     # bc it provides readability while only slightly compromising disk space.
     type = db.Column(db.Enum(RelationshipType), nullable=False)
     # The datetime of the last type change. Interpreted differently depending
     # on the type. Ex. if type is FRIENDS then means 'when users became friends'
-    last_changed = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    last_changed = db.Column(
+        db.DateTime, nullable=False, default=datetime.datetime.utcnow
+    )
 
     def serialize(self, client: User):
         """:return: a serialized UserRelationship from the perspective of client"""
-        assert client.id == self.user_a_id or client.id == self.user_b_id, "Precondition failed. Cannot serialize a UserRelationship if the client isn't involved."
+        assert (
+            client.id == self.user_a_id or client.id == self.user_b_id
+        ), "Precondition failed. Cannot serialize a UserRelationship if the client isn't involved."
         res = {
             "type": self.role_of_other(client),
-            "user": self.get_other(client).serialize()
+            "user": self.get_other(client).serialize(),
         }
         # add "dir" field if relationship is a request
         if self.type.is_request():
@@ -241,17 +264,25 @@ class UserRelationship(db.Model):
 
     def get_other(self, client: User) -> User:
         """:return: the other User involved in this relationship"""
-        other_id = self.user_b_id if client.id == self.user_a_id else self.user_a_id
+        other_id = (
+            self.user_b_id if client.id == self.user_a_id else self.user_a_id
+        )
         return db.session.query(User).get(other_id)
 
     def role_of_other(self, client: User) -> str:
         """:return: the string represented role of the other user in this relationship from the perspective of the client"""
         if self.type == RelationshipType.FRIENDS:
             return "friend"
-        elif self.type == RelationshipType.A_COACHES_B and self.user_a_id == client.id:
+        elif (
+            self.type == RelationshipType.A_COACHES_B
+            and self.user_a_id == client.id
+        ):
             # the other user is the student
             return "student"
-        elif self.type == RelationshipType.A_COACHES_B and self.user_b_id == client.id:
+        elif (
+            self.type == RelationshipType.A_COACHES_B
+            and self.user_b_id == client.id
+        ):
             # the other user is the coach
             return "coach"
         elif self.type == RelationshipType.FRIEND_REQUESTED:
@@ -261,10 +292,12 @@ class UserRelationship(db.Model):
         elif self.type == RelationshipType.COACH_REQUESTED:
             return "coach-req"
         else:
-            raise Exception("RelationshipType does not have a corresponding string.")
+            raise Exception(
+                "RelationshipType does not have a corresponding string."
+            )
 
 
-def rel_req_of_str(s: str) -> RelationshipType | None:
+def rel_req_of_str(s: str) -> Optional[RelationshipType]:
     """:return: the pending (requested) RelationshipType representation of a string or None if DNE"""
     if s == "friend-req":
         return RelationshipType.FRIEND_REQUESTED
@@ -279,6 +312,7 @@ def rel_req_of_str(s: str) -> RelationshipType | None:
 @enum.unique
 class VisibilityDefault(enum.Enum):
     """Exclusive visibility modes that are assigned to uploads in addition to individual sharing"""
+
     # If you ever modify these values, the database type must be recreated:
     #   `DROP TYPE "typename";`
     # I'm using enum.auto() because the names are stored in the DB as strings.
@@ -300,19 +334,21 @@ _v_map = {
     VisibilityDefault.COACHES_ONLY: "coaches-only",
     VisibilityDefault.FRIENDS_ONLY: "friends-only",
     VisibilityDefault.FRIENDS_AND_COACHES: "friends-and-coaches",
-    VisibilityDefault.PUBLIC: "public"
+    VisibilityDefault.PUBLIC: "public",
 }
 
 
-def visib_to_str(v : VisibilityDefault) -> str:
+def visib_to_str(v: VisibilityDefault) -> str:
     """:return: string representation of a VisibilityDefault"""
     s = _v_map.get(v)
     if s is None:
-        raise Exception("VisibilityDefault does not have a corresponding string.")
+        raise Exception(
+            "VisibilityDefault does not have a corresponding string."
+        )
     return s
 
 
-def visib_of_str(s: str) -> VisibilityDefault | None:
+def visib_of_str(s: Optional[str]) -> Optional[VisibilityDefault]:
     """:return: a VisibilityDefault or None if DNE"""
     for k, v in _v_map.items():
         if v == s:
@@ -322,17 +358,19 @@ def visib_of_str(s: str) -> VisibilityDefault | None:
 
 # Visibility settings on an individual level
 class UploadAlsoSharedWith(db.Model):
-    __tablename__ = 'upload_shared_with'
+    __tablename__ = "upload_shared_with"
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
-    upload_id = db.Column(db.ForeignKey('upload.id'), primary_key=True)
-    user_id = db.Column(db.ForeignKey('user.id'), primary_key=True)
+    upload_id = db.Column(db.ForeignKey("upload.id"), primary_key=True)
+    user_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
 
 
 # Upload Table
 class Upload(db.Model):
-    __tablename__ = 'upload'
+    __tablename__ = "upload"
     id = db.Column(db.Integer, primary_key=True)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    created = db.Column(
+        db.DateTime, nullable=False, default=datetime.datetime.utcnow
+    )
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     user = db.relationship("User", back_populates="uploads")
     filename = db.Column(db.String, nullable=False)
@@ -342,16 +380,20 @@ class Upload(db.Model):
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
     # Bucket (each upload has to be created in a bucket)
-    bucket_id = db.Column(db.Integer, db.ForeignKey("bucket.id"), nullable=False)
+    bucket_id = db.Column(
+        db.Integer, db.ForeignKey("bucket.id"), nullable=False
+    )
     bucket = db.relationship("Bucket", back_populates="uploads")
     # Comments
-    comments = db.relationship("Comment", cascade="delete", back_populates="upload")
+    comments = db.relationship(
+        "Comment", cascade="delete", back_populates="upload"
+    )
 
     def serialize(self, aws):
         # Check stream_ready
         if not self.stream_ready and self.mediaconvert_job_id is not None:
             status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
-            if status == 'COMPLETE':
+            if status == "COMPLETE":
                 self.stream_ready = True
                 db.session.commit()
         response = {
@@ -362,11 +404,15 @@ class Upload(db.Model):
             "bucket": self.bucket.serialize(),
             "visibility": {
                 "default": visib_to_str(self.visibility),
-                "also_shared_with": [u.serialize() for u in self.get_shared_with()]
-            }
+                "also_shared_with": [
+                    u.serialize() for u in self.get_shared_with()
+                ],
+            },
         }
         if self.stream_ready:
-            response["thumbnail"] = aws.get_thumbnail_url(self.id, expiration_in_hours=1)
+            response["thumbnail"] = aws.get_thumbnail_url(
+                self.id, expiration_in_hours=1
+            )
         return response
 
     def get_shared_with(self) -> List[User]:
@@ -389,13 +435,17 @@ class Upload(db.Model):
 
 # Comment Table
 class Comment(db.Model):
-    __tablename__ = 'comment'
+    __tablename__ = "comment"
     id = db.Column(db.Integer, primary_key=True)
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     author = db.relationship("User", back_populates="comments")
-    upload_id = db.Column(db.Integer, db.ForeignKey("upload.id"), nullable=False)
+    upload_id = db.Column(
+        db.Integer, db.ForeignKey("upload.id"), nullable=False
+    )
     upload = db.relationship("Upload", back_populates="comments")
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    created = db.Column(
+        db.DateTime, nullable=False, default=datetime.datetime.utcnow
+    )
     text = db.Column(db.String, nullable=False)
 
     def serialize(self):
@@ -404,7 +454,7 @@ class Comment(db.Model):
             "created": self.created.isoformat(),
             "author": self.author.serialize(),
             "text": self.text,
-            "upload_id": self.upload_id
+            "upload_id": self.upload_id,
         }
 
 
@@ -414,26 +464,34 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    created = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-    uploads = db.relationship("Upload", cascade="delete", back_populates="bucket")
+    created = db.Column(
+        db.DateTime, nullable=False, default=datetime.datetime.utcnow
+    )
+    uploads = db.relationship(
+        "Upload", cascade="delete", back_populates="bucket"
+    )
 
     def serialize(self):
-        response = {
-            "id": self.id,
-            "name": self.name,
-            "size": self._size()
-        }
+        response = {"id": self.id, "name": self.name, "size": self._size()}
         last_modified = self._get_last_modified()
-        response["last_modified"] = self.created.isoformat() if last_modified is None else last_modified
+        response["last_modified"] = (
+            self.created.isoformat()
+            if last_modified is None
+            else last_modified
+        )
         return response
 
     def _size(self) -> int:
         """:return: A nonnegative count of all associated uploads"""
         return Upload.query.filter_by(bucket_id=self.id).count()
 
-    def _get_last_modified(self) -> datetime.datetime:
+    def _get_last_modified(self) -> Optional[datetime.datetime]:
         """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
-        most_recent = Upload.query.filter_by(bucket_id=self.id).order_by(Upload.created.desc()).first()
+        most_recent = (
+            Upload.query.filter_by(bucket_id=self.id)
+            .order_by(Upload.created.desc())
+            .first()
+        )
         if most_recent is None:
             return None
         return most_recent.created.isoformat()

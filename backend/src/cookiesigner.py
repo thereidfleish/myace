@@ -5,11 +5,11 @@ import base64
 import os
 
 
-def _generate_cookies(policy: tuple, signature: str, cf_key_id: str) -> dict:
+def _generate_cookies(policy: str, signature: str, cf_key_id: str) -> dict:
     return {
         "CloudFront-Policy": policy,
         "CloudFront-Signature": signature,
-        "CloudFront-Key-Pair-Id": cf_key_id
+        "CloudFront-Key-Pair-Id": cf_key_id,
     }
 
 
@@ -18,7 +18,6 @@ def _replace_unsupported_chars(message: str) -> str:
 
 
 class CookieSigner:
-
     def __init__(self, aws: AWS, expiration_in_hrs: int, cf_key_id: str):
         self.aws = aws
         self.expiration_in_hrs = expiration_in_hrs
@@ -28,7 +27,7 @@ class CookieSigner:
     def _expiration_time(self) -> int:
         return int(time.time()) + (self.expiration_in_hrs * 3600)
 
-    def _generate_policy_cookie(self, url: str) -> tuple:
+    def _generate_policy_cookie(self, url: str) -> tuple[str, str]:
         policy_dict = {
             "Statement": [
                 {
@@ -37,7 +36,7 @@ class CookieSigner:
                         "DateLessThan": {
                             "AWS:EpochTime": self._expiration_time()
                         }
-                    }
+                    },
                 }
             ]
         }
@@ -49,9 +48,11 @@ class CookieSigner:
         policy_64 = _replace_unsupported_chars(policy_64)
         return policy_json, policy_64
 
-    def _generate_signature(self, policy: json) -> str:
-        sig_bytes = self.aws.rsa_sign(policy.encode('utf-8'))
-        sig_64 = _replace_unsupported_chars(str(base64.b64encode(sig_bytes), "utf-8"))
+    def _generate_signature(self, policy_json: str) -> str:
+        sig_bytes = self.aws.rsa_sign(policy_json.encode("utf-8"))
+        sig_64 = _replace_unsupported_chars(
+            str(base64.b64encode(sig_bytes), "utf-8")
+        )
         return sig_64
 
     def generate_signed_cookies(self, url: str) -> dict:

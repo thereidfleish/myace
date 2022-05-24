@@ -4,10 +4,10 @@ import json
 import os
 import re
 
+from typing import Optional, Dict, Any, TypedDict
+
 from aws import AWS
 from cookiesigner import CookieSigner
-
-from botocore.client import Config
 
 from flask import Flask
 from flask import make_response
@@ -32,29 +32,34 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 app = Flask(__name__)
+db.init_app(app)
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
 # constants
 ENV = "dev"
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 # replace line delimeter characters '\n' with newlines and convert to bytes
-CF_PRIVATE_KEY = os.environ.get("CF_PRIVATE_KEY").replace("\\n", "\n").encode("utf-8")
-CF_PUBLIC_KEY_ID = os.environ.get("CF_PUBLIC_KEY_ID")
-DB_ENDPOINT = os.environ.get("DB_ENDPOINT")
-DB_NAME = os.environ.get("DB_NAME")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_USERNAME = os.environ.get("DB_USERNAME")
-G_CLIENT_IDS = os.environ.get("G_CLIENT_IDS").split(",")
-S3_CF_DOMAIN = os.environ.get("S3_CF_DOMAIN")
-S3_CF_SUBDOMAIN = os.environ.get("S3_CF_SUBDOMAIN")
+CF_PRIVATE_KEY = (
+    os.environ["CF_PRIVATE_KEY"].replace("\\n", "\n").encode("utf-8")
+)
+CF_PUBLIC_KEY_ID = os.environ["CF_PUBLIC_KEY_ID"]
+DB_ENDPOINT = os.environ["DB_ENDPOINT"]
+DB_NAME = os.environ["DB_NAME"]
+DB_PASSWORD = os.environ["DB_PASSWORD"]
+DB_USERNAME = os.environ["DB_USERNAME"]
+G_CLIENT_IDS = os.environ["G_CLIENT_IDS"].split(",")
+S3_CF_DOMAIN = os.environ["S3_CF_DOMAIN"]
+S3_CF_SUBDOMAIN = os.environ["S3_CF_SUBDOMAIN"]
 VIEW_DOCS_KEY = os.environ.get("VIEW_DOCS_KEY") or os.urandom(24)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(24)
 
 # To use on your local machine, you must configure postgres at port 5432 and put your credentials in your .env.
-app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
+app.config[
+    "SQLALCHEMY_DATABASE_URI"
+] = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
 app.config["SQLALCHEMY_ECHO"] = ENV == "dev"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -63,7 +68,9 @@ with app.app_context():
     db.create_all()
 
 # global AWS instance
-aws = AWS(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY)
+aws = AWS(
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY
+)
 
 
 def success_response(data={}, code=200):
@@ -131,22 +138,29 @@ def login():
     valid = False
     for id in G_CLIENT_IDS:
         try:
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), G_CLIENT_IDS)
+            idinfo = id_token.verify_oauth2_token(
+                token, requests.Request(), G_CLIENT_IDS
+            )
             valid = True
             break
         except ValueError:
-            pass # don't set valid to True
+            pass  # don't set valid to True
 
     if not valid:
-        return failure_response("Could not authenticate user. Unauthorized.", 401)
+        return failure_response(
+            "Could not authenticate user. Unauthorized.", 401
+        )
 
     gid = idinfo.get("sub")
     email = idinfo.get("email")
     display_name = idinfo.get("name")
 
     if gid is None or email is None or display_name is None:
-        return failure_response("Could not retrieve required fields (Google Account ID, email, and name) from"
-                                "Google token. Unauthorized.", 401)
+        return failure_response(
+            "Could not retrieve required fields (Google Account ID, email, and name) from"
+            "Google token. Unauthorized.",
+            401,
+        )
 
     # Check if user exists
     user = User.query.filter_by(google_id=gid).first()
@@ -161,7 +175,9 @@ def login():
     # Begin user session
     flask_login.login_user(user, remember=True)
 
-    return success_response(user.serialize(show_private=True), 201 if user_created else 200)
+    return success_response(
+        user.serialize(show_private=True), 201 if user_created else 200
+    )
 
 
 @app.route("/logout/", methods=["POST"])
@@ -174,10 +190,12 @@ def logout():
 @app.route("/users/me/")
 @flask_login.login_required
 def get_me():
-    return success_response(flask_login.current_user.serialize(show_private=True))
+    return success_response(
+        flask_login.current_user.serialize(show_private=True)
+    )
 
 
-@app.route("/users/me/", methods=['PUT'])
+@app.route("/users/me/", methods=["PUT"])
 @flask_login.login_required
 def edit_me():
     user = flask_login.current_user
@@ -191,12 +209,17 @@ def edit_me():
         new_username = new_username.lower()
         # Check username length
         if len(new_username) <= 2:
-            return failure_response("Username must be at least 3 characters long.", 400)
+            return failure_response(
+                "Username must be at least 3 characters long.", 400
+            )
         # Check if username contains illegal characters
         regexp = re.compile(User.ILLEGAL_UNAME_PATTERN)
         illegal_match = regexp.search(new_username)
         if illegal_match:
-            return failure_response(f"Username contains illegal character '{illegal_match.group(0)}'.", 400)
+            return failure_response(
+                f"Username contains illegal character '{illegal_match.group(0)}'.",
+                400,
+            )
         # Check if username exists
         if not User.is_username_unique(new_username):
             return failure_response(f"Username already exists.", 409)
@@ -230,7 +253,13 @@ def get_all_uploads():
     if bucket_id is not None:
         uploads = uploads.filter_by(bucket_id=bucket_id)
 
-    return success_response({"uploads": [up.serialize(aws) for up in uploads if me.can_view_upload(up)]})
+    return success_response(
+        {
+            "uploads": [
+                up.serialize(aws) for up in uploads if me.can_view_upload(up)
+            ]
+        }
+    )
 
 
 @app.route("/uploads/<int:upload_id>/")
@@ -249,17 +278,39 @@ def get_upload(upload_id):
     response = upload.serialize(aws)
 
     if upload.stream_ready:
-        signer = CookieSigner(aws=aws, expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID)
-        url = "https://" + S3_CF_SUBDOMAIN + "." + S3_CF_DOMAIN + "/uploads/" + str(upload_id) + "/hls/"
-        cookies = signer.generate_signed_cookies(url=(url+"*"))
-        response['url'] = url + "index.m3u8"
+        signer = CookieSigner(
+            aws=aws, expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID
+        )
+        url = (
+            "https://"
+            + S3_CF_SUBDOMAIN
+            + "."
+            + S3_CF_DOMAIN
+            + "/uploads/"
+            + str(upload_id)
+            + "/hls/"
+        )
+        cookies = signer.generate_signed_cookies(url=(url + "*"))
+        response["url"] = url + "index.m3u8"
         response = make_response(response)
-        response.set_cookie(key='CloudFront-Policy', value=cookies['CloudFront-Policy'],
-                            domain=S3_CF_DOMAIN, secure=True)
-        response.set_cookie(key='CloudFront-Signature', value=cookies['CloudFront-Signature'],
-                            domain=S3_CF_DOMAIN, secure=True)
-        response.set_cookie(key='CloudFront-Key-Pair-Id', value=cookies['CloudFront-Key-Pair-Id'],
-                            domain=S3_CF_DOMAIN, secure=True)
+        response.set_cookie(
+            key="CloudFront-Policy",
+            value=cookies["CloudFront-Policy"],
+            domain=S3_CF_DOMAIN,
+            secure=True,
+        )
+        response.set_cookie(
+            key="CloudFront-Signature",
+            value=cookies["CloudFront-Signature"],
+            domain=S3_CF_DOMAIN,
+            secure=True,
+        )
+        response.set_cookie(
+            key="CloudFront-Key-Pair-Id",
+            value=cookies["CloudFront-Key-Pair-Id"],
+            domain=S3_CF_DOMAIN,
+            secure=True,
+        )
         return response
 
     return success_response(response)
@@ -269,7 +320,16 @@ class BadRequest(Exception):
     """Representative of the 400 HTTP response code"""
 
 
-def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefault, list[User]]:
+class VisibilityReq(TypedDict):
+    """The request body of a visibility field. A uniform typed dictionary"""
+
+    default: str
+    also_shared_with: list[int]
+
+
+def parse_visibility_req(
+    visibility: VisibilityReq,
+) -> tuple[VisibilityDefault, list[User]]:
     """Parse the "visibility" request obj.
 
     :return: a VisibilityDefault and a list of users with whom an upload is individually shared
@@ -277,7 +337,8 @@ def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefault, list[User
     """
     if visibility is None:
         raise BadRequest("Missing visibility.")
-    default = visib_of_str(visibility.get("default"))
+    t = visibility.get("default")
+    default = visib_of_str(t)
     if default is None:
         raise BadRequest("Invalid default visibility.")
     also_shared_ids = visibility.get("also_shared_with")
@@ -286,11 +347,13 @@ def parse_visibility_req(visibility: dict) -> tuple[VisibilityDefault, list[User
     also_shared_users = User.get_users_by_ids(also_shared_ids)
     invalid_ids = set(also_shared_ids) - set([id for id in also_shared_ids])
     if len(invalid_ids) > 0:
-        raise BadRequest("Invalid also_shared_with. Contains invalid user IDs.")
+        raise BadRequest(
+            "Invalid also_shared_with. Contains invalid user IDs."
+        )
     return default, also_shared_users
 
 
-@app.route("/uploads/", methods=['POST'])
+@app.route("/uploads/", methods=["POST"])
 @flask_login.login_required
 def create_upload_url():
     user = flask_login.current_user
@@ -319,27 +382,33 @@ def create_upload_url():
         return failure_response(b, 400)
 
     # Create upload
-    new_upload = Upload(filename=filename, display_title=display_title, user_id=user.id, bucket_id=bucket_id, visibility=vis_default)
+    new_upload = Upload(
+        filename=filename,
+        display_title=display_title,
+        user_id=user.id,
+        bucket_id=bucket_id,
+        visibility=vis_default,
+    )
     db.session.add(new_upload)
     db.session.commit()
     # Share upload
     new_upload.share_with(shared_with)
 
     # Create upload URL
-    res = {'id': new_upload.id}
+    res = {"id": new_upload.id}
     urldata = aws.get_presigned_url_post(new_upload.id, filename)
 
     # Replace hyphens in field names with underscores
     # because Swift cannot decode fields with hyphens
-    for old_key in list(urldata['fields']):
-        new_key = old_key.replace('-', '_')
-        urldata['fields'][new_key] = urldata['fields'].pop(old_key)
+    for old_key in list(urldata["fields"]):
+        new_key = old_key.replace("-", "_")
+        urldata["fields"][new_key] = urldata["fields"].pop(old_key)
 
     res.update(urldata)
     return success_response(res, 201)
 
 
-@app.route("/uploads/<int:upload_id>/convert/", methods=['POST'])
+@app.route("/uploads/<int:upload_id>/convert/", methods=["POST"])
 @flask_login.login_required
 def start_convert(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
@@ -359,7 +428,7 @@ def start_convert(upload_id):
     return success_response()
 
 
-@app.route("/uploads/<int:upload_id>/", methods=['PUT'])
+@app.route("/uploads/<int:upload_id>/", methods=["PUT"])
 @flask_login.login_required
 def edit_upload(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
@@ -405,7 +474,7 @@ def edit_upload(upload_id):
     return success_response(upload.serialize(aws))
 
 
-@app.route("/uploads/<int:upload_id>/", methods=['DELETE'])
+@app.route("/uploads/<int:upload_id>/", methods=["DELETE"])
 @flask_login.login_required
 def delete_upload(upload_id):
     # Verify user and existence of upload.
@@ -435,7 +504,13 @@ def get_download_url(upload_id):
     user = flask_login.current_user
     if not user.can_view_upload(upload):
         return failure_response("User forbidden to view upload.", 403)
-    return success_response({"url": aws.get_upload_url(upload.id, upload.filename, expiration_in_hours=1)})
+    return success_response(
+        {
+            "url": aws.get_upload_url(
+                upload.id, upload.filename, expiration_in_hours=1
+            )
+        }
+    )
 
 
 # TODO: autodetect S3 uploads
@@ -474,10 +549,16 @@ def get_all_comments():
     #     comments = comments.join(Comment.author, aliased=True).filter_by(type=user_type)
 
     # Create response
-    return success_response({"comments": [c.serialize() for c in comments if user.can_view_comment(c)]})
+    return success_response(
+        {
+            "comments": [
+                c.serialize() for c in comments if user.can_view_comment(c)
+            ]
+        }
+    )
 
 
-@app.route("/comments/", methods=['POST'])
+@app.route("/comments/", methods=["POST"])
 @flask_login.login_required
 def create_comment():
     # Check for valid fields
@@ -510,7 +591,7 @@ def create_comment():
     return success_response(comment.serialize(), 201)
 
 
-@app.route("/comments/<int:comment_id>/", methods=['DELETE'])
+@app.route("/comments/<int:comment_id>/", methods=["DELETE"])
 @flask_login.login_required
 def delete_comment(comment_id):
     # Check for valid comment
@@ -532,7 +613,7 @@ def delete_comment(comment_id):
     return success_response(code=204)
 
 
-@app.route("/buckets/", methods=['POST'])
+@app.route("/buckets/", methods=["POST"])
 @flask_login.login_required
 def create_bucket():
     user = flask_login.current_user
@@ -541,7 +622,9 @@ def create_bucket():
     body = json.loads(request.data)
     name = body.get("name")
     if name is None:
-        return failure_response("Could not get bucket name from request body.", 400)
+        return failure_response(
+            "Could not get bucket name from request body.", 400
+        )
 
     if Bucket.query.filter_by(name=name, user_id=user.id).first() is not None:
         return failure_response("A bucket of this name already exists.", 400)
@@ -566,10 +649,12 @@ def get_buckets():
         # Optionally filter by user ID
         buckets = Bucket.query.filter_by(user_id=user_id)
 
-    return success_response({"buckets": [b.serialize() for b in buckets if me.can_view_bucket(b)]})
+    return success_response(
+        {"buckets": [b.serialize() for b in buckets if me.can_view_bucket(b)]}
+    )
 
 
-@app.route("/buckets/<int:bucket_id>/", methods=['PUT'])
+@app.route("/buckets/<int:bucket_id>/", methods=["PUT"])
 @flask_login.login_required
 def edit_bucket(bucket_id):
     user = flask_login.current_user
@@ -588,15 +673,20 @@ def edit_bucket(bucket_id):
     if new_name is not None and bucket.name != new_name:
         if new_name.isspace():
             return failure_response("Invalid title.", 400)
-        if Bucket.query.filter_by(name=new_name, user_id=user.id).first() is not None:
-            return failure_response("A bucket of this name already exists.", 400)
+        if (
+            Bucket.query.filter_by(name=new_name, user_id=user.id).first()
+            is not None
+        ):
+            return failure_response(
+                "A bucket of this name already exists.", 400
+            )
         bucket.name = new_name
 
     db.session.commit()
     return success_response(bucket.serialize())
 
 
-@app.route("/buckets/<int:bucket_id>/", methods=['DELETE'])
+@app.route("/buckets/<int:bucket_id>/", methods=["DELETE"])
 @flask_login.login_required
 def delete_bucket(bucket_id):
     user = flask_login.current_user
@@ -618,6 +708,7 @@ def delete_bucket(bucket_id):
 
     return success_response(code=204)
 
+
 @app.route("/users/search")
 @flask_login.login_required
 def search_users():
@@ -629,10 +720,12 @@ def search_users():
     # Search
     found = User.query.filter(User.username.startswith(query))
     # Exclude current user from search results
-    return success_response({"users": [u.serialize() for u in found if u != me]})
+    return success_response(
+        {"users": [u.serialize() for u in found if u != me]}
+    )
 
 
-@app.route("/courtships/requests/", methods=['POST'])
+@app.route("/courtships/requests/", methods=["POST"])
 @flask_login.login_required
 def create_courtship_request():
     me = flask_login.current_user
@@ -641,7 +734,9 @@ def create_courtship_request():
     body = json.loads(request.data)
     other_id = body.get("user_id")
     if other_id is None:
-        return failure_response("Could not get user ID from request body.", 400)
+        return failure_response(
+            "Could not get user ID from request body.", 400
+        )
     other = User.query.filter_by(id=other_id).first()
     if other is None:
         return failure_response("User not found.")
@@ -650,14 +745,18 @@ def create_courtship_request():
     type = rel_req_of_str(body.get("type"))
     if type is None:
         return failure_response("Invalid type.", 400)
-    courtship = UserRelationship(user_a_id=me.id, user_b_id=other.id, type=type)
+    courtship = UserRelationship(
+        user_a_id=me.id, user_b_id=other.id, type=type
+    )
 
     # Check if user is allowed to create courtship request
     # TODO: add support for blocking users
     if other_id == me.id:
         return failure_response("Cannot court yourself.", 400)
     if me.get_relationship_with(other.id) is not None:
-        return failure_response("A courtship already exists with this user.", 400)
+        return failure_response(
+            "A courtship already exists with this user.", 400
+        )
 
     # Create courtship request
     db.session.add(courtship)
@@ -671,11 +770,20 @@ def create_courtship_request():
 def get_courtship_requests():
     me = flask_login.current_user
     # Get all UserRelationships involving the user
-    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == me.id, UserRelationship.user_b_id == me.id))
+    courtships = UserRelationship.query.filter(
+        or_(
+            UserRelationship.user_a_id == me.id,
+            UserRelationship.user_b_id == me.id,
+        )
+    )
     # filter relationships to courtship requests only
-    courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIEND_REQUESTED,
-                                       UserRelationship.type == RelationshipType.COACH_REQUESTED,
-                                       UserRelationship.type == RelationshipType.STUDENT_REQUESTED))
+    courtships = courtships.filter(
+        or_(
+            UserRelationship.type == RelationshipType.FRIEND_REQUESTED,
+            UserRelationship.type == RelationshipType.COACH_REQUESTED,
+            UserRelationship.type == RelationshipType.STUDENT_REQUESTED,
+        )
+    )
     # Optionally filter by request type
     type = request.args.get("type", type=str)
     if type is not None:
@@ -700,10 +808,22 @@ def get_courtship_requests():
     if user_ids_str is not None:
         # TODO: fix filtering courtship requests by UIDs
         user_ids = user_ids_str.split(",")
-        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != me.id, UserRelationship.user_a_id.in_(user_ids)),
-                                           and_(UserRelationship.user_b_id != me.id, UserRelationship.user_b_id.in_(user_ids))))
+        courtships = courtships.filter(
+            or_(
+                and_(
+                    UserRelationship.user_a_id != me.id,
+                    UserRelationship.user_a_id.in_(user_ids),
+                ),
+                and_(
+                    UserRelationship.user_b_id != me.id,
+                    UserRelationship.user_b_id.in_(user_ids),
+                ),
+            )
+        )
 
-    return success_response({"requests": [c.serialize(me) for c in courtships]})
+    return success_response(
+        {"requests": [c.serialize(me) for c in courtships]}
+    )
 
 
 @app.route("/courtships/requests/<int:other_user_id>/", methods=["PUT"])
@@ -713,9 +833,7 @@ def update_incoming_courtship_request(other_user_id):
 
     # Verify incoming courtship request exists
     rel = me.get_relationship_with(other_user_id)
-    if (rel is None
-        or not rel.type.is_request()
-        or rel.user_b_id != me.id):
+    if rel is None or not rel.type.is_request() or rel.user_b_id != me.id:
         return failure_response("Incoming courtship request not found.", 404)
 
     # Check for valid request body
@@ -725,7 +843,7 @@ def update_incoming_courtship_request(other_user_id):
         return failure_response("Could not get status from request body.", 400)
 
     # Change relationship status
-    if status == 'accept':
+    if status == "accept":
         assert rel.user_b_id == me.id, "Cannot accept an outgoing request!"
 
         # User A requests that current_user becomes his friend.
@@ -745,7 +863,7 @@ def update_incoming_courtship_request(other_user_id):
             rel.type = RelationshipType.A_COACHES_B
 
         rel.last_changed = datetime.datetime.utcnow()
-    elif status == 'decline':
+    elif status == "decline":
         # Delete relationship
         db.session.delete(rel)
     else:
@@ -762,9 +880,7 @@ def delete_outgoing_courtship_request(other_user_id):
 
     # Verify outgoing courtship request exists
     rel = user.get_relationship_with(other_user_id)
-    if (rel is None
-        or rel.type.is_request()
-        or rel.user_a_id != user.id):
+    if rel is None or not rel.type.is_request() or rel.user_a_id != user.id:
         return failure_response("Outgoing courtship request not found.", 404)
 
     # Delete relationship
@@ -779,19 +895,32 @@ def delete_outgoing_courtship_request(other_user_id):
 def get_all_courtships():
     me = flask_login.current_user
     # Get all UserRelationships involving the user
-    courtships = UserRelationship.query.filter(or_(UserRelationship.user_a_id == me.id, UserRelationship.user_b_id == me.id))
+    courtships = UserRelationship.query.filter(
+        or_(
+            UserRelationship.user_a_id == me.id,
+            UserRelationship.user_b_id == me.id,
+        )
+    )
     # filter relationships to courtships only (no requests)
-    courtships = courtships.filter(or_(UserRelationship.type == RelationshipType.FRIENDS,
-                                       UserRelationship.type == RelationshipType.A_COACHES_B))
+    courtships = courtships.filter(
+        or_(
+            UserRelationship.type == RelationshipType.FRIENDS,
+            UserRelationship.type == RelationshipType.A_COACHES_B,
+        )
+    )
     # Optionally filter by courtship type
     type = request.args.get("type", type=str)
     if type is not None:
         if type == "friend":
             courtships = courtships.filter_by(type=RelationshipType.FRIENDS)
         elif type == "coach":
-            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_b_id=me.id)
+            courtships = courtships.filter_by(
+                type=RelationshipType.A_COACHES_B, user_b_id=me.id
+            )
         elif type == "student":
-            courtships = courtships.filter_by(type=RelationshipType.A_COACHES_B, user_a_id=me.id)
+            courtships = courtships.filter_by(
+                type=RelationshipType.A_COACHES_B, user_a_id=me.id
+            )
         else:
             return failure_response("Invalid type.", 400)
 
@@ -800,10 +929,22 @@ def get_all_courtships():
     if user_ids_str is not None:
         user_ids = user_ids_str.split(",")
         # TODO: fix filtering courtships by UIDs
-        courtships = courtships.filter(or_(and_(UserRelationship.user_a_id != me.id, UserRelationship.user_a_id.in_(user_ids)),
-                                           and_(UserRelationship.user_b_id != me.id, UserRelationship.user_b_id.in_(user_ids))))
+        courtships = courtships.filter(
+            or_(
+                and_(
+                    UserRelationship.user_a_id != me.id,
+                    UserRelationship.user_a_id.in_(user_ids),
+                ),
+                and_(
+                    UserRelationship.user_b_id != me.id,
+                    UserRelationship.user_b_id.in_(user_ids),
+                ),
+            )
+        )
 
-    return success_response({"courtships": [c.serialize(me) for c in courtships]})
+    return success_response(
+        {"courtships": [c.serialize(me) for c in courtships]}
+    )
 
 
 @app.route("/courtships/<int:other_user_id>/", methods=["DELETE"])
@@ -813,7 +954,10 @@ def remove_courtship(other_user_id):
 
     # Verify courtship exists
     rel = user.get_relationship_with(other_user_id)
-    if rel is None or rel.type not in (RelationshipType.FRIENDS, RelationshipType.A_COACHES_B):
+    if rel is None or rel.type not in (
+        RelationshipType.FRIENDS,
+        RelationshipType.A_COACHES_B,
+    ):
         return failure_response("Courtship not found.", 404)
 
     # Delete courtship 💔
