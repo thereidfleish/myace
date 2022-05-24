@@ -176,7 +176,7 @@ def login():
     flask_login.login_user(user, remember=True)
 
     return success_response(
-        user.serialize(show_private=True), 201 if user_created else 200
+        user.serialize(user, show_private=True), 201 if user_created else 200
     )
 
 
@@ -190,21 +190,20 @@ def logout():
 @app.route("/users/me/")
 @flask_login.login_required
 def get_me():
-    return success_response(
-        flask_login.current_user.serialize(show_private=True)
-    )
+    me = flask_login.current_user
+    return success_response(me.serialize(me, show_private=True))
 
 
 @app.route("/users/me/", methods=["PUT"])
 @flask_login.login_required
 def edit_me():
-    user = flask_login.current_user
+    me = flask_login.current_user
 
     body = json.loads(request.data)
 
     # Update username if it changed
     new_username = body.get("username")
-    if new_username is not None and user.username != new_username:
+    if new_username is not None and me.username != new_username:
         # Check for valid username
         new_username = new_username.lower()
         # Check username length
@@ -223,17 +222,24 @@ def edit_me():
         # Check if username exists
         if not User.is_username_unique(new_username):
             return failure_response(f"Username already exists.", 409)
-        user.username = new_username
+        me.username = new_username
 
     # Update display name if it changed
     new_display_name = body.get("display_name")
-    if new_display_name is not None and user.display_name != new_display_name:
+    if new_display_name is not None and me.display_name != new_display_name:
         if new_display_name.isspace():
             return failure_response("Invalid display name.", 400)
-        user.display_name = new_display_name
+        me.display_name = new_display_name
+
+    # Update bio if it changed
+    new_bio = body.get("biography")
+    if new_bio is not None:
+        new_bio = new_bio.strip()
+        if me.biography != new_bio:
+            me.biography = new_bio
 
     db.session.commit()
-    return success_response(user.serialize(show_private=True))
+    return success_response(me.serialize(me, show_private=True))
 
 
 @app.route("/uploads")
@@ -721,7 +727,7 @@ def search_users():
     found = User.query.filter(User.username.startswith(query))
     # Exclude current user from search results
     return success_response(
-        {"users": [u.serialize() for u in found if u != me]}
+        {"users": [u.serialize(me) for u in found if u != me]}
     )
 
 
@@ -753,7 +759,7 @@ def create_courtship_request():
     # TODO: add support for blocking users
     if other_id == me.id:
         return failure_response("Cannot court yourself.", 400)
-    if me.get_relationship_with(other.id) is not None:
+    if me.get_relationship_with(other) is not None:
         return failure_response(
             "A courtship already exists with this user.", 400
         )
@@ -831,8 +837,12 @@ def get_courtship_requests():
 def update_incoming_courtship_request(other_user_id):
     me = flask_login.current_user
 
+    other = User.query.filter_by(id=other_user_id).first()
+    if other is None:
+        return failure_response("User not found.")
+
     # Verify incoming courtship request exists
-    rel = me.get_relationship_with(other_user_id)
+    rel = me.get_relationship_with(other)
     if rel is None or not rel.type.is_request() or rel.user_b_id != me.id:
         return failure_response("Incoming courtship request not found.", 404)
 
@@ -878,8 +888,12 @@ def update_incoming_courtship_request(other_user_id):
 def delete_outgoing_courtship_request(other_user_id):
     user = flask_login.current_user
 
+    other = User.query.filter_by(id=other_user_id).first()
+    if other is None:
+        return failure_response("User not found.")
+
     # Verify outgoing courtship request exists
-    rel = user.get_relationship_with(other_user_id)
+    rel = user.get_relationship_with(other)
     if rel is None or not rel.type.is_request() or rel.user_a_id != user.id:
         return failure_response("Outgoing courtship request not found.", 404)
 
@@ -952,8 +966,12 @@ def get_all_courtships():
 def remove_courtship(other_user_id):
     user = flask_login.current_user
 
+    other = User.query.filter_by(id=other_user_id).first()
+    if other is None:
+        return failure_response("User not found.")
+
     # Verify courtship exists
-    rel = user.get_relationship_with(other_user_id)
+    rel = user.get_relationship_with(other)
     if rel is None or rel.type not in (
         RelationshipType.FRIENDS,
         RelationshipType.A_COACHES_B,

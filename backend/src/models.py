@@ -7,6 +7,7 @@ import random
 import re
 import string
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_, and_
 from typing import List, Optional
 
 db = SQLAlchemy()
@@ -26,14 +27,11 @@ class User(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
 
     display_name = db.Column(db.String, nullable=False)
+    biography = db.Column(db.String, nullable=False, default="")
     email = db.Column(db.String, nullable=False, unique=True)
-    uploads = db.relationship(
-        "Upload", cascade="delete", back_populates="user"
-    )
-    comments = db.relationship(
-        "Comment", cascade="delete", back_populates="author"
-    )
-    buckets = db.relationship("Bucket", cascade="delete")
+    uploads = db.relationship("Upload", back_populates="user")
+    comments = db.relationship("Comment", back_populates="author")
+    buckets = db.relationship("Bucket", back_populates="user")
 
     def __init__(self, google_id, display_name, email):
         self.google_id = google_id
@@ -41,25 +39,65 @@ class User(db.Model):
         self.display_name = display_name
         self.email = email
 
-    def serialize(self, show_private=False):
+    def serialize(self, client: User, show_private=False):
+        """:return: a serialized User from the perspective of the client"""
         # public profile information
         response = {
             "id": self.id,
             "username": self.username,
             "display_name": self.display_name,
+            "biography": self.biography,
+            "n_uploads": self.relative_count_uploads(client),
+            "n_courtships": {
+                "friends": self.count_friends(),
+                "coaches": self.count_coaches(),
+                "students": self.count_students(),
+            },
         }
         # private profile information
-        if show_private:
+        # I believe the show_private param helps reduce the odds of data leaks
+        if show_private and self.id == client.id:
             response["email"] = self.email
         return response
 
-    def get_relationship_with(
-        self, other_user_id: int
-    ) -> Optional[UserRelationship]:
+    def relative_count_uploads(self, client: User) -> int:
+        """:return: The number of this user's uploads that are visible to the client"""
+        visible = [u for u in self.uploads if client.can_view_upload(u)]
+        return len(visible)
+
+    def count_friends(self) -> int:
+        """:return: the user's nonnegative friend count"""
+        return UserRelationship.query.filter(
+            and_(
+                or_(
+                    self.id == UserRelationship.user_a_id,
+                    self.id == UserRelationship.user_b_id,
+                ),
+                UserRelationship.type == RelationshipType.FRIENDS,
+            )
+        ).count()
+
+    def count_coaches(self) -> int:
+        """:return: the user's nonnegative coach count"""
+        return UserRelationship.query.filter(
+            and_(
+                self.id == UserRelationship.user_a_id,
+                UserRelationship.type == RelationshipType.A_COACHES_B,
+            )
+        ).count()
+
+    def count_students(self) -> int:
+        """:return: the user's nonnegative student count"""
+        return UserRelationship.query.filter(
+            and_(
+                self.id == UserRelationship.user_b_id,
+                UserRelationship.type == RelationshipType.A_COACHES_B,
+            )
+        ).count()
+
+    def get_relationship_with(self, other: User) -> Optional[UserRelationship]:
         """:return: a relationship with another user, or None if DNE"""
-        a_to_b = db.session.query(UserRelationship).get(
-            (self.id, other_user_id)
-        )
+        a_to_b = db.session.query(UserRelationship).get((self.id, other.id))
         if a_to_b is not None:
             return a_to_b
         b_to_a = db.session.query(UserRelationship).get(
@@ -75,7 +113,7 @@ class User(db.Model):
         ).exists()
 
     def friends_with(self, other: User) -> bool:
-        rel = self.get_relationship_with(other.id)
+        rel = self.get_relationship_with(other)
         return rel is not None and rel.type == RelationshipType.FRIENDS
 
     def can_view_upload(self, upload: Upload) -> bool:
@@ -249,13 +287,13 @@ class UserRelationship(db.Model):
     )
 
     def serialize(self, client: User):
-        """:return: a serialized UserRelationship from the perspective of client"""
+        """:return: a serialized UserRelationship from the perspective of the client"""
         assert (
             client.id == self.user_a_id or client.id == self.user_b_id
         ), "Precondition failed. Cannot serialize a UserRelationship if the client isn't involved."
         res = {
             "type": self.role_of_other(client),
-            "user": self.get_other(client).serialize(),
+            "user": self.get_other(client).serialize(client),
         }
         # add "dir" field if relationship is a request
         if self.type.is_request():
@@ -385,9 +423,7 @@ class Upload(db.Model):
     )
     bucket = db.relationship("Bucket", back_populates="uploads")
     # Comments
-    comments = db.relationship(
-        "Comment", cascade="delete", back_populates="upload"
-    )
+    comments = db.relationship("Comment", back_populates="upload")
 
     def serialize(self, aws):
         # Check stream_ready
@@ -464,12 +500,11 @@ class Bucket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", back_populates="buckets")
     created = db.Column(
         db.DateTime, nullable=False, default=datetime.datetime.utcnow
     )
-    uploads = db.relationship(
-        "Upload", cascade="delete", back_populates="bucket"
-    )
+    uploads = db.relationship("Upload", back_populates="bucket")
 
     def serialize(self):
         response = {"id": self.id, "name": self.name, "size": self._size()}
