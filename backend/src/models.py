@@ -239,9 +239,9 @@ class UserRelationship(db.Model):
             res["dir"] = "out" if self.user_a_id == client.id else "in"
         return res
 
-    def get_other(self, client) -> User:
+    def get_other(self, client: User) -> User:
         """:return: the other User involved in this relationship"""
-        other_id = self.user_b_id if User.id == self.user_a_id else self.user_a_id
+        other_id = self.user_b_id if client.id == self.user_a_id else self.user_a_id
         return db.session.query(User).get(other_id)
 
     def role_of_other(self, client: User) -> str:
