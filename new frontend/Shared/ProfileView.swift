@@ -92,6 +92,7 @@ struct ProfileView: View {
                                             .profileTextStyle()
                                     }
                                 }
+                                .disabled(!yourself)
                             }
                             .padding(.horizontal)
                             
@@ -111,7 +112,9 @@ struct ProfileView: View {
                             .font(.footnote)
                             .foregroundColor(Color.green)
                         
-                        StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads).onAppear(perform: {initialize()})
+                        StrokesView(otherUser: yourself ? nc.userData.shared : user!)
+                        //StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
+                            //.onAppear(perform: {initialize()})
                         
                     }.padding(.horizontal)
                     

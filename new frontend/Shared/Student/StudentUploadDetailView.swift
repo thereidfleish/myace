@@ -41,10 +41,10 @@ struct StudentUploadDetailView: View {
     func initialize() async {
         do {
             awaiting = true
-            print("getting buckets")
-            try await nc.getBuckets(userID: nil)
-            print("getting uploads")
-            try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
+            print("getting buckets1")
+            try await nc.getBuckets(userID: String(otherUser.id))
+            print("getting uploads1")
+            try await nc.getUploads(userID: otherUser.id, bucketID: nil)
             //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
             print("Finsihed init")
             awaiting = false
@@ -73,7 +73,9 @@ struct StudentUploadDetailView: View {
                         .bucketTextInternalStyle()
                 }
                 
-                StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads.filter { ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) })
+//                StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads.filter { ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) })
+                //StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads)
+                StrokesView(otherUser: otherUser)
                 
 //                HStack {
 //                    Button(action: {
@@ -109,7 +111,8 @@ struct StudentUploadDetailView: View {
             
             
             
-        }.task {
+        }
+        .task {
             await initialize()
         }
         

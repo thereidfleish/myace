@@ -25,21 +25,28 @@ struct StrokesView: View {
     @State private var showsUploadAlert = false
     @State var url: [URL] = []
     
-    @State var filteredBucketsAndUploads: [Upload]
+    //@State var filteredBucketsAndUploads: [Upload]
+    @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+                                                                  .coaches_only: "Coaches Only",
+                                                                  .friends_only: "Friends Only",
+                                                                  .friends_and_coaches: "Friends and Coaches Only",
+                                                                  .`public`: "Public"]
     
-    func initialize() async {
-
-        do {
-            print("getting buckets")
-            try await nc.getBuckets(userID: String(otherUser.id))
-            print("getting uploads")
-            //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
-            try await nc.getUploads(userID: otherUser.id, bucketID: nil)
-            print("Finsihed init")
-        } catch {
-            print(error)
+    func initialize() {
+        Task {
+            do {
+                
+                    print("getting buckets")
+                    try await nc.getBuckets(userID: String(otherUser.id))
+                    print("getting uploads")
+                    //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
+                    try await nc.getUploads(userID: otherUser.id, bucketID: nil)
+                    print("Finsihed init")
+                
+            } catch {
+                print(error)
+            }
         }
-    
     }
     
     func delete(uploadID: String)  {
@@ -93,8 +100,8 @@ struct StrokesView: View {
                 }
                 
                 
-                ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
-                    
+                //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
+                ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
                     HStack {
                         if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
                             //HStack {
@@ -183,6 +190,7 @@ struct StrokesView: View {
                             Text(upload.created.formatted())
                                 .font(.subheadline)
                                 .foregroundColor(Color.green)
+                           // Text(visOptions[upload.visibility.`default`])
                             
                             Text("\(upload.id)")
                             
@@ -199,7 +207,7 @@ struct StrokesView: View {
                                                 DispatchQueue.main.async {
                                                     Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { _ in
                                                         Task {
-                                                            await initialize()
+                                                            initialize()
                                                         }
                                                     })
                                                 }
@@ -284,7 +292,6 @@ struct StrokesView: View {
                 }
             }
         }
-        .task{await initialize()}
         .mediaImporter(isPresented: $isShowingMediaPicker,
                                             allowedMediaTypes: .all,
                                             allowsMultipleSelection: false) { result in
@@ -301,7 +308,7 @@ struct StrokesView: View {
             }
         }.sheet(isPresented: $showsUploadAlert, onDismiss: {
             Task {
-                await initialize()
+                initialize()
             }
             
         }) {
@@ -311,6 +318,7 @@ struct StrokesView: View {
             CameraView(otherUser: otherUser)
             
         }
+        .task{initialize()} // THIS IS THE CULPRIT
     }
 }
 
