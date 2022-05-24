@@ -15,96 +15,85 @@ struct UserCardView: View {
     @State var user: SharedData
     @State private var showRemoveFriendAlert = false
     
-    func updateData() {
-        Task {
-            do {
-                awaiting = true
-                try await nc.getCourtships(type: nil, users: nil)
-                try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
-                try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
-                awaiting = false
-            } catch {
-                statusMessage = error.localizedDescription
-                showingStatus = true
-                awaiting = false
-            }
+    func updateData() async {
+        do {
+            awaiting = true
+            try await nc.getCourtships(type: nil, users: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
+            awaiting = false
+        } catch {
+            statusMessage = error.localizedDescription
+            showingStatus = true
+            awaiting = false
         }
     }
     
-    func createCourtshipRequest(userID: String, type: CourtshipRequestType) {
-        Task {
-            do {
-                awaiting = true
-                try await nc.createCourtshipRequest(userID: userID, type: type)
-                updateData()
-                withAnimation {
-                    statusMessage = userID == String(nc.userData.shared.id) ? "We're sorry that you don't have any friends, but you still can't send a courtship request to yourself :(" : "Sent \(type) request."
-                    showingStatus = true
-                }
-                awaiting = false
-            } catch {
-                statusMessage = error.localizedDescription
+    func createCourtshipRequest(userID: String, type: CourtshipRequestType) async {
+        do {
+            awaiting = true
+            try await nc.createCourtshipRequest(userID: userID, type: type)
+            await updateData()
+            withAnimation {
+                statusMessage = userID == String(nc.userData.shared.id) ? "We're sorry that you don't have any friends, but you still can't send a courtship request to yourself :(" : "Sent \(type) request."
                 showingStatus = true
-                awaiting = false
             }
+            awaiting = false
+        } catch {
+            statusMessage = error.localizedDescription
+            showingStatus = true
+            awaiting = false
         }
     }
     
-    func deleteOutgoingFriendRequest(userID: String) {
-        Task {
-            do {
-                awaiting = true
-                try await nc.deleteOutgoingCourtshipRequest(otherUserID: userID)
-                updateData()
-                withAnimation {
-                    statusMessage = "Removed courtship request."
-                    showingStatus = true
-                }
-                awaiting = false
-            } catch {
-                statusMessage = error.localizedDescription
+    func deleteOutgoingFriendRequest(userID: String) async {
+        do {
+            awaiting = true
+            try await nc.deleteOutgoingCourtshipRequest(otherUserID: userID)
+            await updateData()
+            withAnimation {
+                statusMessage = "Removed courtship request."
                 showingStatus = true
-                awaiting = false
             }
+            awaiting = false
+        } catch {
+            statusMessage = error.localizedDescription
+            showingStatus = true
+            awaiting = false
         }
     }
     
-    func updateFriendRequest(status: String, userID: String) {
-        Task {
-            do {
-                awaiting = true
-                try await nc.updateIncomingCourtshipRequest(status: status, otherUserID: userID)
-                updateData()
-                withAnimation {
-                    statusMessage = status == "accepted" ? "Accepted courtship request." : "Declined courtship request."
-                    showingStatus = true
-                }
-                awaiting = false
-            } catch {
-                statusMessage = error.localizedDescription
+    func updateFriendRequest(status: String, userID: String) async {
+        do {
+            awaiting = true
+            try await nc.updateIncomingCourtshipRequest(status: status, otherUserID: userID)
+            await updateData()
+            withAnimation {
+                statusMessage = status == "accepted" ? "Accepted courtship request." : "Declined courtship request."
                 showingStatus = true
-                awaiting = false
             }
-            
+            awaiting = false
+        } catch {
+            statusMessage = error.localizedDescription
+            showingStatus = true
+            awaiting = false
         }
     }
     
-    func removeFriend(userID: String) {
-        Task {
-            do {
-                awaiting = true
-                try await nc.removeCourtship(otherUserID: userID)
-                updateData()
-                withAnimation {
-                    statusMessage = "Removed courtship :("
-                    showingStatus = true
-                }
-                awaiting = false
-            } catch {
-                statusMessage = error.localizedDescription
+    func removeFriend(userID: String) async {
+        do {
+            awaiting = true
+            try await nc.removeCourtship(otherUserID: userID)
+            await updateData()
+            withAnimation {
+                statusMessage = "Removed courtship :("
                 showingStatus = true
-                awaiting = false
             }
+            awaiting = false
+        } catch {
+            statusMessage = error.localizedDescription
+            showingStatus = true
+            awaiting = false
         }
     }
     
@@ -173,7 +162,9 @@ struct UserCardView: View {
                     else if (nc.userData.incomingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
                         HStack {
                             Button(action: {
-                                updateFriendRequest(status: "accept", userID: String(user.id))
+                                Task {
+                                    await updateFriendRequest(status: "accept", userID: String(user.id))
+                                }
                             }, label: {
                                 VStack {
                                     Image(systemName: "person.fill.checkmark")
@@ -182,7 +173,10 @@ struct UserCardView: View {
                                 }.friendStatusBackgroundStyle()
                             })
                             Button(action: {
-                                updateFriendRequest(status: "decline", userID: String(user.id))
+                                Task {
+                                    await updateFriendRequest(status: "decline", userID: String(user.id))
+                                }
+                                
                             }, label: {
                                 VStack {
                                     Image(systemName: "person.fill.xmark")
@@ -196,7 +190,10 @@ struct UserCardView: View {
                     // Handle if the user sent an outgoing friend request to this user
                     else if (nc.userData.outgoingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
                         Button(action: {
-                            deleteOutgoingFriendRequest(userID: String(user.id))
+                            Task {
+                                await deleteOutgoingFriendRequest(userID: String(user.id))
+                            }
+                            
                         }, label: {
                             VStack {
                                 Image(systemName: "person.wave.2.fill")
@@ -211,19 +208,28 @@ struct UserCardView: View {
                     else {
                         Menu {
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: .friend)
+                                Task {
+                                    await createCourtshipRequest(userID: String(user.id), type: .friend)
+                                }
+                                
                             } label: {
                                 Label("Add Friend", systemImage: "face.smiling.fill")
                             }
                             
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: .student)
+                                Task {
+                                    await createCourtshipRequest(userID: String(user.id), type: .student)
+                                }
+                                
                             } label: {
                                 Label("Add Student", systemImage: "graduationcap.fill")
                             }
                             
                             Button {
-                                createCourtshipRequest(userID: String(user.id), type: .coach)
+                                Task {
+                                    await createCourtshipRequest(userID: String(user.id), type: .coach)
+                                }
+                                
                             } label: {
                                 Label("Add Coach", systemImage: "person.text.rectangle.fill")
                             }
@@ -243,7 +249,10 @@ struct UserCardView: View {
             }.alert("Are you sure you want to remove \(user.display_name) (\(user.username)) as a courtship?", isPresented: $showRemoveFriendAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Remove Friend", role: .destructive) {
-                    removeFriend(userID: String(user.id))
+                    Task {
+                        await removeFriend(userID: String(user.id))
+                    }
+                    
                 }
             }
         }.navigationLinkStyle()

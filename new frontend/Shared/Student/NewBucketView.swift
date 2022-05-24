@@ -16,19 +16,17 @@ struct NewBucketView: View {
     @State private var errorMessage = ""
     @State private var name: String = ""
     
-    func add() {
-        Task {
-            do {
-                awaiting = true
-                try await nc.createBucket(name: name)
-                print("DONE!")
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-            }
-            awaiting = false
+    func add() async {
+        do {
+            awaiting = true
+            try await nc.createBucket(name: name)
+            print("DONE!")
+        } catch {
+            print(error)
+            errorMessage = error.localizedDescription
+            showingError = true
         }
+        awaiting = false
     }
     
     var body: some View {
@@ -74,7 +72,9 @@ struct NewBucketView: View {
                         .foregroundColor(Color.green)
                         .fontWeight(.bold)
                 }),trailing: Button(action: {
-                    add()
+                    Task {
+                        await add()
+                    }
                     self.mode.wrappedValue.dismiss()
                 }, label: {
                     if (awaiting) {

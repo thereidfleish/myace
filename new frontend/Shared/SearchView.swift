@@ -15,8 +15,7 @@ struct SearchView: View {
     @State private var errorMessage = ""
     @State private var searchedUsers: [SharedData] = []
     
-    func search() {
-        Task {
+    func search() async {
             do {
                 awaiting = true
                 print("searching")
@@ -31,7 +30,6 @@ struct SearchView: View {
                 showingError = true
                 awaiting = false
             }
-        }
     }
     
     var body: some View {
@@ -46,7 +44,9 @@ struct SearchView: View {
                     .autocapitalization(.none)
                     .textFieldStyle()
                     .onChange(of: searchText) { newValue in
-                        search()
+                        Task {
+                            await search()
+                        }
                     }
                 
                 ScrollView {

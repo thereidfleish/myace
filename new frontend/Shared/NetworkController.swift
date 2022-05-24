@@ -306,7 +306,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
@@ -358,7 +358,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(response)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             
         } catch {
             

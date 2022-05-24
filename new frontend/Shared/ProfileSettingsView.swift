@@ -17,9 +17,7 @@ struct ProfileSettingsView: View {
     @State private var showingNewBucketView = false
     var isNewUser: Bool
     
-    func updateUser()  {
-        
-        Task {
+    func updateUser() async {
             do {
                 awaiting = true
                 try await nc.updateCurrentUser(username: username, displayName: displayName)
@@ -31,15 +29,9 @@ struct ProfileSettingsView: View {
                 showingError = true
                 awaiting = false
             }
-        }
     }
     
     var body: some View {
-        if (awaiting) {
-            ProgressView()
-        } else if (showingError) {
-            Text(Helper.computeErrorMessage(errorMessage: errorMessage)).padding()
-        } else {
             VStack {
                 Text(isNewUser ? "Welcome to AI Tennis Coach!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
                     .bucketTextInternalStyle()
@@ -83,7 +75,10 @@ struct ProfileSettingsView: View {
                 Spacer()
                 
                 Button(action: {
-                    updateUser()
+                    Task {
+                        await updateUser()
+                    }
+                    
                 }, label: {
                     Text(isNewUser ? "Continue" : "Save")
                         .buttonStyle()
@@ -96,7 +91,7 @@ struct ProfileSettingsView: View {
                     NewBucketView()
                     
                 }
-        }
+        
         
         
     }

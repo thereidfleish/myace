@@ -32,20 +32,17 @@ struct StrokesView: View {
                                                                   .friends_and_coaches: "Friends and Coaches Only",
                                                                   .`public`: "Public"]
     
-    func initialize() {
-        Task {
-            do {
-                
-                    print("getting buckets")
-                    try await nc.getBuckets(userID: String(otherUser.id))
-                    print("getting uploads")
-                    //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
-                    try await nc.getUploads(userID: otherUser.id, bucketID: nil)
-                    print("Finsihed init")
-                
-            } catch {
-                print(error)
-            }
+    func initialize() async {
+        do {
+            print("getting buckets")
+            try await nc.getBuckets(userID: String(otherUser.id))
+            print("getting uploads")
+            //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
+            try await nc.getUploads(userID: otherUser.id, bucketID: nil)
+            print("Finsihed init")
+            
+        } catch {
+            print(error)
         }
     }
     
@@ -190,7 +187,7 @@ struct StrokesView: View {
                             Text(upload.created.formatted())
                                 .font(.subheadline)
                                 .foregroundColor(Color.green)
-                           // Text(visOptions[upload.visibility.`default`])
+                            // Text(visOptions[upload.visibility.`default`])
                             
                             Text("\(upload.id)")
                             
@@ -207,7 +204,7 @@ struct StrokesView: View {
                                                 DispatchQueue.main.async {
                                                     Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { _ in
                                                         Task {
-                                                            initialize()
+                                                            await initialize()
                                                         }
                                                     })
                                                 }
@@ -292,9 +289,12 @@ struct StrokesView: View {
                 }
             }
         }
+        .task {
+            await initialize()
+        } // THIS IS THE CULPRIT
         .mediaImporter(isPresented: $isShowingMediaPicker,
-                                            allowedMediaTypes: .all,
-                                            allowsMultipleSelection: false) { result in
+                       allowedMediaTypes: .all,
+                       allowsMultipleSelection: false) { result in
             switch result {
             case .success(let url):
                 self.url = url
@@ -308,7 +308,7 @@ struct StrokesView: View {
             }
         }.sheet(isPresented: $showsUploadAlert, onDismiss: {
             Task {
-                initialize()
+                await initialize()
             }
             
         }) {
@@ -318,7 +318,7 @@ struct StrokesView: View {
             CameraView(otherUser: otherUser)
             
         }
-        .task{initialize()} // THIS IS THE CULPRIT
+        
     }
 }
 
