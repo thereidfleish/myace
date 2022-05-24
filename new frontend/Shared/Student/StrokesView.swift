@@ -14,6 +14,7 @@ struct StrokesView: View {
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     var otherUser: SharedData
     var coach: Bool
+    @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
     @State private var showingEditingName = false
     @State private var showingEditingNameUploadID: String = ""
@@ -36,10 +37,10 @@ struct StrokesView: View {
     func initialize() async {
         do {
             print("getting buckets")
-            try await nc.getBuckets(userID: otherUser.id == nc.userData.shared.id ? nil : String(otherUser.id))
+            try await nc.getBuckets(userID: coach ? String(otherUser.id) : nil)
             print("getting uploads")
             //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
-            try await nc.getUploads(userID: otherUser.id, bucketID: nil)
+            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             print("Finsihed init")
             
         } catch {
@@ -75,7 +76,19 @@ struct StrokesView: View {
     //    }
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
+            HStack {
+                Text("Strokes")
+                    .bucketTextInternalStyle()
+                Button(action: {
+                    isShowingNewStrokeView.toggle()
+                }, label: {
+                    Image(systemName: "plus.circle.fill")
+                        .resizable()
+                        .circularButtonStyle()
+                })
+            }
+            
             ForEach(nc.userData.buckets) { bucket in
                 HStack {
                     Text(bucket.name)
@@ -105,7 +118,10 @@ struct StrokesView: View {
                             }
                             
                             Button(role: .destructive) {
-                                
+                                Task {
+                                    try await nc.deleteBucket(bucketID: String(bucket.id))
+                                    await initialize()
+                                }
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -337,9 +353,15 @@ struct StrokesView: View {
         }) {
             UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
         }
-        .sheet(isPresented: $isShowingCamera) {
-            CameraView(otherUser: otherUser)
-            
+//        .sheet(isPresented: $isShowingCamera) {
+//            CameraView(otherUser: otherUser)
+//        }
+        .sheet(isPresented: $isShowingNewStrokeView, onDismiss: {
+            Task {
+                await initialize()
+            }
+        }) {
+            NewBucketView()
         }
         
     }

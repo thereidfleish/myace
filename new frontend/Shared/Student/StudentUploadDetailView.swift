@@ -43,9 +43,9 @@ struct StudentUploadDetailView: View {
         do {
             awaiting = true
             print("getting buckets1")
-            try await nc.getBuckets(userID: String(otherUser.id))
+            try await nc.getBuckets(userID: coach ? String(otherUser.id) : nil)
             print("getting uploads1")
-            try await nc.getUploads(userID: otherUser.id, bucketID: nil)
+            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
             print("Finsihed init")
             awaiting = false
@@ -64,9 +64,7 @@ struct StudentUploadDetailView: View {
                     .padding(.top)
                     .bucketTextInternalStyle()
                 
-                Text("Strokes")
-                    .padding(.top)
-                    .bucketTextInternalStyle()
+
                 
                 if (nc.userData.buckets.count == 0) {
                     Text("Welcome to your space with your coach, \(otherUser.display_name).  To start, create a stroke that ")

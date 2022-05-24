@@ -283,7 +283,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             print(response)
         } catch {
             throw NetworkError.failedDecode
@@ -300,7 +300,7 @@ class NetworkController: ObservableObject {
         } else if let bucketID = bucketID {
             url = URL(string: "\(host)/uploads?bucket=\(bucketID)")!
         } else {
-            url = URL(string: "\(host)/uploads/")!
+            url = URL(string: "\(host)/uploads")!
         }
         
         do {
