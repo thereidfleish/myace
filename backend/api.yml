@@ -31,13 +31,13 @@ paths:
       security: [] # no authentication
       responses:
         '200':
-          description: User fetched.
+          description: User fetched
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Me'
         '201':
-          description: User created.
+          description: User created
           content:
             application/json:
               schema:
@@ -57,7 +57,7 @@ paths:
         - User
       responses:
         '200':
-          description: 'Logout successful.'
+          description: Logout successful
         default:
           description: Unexpected error
           content:
@@ -87,7 +87,7 @@ paths:
                     example: "John Smith"
       responses:
         '200':
-          description: User updated.
+          description: User updated
           content:
             application/json:
               schema:
@@ -125,13 +125,12 @@ paths:
             minimum: 1
       responses:
         '200':
-          description: 'Retrieved uploads.'
+          description: Retrieved uploads
           content:
             application/json:
               schema:
                 type: array
                 items:
-                    type: object
                     $ref: "#/components/schemas/Upload"
         default:
           description: Unexpected error
@@ -157,7 +156,7 @@ paths:
             minimum: 1
       responses:
         '200':
-          description: 'Retrieved upload.'
+          description: Retrieved upload
           content:
             application/json:
               schema:
@@ -211,7 +210,7 @@ paths:
                     $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '200':
-          description: Updated upload.
+          description: Updated upload
           content:
             application/json:
               schema:
@@ -239,7 +238,7 @@ paths:
             minimum: 1
       responses:
         '204':
-          description: Deleted upload.
+          description: Deleted upload
         default:
           description: Unexpected error
           content:
@@ -281,7 +280,7 @@ paths:
                         $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '201':
-          description: Upload URL created.
+          description: Upload URL created
           content:
             application/json:
               schema:
@@ -667,20 +666,14 @@ paths:
                     minimum: 1
                     example: 2
                   type:
-                    type: string
-                    enum:
-                      - friend
-                      - student
-                      - coach
+                    $ref: '#/components/schemas/CourtshipReqType'
       responses:
         '201':
           description: Courtship request created
-          # TODO: respond w newly created courtship req
-          # content:
-          #   application/json:
-          #     schema:
-          #       type: object
-          #       $ref: '#/components/schemas/CourtshipReqResponse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtshipReqResponse'
         default:
           description: Unexpected error
           content:
@@ -739,20 +732,13 @@ paths:
           description: Filter response by the type of request.
           required: false
           schema:
-            type: string
-            enum:
-              - friend
-              - student
-              - coach
+            $ref: '#/components/schemas/CourtshipReqType'
         - name: dir
           in: query
           description: Filter response by the direction of the request.
           required: false
           schema:
-            type: string
-            enum:
-              - in
-              - out
+            $ref: '#/components/schemas/CourtshipReqDir'
         - name: users
           in: query
           description: Filter response to requests to/from users specified by a comma separated list of user IDs.
@@ -772,7 +758,6 @@ paths:
                   requests:
                     type: array
                     items:
-                        type: object
                         $ref: '#/components/schemas/CourtshipReqResponse'
         default:
           description: Unexpected error
@@ -876,11 +861,7 @@ paths:
           description: Filter response by the type of courtship. For example, "student" will only return the current user's students.
           required: false
           schema:
-            type: string
-            enum:
-              - friend
-              - student
-              - coach
+            $ref: '#/components/schemas/CourtshipType'
         - name: users
           in: query
           description: Filter response to courtships to/from users specified by a comma separated list of user IDs.
@@ -900,7 +881,6 @@ paths:
                   courtships:
                     type: array
                     items:
-                        type: object
                         $ref: "#/components/schemas/Courtship"
         default:
           description: Unexpected error
@@ -961,15 +941,23 @@ components:
                 type: boolean
                 example: true
             bucket:
-                type: object
                 $ref: "#/components/schemas/Bucket"
             thumbnail:
                 type: string
                 description: "Will be omitted if stream_ready is false"
                 example: "https://www.something.jpg"
             visibility:
-                type: object
                 $ref: "#/components/schemas/VisibilitySetting"
+
+    VisibilityDefault:
+      type: string
+      description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
+      enum:
+        - private
+        - coaches-only
+        - friends-only
+        - friends-and-coaches
+        - public
 
     VisibilitySettingReq:
       type: object
@@ -978,14 +966,7 @@ components:
         - also_shared_with
       properties:
         default:
-          type: string
-          description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
-          enum:
-            - private
-            - coaches-only
-            - friends-only
-            - friends-and-coaches
-            - public
+          $ref: "#/components/schemas/VisibilityDefault"
         also_shared_with:
           type: array
           description: "A list of user IDs who are exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
@@ -1001,19 +982,11 @@ components:
         - also_shared_with
       properties:
         default:
-          type: string
-          description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
-          enum:
-            - private
-            - coaches-only
-            - friends-only
-            - friends-and-coaches
-            - public
+          $ref: "#/components/schemas/VisibilityDefault"
         also_shared_with:
           type: array
           description: "Exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
           items:
-            type: object
             $ref: "#/components/schemas/UserOverview"
 
     Me:
@@ -1048,36 +1021,52 @@ components:
           type: string
           example: John Smith
 
+    CourtshipType:
+      type: string
+      enum:
+        - friend
+        - student
+        - coach
+
+    CourtshipReqType:
+      type: string
+      enum:
+        - friend-req
+        - student-req
+        - coach-req
+
+    CourtshipReqDir:
+      type: string
+      enum:
+        - in
+        - out
+
     Courtship:
+      description: "An established courtship."
       type: object
       required:
         - type
         - user
       properties:
         type:
-          type: string
-          enum:
-            - friend
-            - student
-            - coach
+          $ref: "#/components/schemas/CourtshipType"
         user:
-          type: object
           $ref: "#/components/schemas/UserOverview"
 
     CourtshipReqResponse:
-      description: "The schema of a pending courtship request."
-
-      allOf:
-        - $ref: "#/components/schemas/Courtship"
-        - type: object
-          required:
-            - dir
-          properties:
-            dir:
-              type: string
-              enum:
-              - in
-              - out
+      description: "A pending courtship request."
+      type: object
+      required:
+        - type
+        - dir
+        - user
+      properties:
+        type:
+          $ref: "#/components/schemas/CourtshipReqType"
+        dir:
+          $ref: "#/components/schemas/CourtshipReqDir"
+        user:
+          $ref: "#/components/schemas/UserOverview"
 
     Bucket:
       allOf:
@@ -1128,7 +1117,6 @@ components:
               type: string
               format: date-time
             author:
-              type: object
               $ref: "#/components/schemas/UserOverview"
         - $ref: "#/components/schemas/CommentRequest"
 
