@@ -8,6 +8,7 @@ target 'AI Tennis Coach (iOS)' do
   # Pods for AI Tennis Coach (iOS)
   pod 'GoogleSignIn'
   pod 'Alamofire', '~> 5.5'
+  pod 'MediaPicker'
 
 end
 
