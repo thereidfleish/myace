@@ -24,6 +24,7 @@ struct StudentUploadDetailView: View {
     @State var url: [URL] = []
     @State private var originalName = ""
     var otherUser: SharedData
+    var coach: Bool
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
@@ -128,7 +129,7 @@ struct StudentUploadDetailView: View {
                 
 //                StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads.filter { ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) })
                 //StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads)
-                StrokesView(otherUser: otherUser)
+                StrokesView(otherUser: otherUser, coach: coach)
 
                 
             }.padding(.horizontal)

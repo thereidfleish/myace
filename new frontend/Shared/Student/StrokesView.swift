@@ -13,6 +13,7 @@ struct StrokesView: View {
     @State private var showingFeedback = false
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     var otherUser: SharedData
+    var coach: Bool
     @State private var isShowingCamera = false
     @State private var showingEditingName = false
     @State private var showingEditingNameUploadID: String = ""
@@ -35,7 +36,7 @@ struct StrokesView: View {
     func initialize() async {
         do {
             print("getting buckets")
-            try await nc.getBuckets(userID: String(otherUser.id))
+            try await nc.getBuckets(userID: otherUser.id == nc.userData.shared.id ? nil : String(otherUser.id))
             print("getting uploads")
             //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
             try await nc.getUploads(userID: otherUser.id, bucketID: nil)
@@ -94,6 +95,28 @@ struct StrokesView: View {
                             .resizable()
                             .circularButtonStyle()
                     })
+                    
+                    if (!coach) {
+                        Menu {
+                            Button {
+                                
+                            } label: {
+                                Label("Rename", systemImage: "pencil")
+                            }
+                            
+                            Button(role: .destructive) {
+                                
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            
+                        } label: {
+                            Image(systemName: "ellipsis.circle.fill")
+                                .resizable()
+                                .circularButtonStyle()
+                        }
+                    }
+                    
                 }
                 
                 

@@ -90,7 +90,7 @@ struct StudentUploadView: View {
                     
                     ScrollView {
                         ForEach(filteredCourtships, id: \.self.user.id) { user in
-                            UserCardHomeView(user: user.user)
+                            UserCardHomeView(user: user.user, coach: coach)
                         }
                     }
                     
