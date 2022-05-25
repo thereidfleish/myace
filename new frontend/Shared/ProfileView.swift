@@ -65,7 +65,7 @@ struct ProfileView: View {
                         
                         HStack {
                             VStack {
-                                Text("\(nc.userData.uploads.count)")
+                                Text("\(yourself ? nc.userData.uploads.count : user?.n_uploads ?? -1)")
                                     .videoInfoStyle()
                                     .foregroundColor(Color.green)
                                 Text("Videos")
@@ -77,7 +77,7 @@ struct ProfileView: View {
                                 
                                 
                                 VStack {
-                                    Text("\(nc.userData.courtships.count)")
+                                    Text("\(yourself ? nc.userData.courtships.count : (user?.n_courtships.coaches ?? -1) + (user?.n_courtships.students ?? -1) + (user?.n_courtships.friends ?? -1))")
                                         .profileInfoStyle()
                                     Text("Courtships")
                                         .profileTextStyle()
@@ -93,7 +93,7 @@ struct ProfileView: View {
                     Text((yourself ? nc.userData.shared.display_name : user?.display_name) ?? "Unknown")
                         .profileInfoStyle()
                     
-                    Text("The users will be able to write a description of themselves here, like on Instagram.")
+                    Text((yourself ? nc.userData.shared.biography : user?.biography) ?? "Could Not Load Description")
                         .profileTextStyle()
                     
                     

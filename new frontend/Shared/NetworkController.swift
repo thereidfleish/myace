@@ -28,8 +28,8 @@ class NetworkController: ObservableObject {
     
     
     // PUT
-    func updateCurrentUser(username: String, displayName: String) async throws {
-        let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName)
+    func updateCurrentUser(username: String, displayName: String, biography: String) async throws {
+        let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName, biography: biography)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkError.failedEncode

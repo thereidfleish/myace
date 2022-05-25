@@ -95,8 +95,17 @@ struct SharedData: Codable, Identifiable, Equatable {
     var id: Int = -1
     var username: String = ""
     var display_name: String = ""
-    var email: String? = nil
+    var biography: String = ""
+    var n_uploads: Int = -1;
+    var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
+    //var email: String? = nil
     //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+}
+
+struct CourtshipTypeQuantity: Codable, Equatable {
+    var friends: Int = -1
+    var coaches: Int = -1
+    var students: Int = -1
 }
 
 struct Upload: Codable, Identifiable {
@@ -169,6 +178,7 @@ struct AuthReq: Codable {
 struct UpdateUserReq: Codable {
     var username: String
     var display_name: String
+    var biography: String
 }
 
 struct VideoReq: Codable {

@@ -11,6 +11,7 @@ struct ProfileSettingsView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var username = ""
     @State private var displayName = ""
+    @State private var biography = ""
     @State private var awaiting = false
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -20,7 +21,7 @@ struct ProfileSettingsView: View {
     func updateUser() async {
             do {
                 awaiting = true
-                try await nc.updateCurrentUser(username: username, displayName: displayName)
+                try await nc.updateCurrentUser(username: username, displayName: displayName, biography: biography)
                 awaiting = false
                 nc.newUser = false
             } catch {
@@ -38,6 +39,7 @@ struct ProfileSettingsView: View {
                     .onAppear(perform: {
                         username = nc.userData.shared.username
                         displayName = nc.userData.shared.display_name
+                        biography = nc.userData.shared.biography
                         if(isNewUser) {
                             nc.userData.buckets = []
                         }
@@ -48,11 +50,19 @@ struct ProfileSettingsView: View {
                 Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
                     .padding(.top, 20)
                     .bucketTextInternalStyle()
-                    .onAppear(perform: {
-                        username = nc.userData.shared.username
-                    })
+//                    .onAppear(perform: {
+//                        //username = nc.userData.shared.username
+//                    })
                 
                 TextField("Edit Display Name", text: $displayName)
+                    .textFieldStyle()
+                
+                
+                Text(isNewUser ? "Tell us a little about yourself in your profile bio.": "Bio")
+                    .padding(.top, 20)
+                    .bucketTextInternalStyle()
+                
+                TextField("Edit Bio", text: $biography)
                     .textFieldStyle()
                 
                 if(isNewUser) {
