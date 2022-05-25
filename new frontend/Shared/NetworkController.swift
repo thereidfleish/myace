@@ -27,6 +27,10 @@ class NetworkController: ObservableObject {
     //    @Published private(set) var state = State.idle
     
     
+    func clearUserData() {
+        userData = UserData()
+    }
+    
     // PUT
     func updateCurrentUser(username: String, displayName: String, biography: String) async throws {
         let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName, biography: biography)

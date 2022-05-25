@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 
 class NetworkController: ObservableObject {
-    @Published var userData: UserData = UserData(shared: SharedData(id: -1, username: "", display_name: "", email: ""), bucketContents: UploadsRes(uploads: []), buckets: [], comments: [], courtships: [], courtshipRequests: [])
+    @Published var userData: UserData = UserData()
     @Published var awaiting = false
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
@@ -26,6 +26,9 @@ class NetworkController: ObservableObject {
     //
     //    @Published private(set) var state = State.idle
     
+    func clearUserData() {
+        userData = UserData()
+    }
     
     // PUT
     func updateCurrentUser(username: String, displayName: String, biography: String) async throws {

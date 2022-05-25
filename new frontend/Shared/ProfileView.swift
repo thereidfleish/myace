@@ -115,7 +115,7 @@ struct ProfileView: View {
                     if (yourself) {
                         GIDSignIn.sharedInstance.signOut()
                         print("logged out")
-                        nc.userData.loggedIn = false
+                        nc.clearUserData()
                         //typeSelection = -1
                     } else {
                         self.presentationMode.wrappedValue.dismiss()
