@@ -17,6 +17,7 @@ struct ProfileSettingsView: View {
     @State private var errorMessage = ""
     @State private var showingNewBucketView = false
     var isNewUser: Bool
+    @State private var savedChanges = false
     
     func updateUser() async {
             do {
@@ -84,9 +85,27 @@ struct ProfileSettingsView: View {
                 
                 Spacer()
                 
+                if (savedChanges) {
+                    Text("Changes saved successfully!")
+                        .padding(.top, 20)
+                        .bucketTextInternalStyle()
+                        .onAppear {
+                            DispatchQueue.main.async {
+                                Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+                                    withAnimation {
+                                        savedChanges = false
+                                    }
+                                })
+                            }
+                        }
+                }
+                
                 Button(action: {
                     Task {
                         await updateUser()
+                        withAnimation {
+                            savedChanges = true;
+                        }
                     }
                     
                 }, label: {
