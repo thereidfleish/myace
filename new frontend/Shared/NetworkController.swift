@@ -298,13 +298,13 @@ class NetworkController: ObservableObject {
     func getUploads(userID: Int?, bucketID: String?) async throws {
         var url: URL
         if (userID != nil && bucketID != nil) {
-            url = URL(string: "\(host)/uploads?user=\(userID!)&bucket=\(bucketID!)")!
+            url = URL(string: "\(host)/users/me/uploads?user=\(userID!)&bucket=\(bucketID!)")!
         } else if let userID = userID {
-            url = URL(string: "\(host)/uploads?user=\(userID)")!
+            url = URL(string: "\(host)/users/me/uploads?user=\(userID)")!
         } else if let bucketID = bucketID {
-            url = URL(string: "\(host)/uploads?bucket=\(bucketID)")!
+            url = URL(string: "\(host)/users/me/uploads?bucket=\(bucketID)")!
         } else {
-            url = URL(string: "\(host)/uploads")!
+            url = URL(string: "\(host)/users/me/uploads")!
         }
         
         do {

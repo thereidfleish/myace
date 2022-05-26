@@ -224,9 +224,9 @@ class NetworkController: ObservableObject {
     func getUploads(getSpecificID: Bool, bucketID: String) async throws {
         var url: URL
         if (getSpecificID) {
-            url = URL(string: "\(host)/uploads?bucket=\(bucketID)")!
+            url = URL(string: "\(host)/users/me/uploads?bucket=\(bucketID)")!
         } else {
-            url = URL(string: "\(host)/uploads")!
+            url = URL(string: "\(host)/users/me/uploads")!
         }
         
         do {

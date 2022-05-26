@@ -114,8 +114,9 @@ struct Upload: Codable, Identifiable {
     var display_title: String = ""
     var stream_ready: Bool = false
     var bucket: Bucket = Bucket()
-    var thumbnail: String? = nil
+    //var thumbnail: String? = nil
     var visibility: Visibility = Visibility()
+    var thumbnail: String? = nil
     var url: String? = nil
     
 //    var isVisible: Bool {
