@@ -33,15 +33,18 @@ struct StrokesView: View {
                                                                   .friends_only: "Friends Only",
                                                                   .friends_and_coaches: "Friends and Coaches Only",
                                                                   .`public`: "Public"]
+    @State private var awaiting = false
     
     func initialize() async {
         do {
+            awaiting = true
             print("getting buckets")
             try await nc.getBuckets(userID: coach ? String(otherUser.id) : nil)
             print("getting uploads")
             //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
             try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             print("Finsihed init")
+            awaiting = false
             
         } catch {
             print(error)
@@ -77,293 +80,229 @@ struct StrokesView: View {
     
     var body: some View {
         VStack(alignment: .leading) {
-            HStack {
-                Text("Strokes")
-                    .bucketTextInternalStyle()
-                if (!coach) {
-                    Button(action: {
-                        isShowingNewStrokeView.toggle()
-                    }, label: {
-                        Image(systemName: "plus.circle.fill")
-                            .resizable()
-                            .circularButtonStyle()
-                    })
-                }
-            }
-            
-            ForEach(nc.userData.buckets) { bucket in
+            if(awaiting) {
+                ProgressView()
+            } else {
                 HStack {
-                    Text(bucket.name)
-                    Spacer()
-                    Button(action: {
-                        currentBucketID = bucket.id
-                        isShowingMediaPicker.toggle()
-                    }, label: {
-                        Image(systemName: "square.and.arrow.up.circle.fill")
-                            .resizable()
-                            .circularButtonStyle()
-                    })
-                    Button(action: {
-                        isShowingCamera.toggle()
-                    }, label: {
-                        Image(systemName: "camera.circle.fill")
-                            .resizable()
-                            .circularButtonStyle()
-                    })
-                    
+                    Text("Strokes")
+                        .bucketTextInternalStyle()
                     if (!coach) {
-                        Menu {
-                            Button {
-                                
-                            } label: {
-                                Label("Rename", systemImage: "pencil")
-                            }
-                            
-                            Button(role: .destructive) {
-                                Task {
-                                    try await nc.deleteBucket(bucketID: String(bucket.id))
-                                    await initialize()
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            
-                        } label: {
-                            Image(systemName: "ellipsis.circle.fill")
+                        Button(action: {
+                            isShowingNewStrokeView.toggle()
+                        }, label: {
+                            Image(systemName: "plus.circle.fill")
                                 .resizable()
                                 .circularButtonStyle()
-                        }
+                        })
                     }
-                    
                 }
                 
-                
-                //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
-                ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
+                ForEach(nc.userData.buckets) { bucket in
                     HStack {
-                        if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
-                            //HStack {
-                            TextField("Edit Name", text: $uploadName)
-                                .textFieldStyle()
-                                .onAppear(perform: {
-                                    uploadName = upload.display_title
-                                    originalName = uploadName
-                                })
-                            
-                            Button(action: {
-                                //editUpload(jj: "\(upload.id)")
-                                showingEditingName = false
-                            }, label: {
-                                Text("Save")
-                                    .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
-                                    .fontWeight(.bold)
-                            })
-                            .disabled(uploadName == originalName)
-                            //}.padding(.horizontal)
-                        }
+                        Text(bucket.name)
+                        Spacer()
+                        Button(action: {
+                            currentBucketID = bucket.id
+                            isShowingMediaPicker.toggle()
+                        }, label: {
+                            Image(systemName: "square.and.arrow.up.circle.fill")
+                                .resizable()
+                                .circularButtonStyle()
+                        })
+                        Button(action: {
+                            isShowingCamera.toggle()
+                        }, label: {
+                            Image(systemName: "camera.circle.fill")
+                                .resizable()
+                                .circularButtonStyle()
+                        })
                         
-                        if (showingDelete && String(upload.id) == showingDeleteUploadID) {
-                            //HStack {
-                            Text("Are you sure you want to delete this video?  This cannot be undone!")
-                                .foregroundColor(.red)
-                            Button(action: {
-                                delete(uploadID: String(upload.id))
-                            }, label: {
-                                Text("Delete")
-                                    .foregroundColor(.red)
-                                    .fontWeight(.bold)
-                            })
-                            //}.padding(.horizontal)
-                        }
-                        
-                    }
-                    
-                    Spacer()
-                    
-                    
-                    HStack {
-                        NavigationLink(destination: StudentFeedbackView(text: "SJ", student: true, showOnlyVideo: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
-                        {
-                            if (!upload.stream_ready) {
-                                ProgressView()
-                            } else {
-                                AsyncImage(url: URL(string: upload.thumbnail!)!) { image in
-                                    image.resizable()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .scaledToFill()
-                                .frame(maxWidth: 200, maxHeight: 150)
-                                .cornerRadius(10)
-                                .shadow(radius: 5)
-                                
-                            }
-                            
-                        }.disabled(!upload.stream_ready)
-                            .padding([.trailing], 5)
-                        
-                        //                                 Button(action: {
-                        //                                     showingFeedback.toggle()
-                        //                                 }, label: {
-                        //                                     if (!upload.stream_ready) {
-                        //                                         ProgressView()
-                        //                                     } else {
-                        //                                         Image("testimage")
-                        //                                             .resizable()
-                        //                                             .scaledToFill()
-                        //                                             .frame(maxWidth: 200, maxHeight: 200)
-                        //                                             .cornerRadius(10)
-                        //                                             .shadow(radius: 5)
-                        //                                     }
-                        //
-                        //                                 }).sheet(isPresented: $showingFeedback) {
-                        //                                     StudentFeedbackView(text: "This is some sample feedback", student: student, showOnlyVideo: true, uploadID: "\(upload.id)")
-                        //                                 }
-                        
-                        VStack(alignment: .leading) {
-                            Text(upload.display_title == "" ? "Untitled" : upload.display_title)
-                                .videoInfoStyle()
-                                .foregroundColor(Color.green)
-                            
-                            Text(upload.created.formatted())
-                                .font(.subheadline)
-                                .foregroundColor(Color.green)
-                            // Text(visOptions[upload.visibility.`default`])
-                            
-                            Text("\(upload.id)")
-                            
-                            HStack {
-                                Button(action: {
-                                    showingFeedback.toggle()
-                                }, label: {
-                                    
-                                    if (!upload.stream_ready) {
-                                        Text("Processing video, please wait...")
-                                            .font(.footnote)
-                                            .foregroundColor(Color.green)
-//                                            .onAppear {
-//                                                DispatchQueue.main.async {
-//                                                    Timer.scheduledTimer(withTimeInterval: 10, repeats: true, block: { _ in
-//                                                        Task {
-//                                                            await initialize()
-//                                                        }
-//                                                    })
-//                                                }
-//                                            }
-                                    }
-                                    
-                                    //                                            else if (true) {
-                                    //                                                Image(systemName: student ? "person.crop.circle.badge.clock.fill" : "plus.bubble.fill")
-                                    //                                                    .resizable()
-                                    //                                                    .scaledToFill()
-                                    //                                                    .foregroundColor(student ? Color.gray: Color.green)
-                                    //                                                    .frame(width: 25, height: 25)
-                                    //                                                    .opacity(student ? 0.5 : 1)
-                                    //                                            }
-                                    //                                if (studentInfo.feedbacks[i] == .unread) {
-                                    //                                    Image(systemName: "text.bubble.fill")
-                                    //                                        .resizable()
-                                    //                                        .scaledToFill()
-                                    //                                        .foregroundColor(Color.green)
-                                    //                                        .frame(width: 25, height: 25)
-                                    //                                }
-                                    //                                if (studentInfo.feedbacks[i] == .read) {
-                                    //                                    Image(systemName: "text.bubble.fill")
-                                    //                                        .resizable()
-                                    //                                        .scaledToFill()
-                                    //                                        .foregroundColor(Color.gray)
-                                    //                                        .frame(width: 25, height: 25)
-                                    //                                }
-                                    
-                                })
-                                //.disabled(upload.comments.count == 0 && student ? true : false)
-                                
-                                Menu {
-                                    Button {
-                                        withAnimation {
-                                            if (showingDelete) {
-                                                showingDelete = false
-                                            }
-                                            if (showingEditingNameUploadID == String(upload.id)) {
-                                                showingEditingName.toggle()
-                                            } else {
-                                                showingEditingName = true
-                                            }
-                                            showingEditingNameUploadID = String(upload.id)
-                                        }
-                                        
-                                        
-                                    } label: {
-                                        Label("Rename", systemImage: "pencil")
-                                    }
-                                    
-                                    Button(role: .destructive) {
-                                        withAnimation {
-                                            if (showingEditingName) {
-                                                showingEditingName = false
-                                            }
-                                            if (showingDeleteUploadID == String(upload.id)) {
-                                                showingDelete.toggle()
-                                            } else {
-                                                showingDelete = true
-                                            }
-                                            showingDeleteUploadID = String(upload.id)
-                                        }
-                                        
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+                        if (!coach) {
+                            Menu {
+                                Button {
                                     
                                 } label: {
-                                    Image(systemName: "ellipsis.circle.fill")
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 25, height: 25)
+                                    Label("Rename", systemImage: "pencil")
                                 }
-                                .padding(.leading)
                                 
+                                Button(role: .destructive) {
+                                    Task {
+                                        try await nc.deleteBucket(bucketID: String(bucket.id))
+                                        await initialize()
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                
+                            } label: {
+                                Image(systemName: "ellipsis.circle.fill")
+                                    .resizable()
+                                    .circularButtonStyle()
+                            }
+                        }
+                        
+                    }
+                    
+                    
+                    //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
+                    ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
+                        HStack {
+                            if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {
+                                //HStack {
+                                TextField("Edit Name", text: $uploadName)
+                                    .textFieldStyle()
+                                    .onAppear(perform: {
+                                        uploadName = upload.display_title
+                                        originalName = uploadName
+                                    })
+                                
+                                Button(action: {
+                                    //editUpload(jj: "\(upload.id)")
+                                    showingEditingName = false
+                                }, label: {
+                                    Text("Save")
+                                        .foregroundColor(uploadName == originalName ? Color.gray : Color.green)
+                                        .fontWeight(.bold)
+                                })
+                                .disabled(uploadName == originalName)
+                                //}.padding(.horizontal)
                             }
                             
-                            Spacer()
+                            if (showingDelete && String(upload.id) == showingDeleteUploadID) {
+                                //HStack {
+                                Text("Are you sure you want to delete this video?  This cannot be undone!")
+                                    .foregroundColor(.red)
+                                Button(action: {
+                                    delete(uploadID: String(upload.id))
+                                }, label: {
+                                    Text("Delete")
+                                        .foregroundColor(.red)
+                                        .fontWeight(.bold)
+                                })
+                                //}.padding(.horizontal)
+                            }
+                            
+                        }
+                        
+                        Spacer()
+                        
+                        
+                        HStack {
+                            VideoThumbnailView(upload: upload)
+                            
+                            VStack(alignment: .leading) {
+                                Text(upload.display_title == "" ? "Untitled" : upload.display_title)
+                                    .videoInfoStyle()
+                                    .foregroundColor(Color.green)
+                                
+                                Text(upload.created.formatted())
+                                    .font(.subheadline)
+                                    .foregroundColor(Color.green)
+                                
+                                Text("\(upload.id)")
+                                
+                                HStack {
+                                    Button(action: {
+                                        showingFeedback.toggle()
+                                    }, label: {
+                                        
+                                        if (!upload.stream_ready) {
+                                            Text("Processing video, please wait...")
+                                                .font(.footnote)
+                                                .foregroundColor(Color.green)
+                                        }
+                                        
+                                      
+                                        
+                                    })
+                                    
+                                    Menu {
+                                        Button {
+                                            withAnimation {
+                                                if (showingDelete) {
+                                                    showingDelete = false
+                                                }
+                                                if (showingEditingNameUploadID == String(upload.id)) {
+                                                    showingEditingName.toggle()
+                                                } else {
+                                                    showingEditingName = true
+                                                }
+                                                showingEditingNameUploadID = String(upload.id)
+                                            }
+                                            
+                                            
+                                        } label: {
+                                            Label("Rename", systemImage: "pencil")
+                                        }
+                                        
+                                        Button(role: .destructive) {
+                                            withAnimation {
+                                                if (showingEditingName) {
+                                                    showingEditingName = false
+                                                }
+                                                if (showingDeleteUploadID == String(upload.id)) {
+                                                    showingDelete.toggle()
+                                                } else {
+                                                    showingDelete = true
+                                                }
+                                                showingDeleteUploadID = String(upload.id)
+                                            }
+                                            
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                        
+                                    } label: {
+                                        Image(systemName: "ellipsis.circle.fill")
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 25, height: 25)
+                                    }
+                                    .padding(.leading)
+                                    
+                                }
+                                
+                                Spacer()
+                            }
                         }
                     }
                 }
             }
-        }
-        .task {
-            await initialize()
-        } // THIS IS THE CULPRIT
-        .mediaImporter(isPresented: $isShowingMediaPicker,
-                       allowedMediaTypes: .all,
-                       allowsMultipleSelection: false) { result in
-            switch result {
-            case .success(let url):
-                self.url = url
-                print(url)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showsUploadAlert = true
+            .task {
+                await initialize()
+            } // THIS IS THE CULPRIT
+            .mediaImporter(isPresented: $isShowingMediaPicker,
+                           allowedMediaTypes: .all,
+                           allowsMultipleSelection: false) { result in
+                switch result {
+                case .success(let url):
+                    self.url = url
+                    print(url)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showsUploadAlert = true
+                    }
+                case .failure(let error):
+                    print(error)
+                    self.url = []
                 }
-            case .failure(let error):
-                print(error)
-                self.url = []
+            }.sheet(isPresented: $showsUploadAlert, onDismiss: {
+                Task {
+                    await initialize()
+                }
+                
+            }) {
+                UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
             }
-        }.sheet(isPresented: $showsUploadAlert, onDismiss: {
-            Task {
-                await initialize()
+    //        .sheet(isPresented: $isShowingCamera) {
+    //            CameraView(otherUser: otherUser)
+    //        }
+            .sheet(isPresented: $isShowingNewStrokeView, onDismiss: {
+                Task {
+                    await initialize()
+                }
+            }) {
+                NewBucketView()
             }
-            
-        }) {
-            UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
-        }
-//        .sheet(isPresented: $isShowingCamera) {
-//            CameraView(otherUser: otherUser)
-//        }
-        .sheet(isPresented: $isShowingNewStrokeView, onDismiss: {
-            Task {
-                await initialize()
-            }
-        }) {
-            NewBucketView()
         }
         
     }

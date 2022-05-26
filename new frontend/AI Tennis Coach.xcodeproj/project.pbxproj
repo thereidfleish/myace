@@ -64,6 +64,8 @@
 		9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
 		9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
 		9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
+		9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
+		9A598D18283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -127,6 +129,7 @@
 		9A2C34D02799BCC700FAC339 /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		9A2C34E9279E20DA00FAC339 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -254,6 +257,7 @@
 				258E80EA283C4D4200AD1657 /* StrokesView.swift */,
 				258D41772773FC470030D437 /* StudentFeedbackView.swift */,
 				25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */,
+				9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */,
 			);
 			path = Student;
 			sourceTree = "<group>";
@@ -550,6 +554,7 @@
 				9A2C34C52793CF4900FAC339 /* TextAlert.swift in Sources */,
 				256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				258E80E8283BE4CD00AD1657 /* Refresher.swift in Sources */,
+				9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */,
 				9A2C34C32792065900FAC339 /* CameraView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34D12799BCC700FAC339 /* UploadView.swift in Sources */,
@@ -577,6 +582,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2552DDB0277CCDA40035EFB4 /* NetworkController.swift in Sources */,
+				9A598D18283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */,
 				2519DB332798C9C600A91759 /* SearchView.swift in Sources */,
 				25D13A6C277A594300FFE2B3 /* LogInView.swift in Sources */,
 				25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
