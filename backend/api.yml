@@ -16,7 +16,6 @@ paths:
       tags:
         - User
       requestBody:
-        description: Google OAuth token
         required: true
         content:
           'application/json':
@@ -27,7 +26,8 @@ paths:
                 properties:
                   token:
                     type: string
-                    example: "{GOOGLE TOKEN}"
+                    description: A valid Google OAuth token.
+                    example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
       security: [] # no authentication
       responses:
         '200':
@@ -99,30 +99,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /uploads:
+  /users/me/uploads:
     get:
       summary: Get all uploads
-      description: Without any query parameters, get a list of the current user's uploads.
-      operationId: "getUploads" # keeping operationId here so i don't forget about i
+      description: Get a list of the current user's uploads.
+      operationId: "getMyUploads" # keeping operationId here so i don't forget about it
       tags:
         - Uploads
       parameters:
-        - name: user
-          in: query
-          description: Filter response to uploads by a given user ID.
-          required: false
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
         - name: bucket
           in: query
-          description: Filter response to uploads in a given bucket ID.
+          description: Filter response to uploads in a given bucket.
           required: false
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: "#/components/schemas/BucketID"
+        - name: shared-with
+          in: query
+          description: Filter response to uploads shared with a given user (either individually or as a part of a group).
+          required: false
+          schema:
+            $ref: "#/components/schemas/UserID"
+      responses:
+        '200':
+          description: Retrieved uploads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/Upload"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{user_id}/uploads:
+    get:
+      summary: Get another user's uploads
+      description: Get a list of another user's uploads that are visible to the current user.
+      tags:
+        - Uploads
+      parameters:
+        - name: user_id
+          in: path
+          description: Numeric ID of the uploads' owner
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID"
+        - name: bucket
+          in: query
+          description: Filter response to uploads in a given bucket.
+          required: false
+          schema:
+            $ref: "#/components/schemas/BucketID"
       responses:
         '200':
           description: Retrieved uploads
@@ -142,7 +173,7 @@ paths:
   /uploads/{upload_id}/:
     get:
       summary: Get upload by ID
-      description: This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist and setting cookies which enable temporary URL access. If stream_ready is false, the url and thumbnail fields will be omitted from the response.
+      description: This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist and setting cookies which enable temporary URL access.
       tags:
         - Uploads
       parameters:
@@ -151,9 +182,7 @@ paths:
           description: Numeric ID of the upload to get
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: "#/components/schemas/UploadID"
       responses:
         '200':
           description: Retrieved upload
@@ -163,11 +192,10 @@ paths:
                 allOf:
                   - $ref: "#/components/schemas/Upload"
                   - type: object
-                    required:
-                      - url
                     properties:
                       url:
                         type: string
+                        description: "Will be omitted if stream_ready is false."
                         example: "https://www.something.m3u8"
         default:
           description: Unexpected error
@@ -187,9 +215,7 @@ paths:
           description: Numeric ID of the upload to edit
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: "#/components/schemas/UploadID"
       requestBody:
         description: All fields are optional
         required: false
@@ -199,14 +225,10 @@ paths:
                 type: object
                 properties:
                   display_title:
-                    type: string
-                    example: "Winning volley against Nadal."
+                    $ref: '#/components/schemas/UploadDisplayTitle'
                   bucket_id:
-                    type: integer
-                    format: int64
-                    minimum: 1
+                    $ref: '#/components/schemas/BucketID'
                   visibility:
-                    type: object
                     $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '200':
@@ -233,9 +255,7 @@ paths:
           description: Numeric ID of the upload to delete
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: "#/components/schemas/UploadID"
       responses:
         '204':
           description: Deleted upload
@@ -266,18 +286,14 @@ paths:
                   - visibility
                 properties:
                     filename:
-                        type: string
-                        example: "volley.mp4"
+                      type: string
+                      example: "volley.mp4"
                     display_title:
-                        type: string
-                        example: "Winning volley against Nadal"
+                      $ref: '#/components/schemas/UploadDisplayTitle'
                     bucket_id:
-                        type: integer
-                        format: int64
-                        minimum: 1
+                      $ref: '#/components/schemas/BucketID'
                     visibility:
-                        type: object
-                        $ref: '#/components/schemas/VisibilitySettingReq'
+                      $ref: '#/components/schemas/VisibilitySettingReq'
       responses:
         '201':
           description: Upload URL created
@@ -340,9 +356,7 @@ paths:
           description: Numeric ID of the upload to convert
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/UploadID'
       responses:
         '200':
           description: 'Began conversion'
@@ -365,9 +379,7 @@ paths:
           description: Numeric ID of the upload to download
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/UploadID'
       responses:
         '200':
           description: 'Retrieved URL'
@@ -502,7 +514,6 @@ paths:
           content:
             application/json:
               schema:
-                type: object
                 $ref: "#/components/schemas/Bucket"
         default:
           description: Unexpected error
@@ -555,9 +566,7 @@ paths:
           description: Numeric ID of the bucket to edit
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/BucketID'
       requestBody:
         description: All fields are optional
         required: false
@@ -567,8 +576,7 @@ paths:
                 type: object
                 properties:
                   name:
-                    type: string
-                    example: "New bucket name"
+                    $ref: '#/components/schemas/BucketName'
       responses:
         '200':
           description: Updated bucket
@@ -594,9 +602,7 @@ paths:
           description: Numeric ID of the bucket to delete
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/BucketID'
       responses:
         '204':
           description: Deleted bucket and uploads
@@ -918,6 +924,23 @@ paths:
 components:
   schemas:
 
+    UploadID:
+      type: integer
+      description: "An upload's unique identifier."
+      format: int64
+      minimum: 1
+      example: 1
+
+    UploadCreated:
+      type: string
+      description: "When an upload was created"
+      format: date-time
+
+    UploadDisplayTitle:
+      type: string
+      description: "An upload's display title."
+      example: "Winning volley against Nadal"
+
     Upload:
         type: object
         required:
@@ -929,28 +952,23 @@ components:
             - visibility
         properties:
             id:
-                type: integer
-                description: "The upload's unique identifier."
-                format: int64
-                minimum: 1
+              $ref: "#/components/schemas/UploadID"
             created:
-                type: string
-                format: date-time
+              $ref: "#/components/schemas/UploadCreated"
             display_title:
-                description: "The title of the upload"
-                type: string
-                example: "Winning volley against Nadal"
+              $ref: "#/components/schemas/UploadDisplayTitle"
             stream_ready:
-                type: boolean
-                example: true
+              type: boolean
+              description: "A flag which determines if an upload has been processed and is ready for playback."
+              example: true
             bucket:
-                $ref: "#/components/schemas/Bucket"
-            thumbnail:
-                description: "Will be omitted if stream_ready is false."
-                type: string
-                example: "https://www.something.jpg"
+              $ref: "#/components/schemas/Bucket"
             visibility:
-                $ref: "#/components/schemas/VisibilitySetting"
+              $ref: "#/components/schemas/VisibilitySetting"
+            thumbnail:
+              description: "Will be omitted if stream_ready is false."
+              type: string
+              example: "https://www.something.jpg"
 
     VisibilityDefault:
       type: string
@@ -1007,7 +1025,7 @@ components:
 
     UserID:
       type: integer
-      description: "The user's unique identifier."
+      description: "A user's unique identifier."
       format: int64
       minimum: 1
       example: 1
@@ -1019,7 +1037,7 @@ components:
 
     UserDisplayName:
       type: string
-      description: "The name of the user."
+      description: "The name of a user."
       example: John Smith
 
     UserBio:
@@ -1127,6 +1145,13 @@ components:
         user:
           $ref: "#/components/schemas/UserOverview"
 
+    BucketID:
+      type: integer
+      description: "A bucket's unique identifier."
+      format: int64
+      minimum: 1
+      example: 1
+
     Bucket:
       allOf:
         - type: object
@@ -1136,10 +1161,7 @@ components:
           - last_modified
           properties:
             id:
-              type: integer
-              description: "The bucket's unique identifier."
-              format: int64
-              minimum: 1
+              $ref: "#/components/schemas/BucketID"
             size:
               type: integer
               description: "The quantity of uploads in this bucket."
@@ -1152,15 +1174,18 @@ components:
               format: date-time
         - $ref: '#/components/schemas/BucketRequest'
 
+    BucketName:
+      type: string
+      description: "The title of the bucket."
+      example: "Forehand Groundstrokes 🎾"
+
     BucketRequest:
       type: object
       required:
         - name
       properties:
         name:
-          type: string
-          description: "The title of the bucket."
-          example: "Forehand Groundstrokes 🎾"
+          $ref: '#/components/schemas/BucketRequest'
 
     Comment:
       allOf:

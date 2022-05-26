@@ -242,17 +242,44 @@ def edit_me():
     return success_response(me.serialize(me, show_private=True))
 
 
-@app.route("/uploads")
+@app.route("/users/me/uploads")
 @flask_login.login_required
 def get_all_uploads():
     me = flask_login.current_user
-    user_id = request.args.get("user")
-    if user_id is None:
-        # Default behavior: get my uploads
-        uploads = Upload.query.filter_by(user_id=me.id)
-    else:
-        # Optionally filter by user ID
-        uploads = Upload.query.filter_by(user_id=user_id)
+    # Get my uploads
+    uploads = Upload.query.filter_by(user_id=me.id)
+
+    # Optionally filter by bucket
+    bucket_id = request.args.get("bucket")
+    if bucket_id is not None:
+        uploads = uploads.filter_by(bucket_id=bucket_id)
+
+    # Optionally filter by shared with
+    sw_id = request.args.get("shared-with")
+    if sw_id is not None:
+        sw_user: User = User.query.filter_by(id=sw_id).first()
+        if sw_user is None:
+            return failure_response("User not found.")
+        uploads = filter(lambda u: sw_user.can_view_upload(u), uploads)
+
+    return success_response(
+        {
+            "uploads": [
+                up.serialize(me, aws)
+                for up in uploads
+                if me.can_view_upload(up)
+            ]
+        }
+    )
+
+
+@app.route("/users/<int:other_id>/uploads")
+@flask_login.login_required
+def get_all_uploads_other_user(other_id):
+    me = flask_login.current_user
+
+    # Get other user's uploads
+    uploads = Upload.query.filter_by(user_id=other_id)
 
     # Optionally filter by bucket
     bucket_id = request.args.get("bucket")
