@@ -137,7 +137,6 @@ paths:
     get:
       summary: Get all uploads
       description: Get a list of the current user's uploads.
-      operationId: "getMyUploads" # keeping operationId here so i don't forget about it
       tags:
         - Uploads
       parameters:
@@ -241,6 +240,7 @@ paths:
     put:
       summary: Edit upload
       description: This route edits the attributes of an upload.
+      operationId: "editUpload" # keeping operationId here so i don't forget about it
       tags:
         - Uploads
       parameters:
@@ -591,7 +591,7 @@ paths:
   /buckets/{bucket_id}/:
     put:
       summary: Edit bucket
-      description: This route only updates the properties of a bucket. To transfer an upload to another bucket, see edit upload.
+      description: This route only updates the properties of a bucket. To transfer an upload to another bucket, see [Edit Upload](#tag/Uploads/operation/editUpload).
       tags:
         - Buckets
       parameters:
@@ -819,9 +819,7 @@ paths:
           description: Numeric ID of the other user to whom the current user wishes to respond
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/UserID'
       requestBody:
         description: The user's response to the courtship request
         required: true
@@ -857,9 +855,7 @@ paths:
           description: Numeric ID of the other user to whom the request was sent
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/UserID'
       responses:
         '204':
           description: Deleted request
@@ -932,7 +928,7 @@ paths:
 
   /courtships/{other_user_id}/:
     delete:
-      summary: Remove courtship
+      summary: Delete courtship
       tags:
         - Courtships
       parameters:
@@ -941,9 +937,7 @@ paths:
           description: Numeric ID of the other user involved in the courtship
           required: true
           schema:
-            type: integer
-            format: int64
-            minimum: 1
+            $ref: '#/components/schemas/UserID'
       responses:
         '204':
           description: Deleted request
