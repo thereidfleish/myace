@@ -67,7 +67,7 @@ struct StudentUploadDetailView: View {
 
                 
                 if (nc.userData.buckets.count == 0) {
-                    Text("Welcome to your space with your coach, \(otherUser.display_name).  To start, create a stroke that ")
+                    Text("Welcome to your space with your coach, \(otherUser.display_name).  To start, create a stroke. ")
                         .multilineTextAlignment(.center)
                         .bucketTextInternalStyle()
                     

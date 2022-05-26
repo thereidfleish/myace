@@ -80,13 +80,15 @@ struct StrokesView: View {
             HStack {
                 Text("Strokes")
                     .bucketTextInternalStyle()
-                Button(action: {
-                    isShowingNewStrokeView.toggle()
-                }, label: {
-                    Image(systemName: "plus.circle.fill")
-                        .resizable()
-                        .circularButtonStyle()
-                })
+                if (!coach) {
+                    Button(action: {
+                        isShowingNewStrokeView.toggle()
+                    }, label: {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .circularButtonStyle()
+                    })
+                }
             }
             
             ForEach(nc.userData.buckets) { bucket in
