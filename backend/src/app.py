@@ -242,6 +242,21 @@ def edit_me():
     return success_response(me.serialize(me, show_private=True))
 
 
+@app.route("/users/me/", methods=["DELETE"])
+@flask_login.login_required
+def delete_me():
+    me: User = flask_login.current_user
+
+    # TODO: delete profile picture
+    aws.delete_uploads(me.uploads)
+    # Delete user.
+    # It is the DB's responsibility to ensure deletion of rows containing
+    # foreign keys.
+    db.session.delete(me)
+    db.session.commit()
+    return success_response(code=204)
+
+
 @app.route("/users/me/uploads")
 @flask_login.login_required
 def get_all_uploads():
@@ -353,11 +368,11 @@ def get_upload(upload_id):
 
 
 class BadRequest(Exception):
-    """Representative of the 400 HTTP response code"""
+    """Representative of the 400 HTTP response code."""
 
 
 class VisibilityReq(TypedDict):
-    """The request body of a visibility field. A uniform typed dictionary"""
+    """The request body of a visibility field. A uniform typed dictionary."""
 
     default: str
     also_shared_with: list[int]
@@ -368,8 +383,10 @@ def parse_visibility_req(
 ) -> tuple[VisibilityDefault, list[User]]:
     """Parse the "visibility" request obj.
 
-    :return: a VisibilityDefault and a list of users with whom an upload is individually shared
-    :raise BadRequest: if the body is incorrectly formatted
+    :raises BadRequest: if the body is incorrectly formatted
+    :return:
+        a VisibilityDefault and a list of users with whom an upload is
+        individually shared
     """
     if visibility is None:
         raise BadRequest("Missing visibility.")
@@ -565,8 +582,8 @@ def get_all_comments():
     upload_id = request.args.get("upload")
     if upload_id is None:
         # Default behavior. Get all comments authored by user
-        # I could use 'user.comments' here but the InstrumentedList obj does not
-        # allow chaining filtering like the Query obj
+        # I could use 'user.comments' here but the InstrumentedList obj does
+        # not allow chaining filtering like the Query obj
         comments = Comment.query.filter_by(author_id=me.id)
     else:
         # Get all comments under upload ID
