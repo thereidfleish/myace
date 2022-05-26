@@ -48,7 +48,7 @@ class User(db.Model):
             "username": self.username,
             "display_name": self.display_name,
             "biography": self.biography,
-            "n_uploads": self.relative_count_uploads(client),
+            "n_uploads": self.n_uploads_visible_to(client),
             "n_courtships": {
                 "friends": self.count_friends(),
                 "coaches": self.count_coaches(),
@@ -61,13 +61,18 @@ class User(db.Model):
             response["email"] = self.email
         return response
 
-    def relative_count_uploads(self, client: User) -> int:
-        """:return: The number of this user's uploads that are visible to the client"""
-        visible = [u for u in self.uploads if client.can_view_upload(u)]
-        return len(visible)
+    def n_uploads_visible_to(self, client: User) -> int:
+        """:return: The number of this user's uploads visible to the client."""
+        return 0
+        # visible = 0
+        # for u in self.uploads:
+        # TODO: fix this: raise TypeError("Boolean value of this clause is not defined")
+        #     if client.can_view_upload(u):
+        #         visible += 1
+        # return visible
 
     def count_friends(self) -> int:
-        """:return: the user's nonnegative friend count"""
+        """:return: the user's nonnegative friend count."""
         return UserRelationship.query.filter(
             and_(
                 or_(
@@ -79,7 +84,7 @@ class User(db.Model):
         ).count()
 
     def count_coaches(self) -> int:
-        """:return: the user's nonnegative coach count"""
+        """:return: the user's nonnegative coach count."""
         return UserRelationship.query.filter(
             and_(
                 self.id == UserRelationship.user_a_id,
@@ -88,7 +93,7 @@ class User(db.Model):
         ).count()
 
     def count_students(self) -> int:
-        """:return: the user's nonnegative student count"""
+        """:return: the user's nonnegative student count."""
         return UserRelationship.query.filter(
             and_(
                 self.id == UserRelationship.user_b_id,
@@ -105,6 +110,7 @@ class User(db.Model):
         return b_to_a
 
     def coaches(self, other: User) -> bool:
+        """:return: True if this user coaches other."""
         return UserRelationship.query.filter_by(
             user_a_id=self.id,
             user_b_id=other.id,
@@ -112,11 +118,12 @@ class User(db.Model):
         ).exists()
 
     def friends_with(self, other: User) -> bool:
+        """:return: True if this user is friends with other."""
         rel = self.get_relationship_with(other)
         return rel is not None and rel.type == RelationshipType.FRIENDS
 
     def can_view_upload(self, upload: Upload) -> bool:
-        """:return: True if the user is allowed to view a given upload"""
+        """:return: True if the user is allowed to view a given upload."""
         # upload owners can always view their uploads
         if self.id == upload.user_id:
             return True
@@ -138,15 +145,15 @@ class User(db.Model):
             return False
 
     def can_modify_upload(self, upload: Upload) -> bool:
-        """:return: True if the user is allowed to modify a given upload's properties"""
+        """:return: True if the user is allowed to modify an upload's properties."""
         return self.id == upload.user_id
 
     def can_comment_on_upload(self, upload: Upload) -> bool:
-        """:return: True if the user is allowed to comment on a given upload"""
+        """:return: True if the user is allowed to comment on a given upload."""
         return self.can_view_upload(upload)
 
     def can_view_comment(self, comment: Comment) -> bool:
-        """:return: True if the user is allowed to view a given comment"""
+        """:return: True if the user is allowed to view a given comment."""
         if not self.can_view_upload(comment.upload):
             return False
         # Prohibit viewing coach comments on uploads that the user doesn't own
@@ -156,14 +163,14 @@ class User(db.Model):
         return True
 
     def can_modify_comment(self, comment: Comment) -> bool:
-        """:return: True if the user is allowed to modify a given comment"""
+        """:return: True if the user is allowed to modify a given comment."""
         # Upload owners can modify all comments under upload. Commenters can modify their comments.
         owns_upload = self.id == comment.upload.user_id
         owns_comment = self.id == comment.author_id
         return owns_upload or owns_comment
 
     def can_view_bucket(self, bucket: Bucket) -> bool:
-        """:return: True if the user is allowed to view a given bucket"""
+        """:return: True if the user is allowed to view a given bucket."""
         # Bucket owners can view all their buckets
         if self.id == bucket.user_id:
             return True
@@ -179,7 +186,7 @@ class User(db.Model):
 
     @classmethod
     def _generate_unique_username(cls, display_name: str) -> str:
-        """:return: a unique, legal username based off the user's display name"""
+        """:return: a unique, legal username based off the user's display name."""
         # Santitize user's display name to use as root of username
         sanitized = re.sub(cls.ILLEGAL_UNAME_PATTERN, "", display_name).lower()
         # If sanitized display name is empty, use 3 random characters
@@ -196,7 +203,7 @@ class User(db.Model):
 
     @staticmethod
     def is_username_unique(username: str) -> bool:
-        """:return: if a username is unique"""
+        """:return: if a username is unique."""
         return User.query.filter_by(username=username).first() is None
 
     @staticmethod
@@ -376,7 +383,7 @@ _v_map = {
 
 
 def visib_to_str(v: VisibilityDefault) -> str:
-    """:return: string representation of a VisibilityDefault"""
+    """:return: string representation of a VisibilityDefault."""
     s = _v_map.get(v)
     if s is None:
         raise Exception(
@@ -386,7 +393,7 @@ def visib_to_str(v: VisibilityDefault) -> str:
 
 
 def visib_of_str(s: Optional[str]) -> Optional[VisibilityDefault]:
-    """:return: a VisibilityDefault or None if DNE"""
+    """:return: a VisibilityDefault or None if DNE."""
     for k, v in _v_map.items():
         if v == s:
             return k
@@ -447,7 +454,7 @@ class Upload(db.Model):
         }
         if self.stream_ready:
             response["thumbnail"] = aws.get_thumbnail_url(
-                self.id, expiration_in_hours=1
+                str(self.id), expiration_in_hours=1
             )
         return response
 
