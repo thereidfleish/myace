@@ -1,8 +1,9 @@
-from aws import AWS
 import time
 import json
 import base64
 import os
+
+from .aws import AWS
 
 
 def _generate_cookies(policy: str, signature: str, cf_key_id: str) -> dict:

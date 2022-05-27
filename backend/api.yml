@@ -653,7 +653,6 @@ paths:
       description: This route returns a list of users given a search query. The current user is excluded from the response.
       tags:
         - Courtships
-        - User
       parameters:
         - name: q
           in: query

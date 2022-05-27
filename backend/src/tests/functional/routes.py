@@ -4,7 +4,6 @@ import datetime
 from dataclasses import dataclass
 from requests import Session, Response
 from typing import Iterable
-from models import *
 
 HOST = "localhost"
 

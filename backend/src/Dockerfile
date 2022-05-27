@@ -12,8 +12,7 @@ WORKDIR /app
 
 # Install dependencies before copying files.
 # Now modifying the app won't reinstall dependencies
-COPY ./requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -e .
 
 # Copy the files to the working directory
 COPY . .

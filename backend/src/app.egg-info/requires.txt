@@ -1,0 +1,11 @@
+flask
+flask-sqlalchemy
+flask-login
+environs
+botocore
+boto3
+cryptography
+google-auth
+requests
+psycopg2
+pytest
