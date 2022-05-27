@@ -15,8 +15,7 @@ setup(
         "flask-sqlalchemy",
         "google-auth",
         "gunicorn",
-        "psycopg2",
-        "pytest",
+        "psycopg2-binary",
         "requests",
     ],
 )

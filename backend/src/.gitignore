@@ -1,6 +1,7 @@
 /venv/
 /**/__pycache__/
 app.egg-info/
+build/
 .*cache/
 .env
 *.pem
