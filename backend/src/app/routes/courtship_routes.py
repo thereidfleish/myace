@@ -60,7 +60,7 @@ def create_courtship_request():
     db.session.add(courtship)
     db.session.commit()
 
-    return success_response(courtship.serialize(me), code=201)
+    return success_response(other.serialize(me), code=201)
 
 
 @routes.route("/courtships/requests")
@@ -101,26 +101,8 @@ def get_courtship_requests():
         else:
             return failure_response("Invalid dir.", 400)
 
-    # Optionally filter by user IDs
-    user_ids_str = request.args.get("users", type=str)
-    if user_ids_str is not None:
-        # TODO: fix filtering courtship requests by UIDs
-        user_ids = user_ids_str.split(",")
-        courtships = courtships.filter(
-            or_(
-                and_(
-                    UserRelationship.user_a_id != me.id,
-                    UserRelationship.user_a_id.in_(user_ids),
-                ),
-                and_(
-                    UserRelationship.user_b_id != me.id,
-                    UserRelationship.user_b_id.in_(user_ids),
-                ),
-            )
-        )
-
     return success_response(
-        {"requests": [c.serialize(me) for c in courtships]}
+        {"requests": [c.get_other(me).serialize(me) for c in courtships]}
     )
 
 
@@ -196,15 +178,17 @@ def delete_outgoing_courtship_request(other_user_id):
     return success_response(code=204)
 
 
-@routes.route("/courtships")
+@routes.route("/users/<user_id>/courtships")
 @flask_login.login_required
-def get_all_courtships():
+def get_all_courtships(user_id):
     me = flask_login.current_user
-    # Get all UserRelationships involving the user
+    if user_id == "me":
+        user_id = me.id
+    # Get all UserRelationships involving the specified user
     courtships = UserRelationship.query.filter(
         or_(
-            UserRelationship.user_a_id == me.id,
-            UserRelationship.user_b_id == me.id,
+            UserRelationship.user_a_id == user_id,
+            UserRelationship.user_b_id == user_id,
         )
     )
     # filter relationships to courtships only (no requests)
@@ -221,35 +205,17 @@ def get_all_courtships():
             courtships = courtships.filter_by(type=RelationshipType.FRIENDS)
         elif type == "coach":
             courtships = courtships.filter_by(
-                type=RelationshipType.A_COACHES_B, user_b_id=me.id
+                type=RelationshipType.A_COACHES_B, user_b_id=user_id
             )
         elif type == "student":
             courtships = courtships.filter_by(
-                type=RelationshipType.A_COACHES_B, user_a_id=me.id
+                type=RelationshipType.A_COACHES_B, user_a_id=user_id
             )
         else:
             return failure_response("Invalid type.", 400)
 
-    # Optionally filter by user ID
-    user_ids_str = request.args.get("users", type=str)
-    if user_ids_str is not None:
-        user_ids = user_ids_str.split(",")
-        # TODO: fix filtering courtships by UIDs
-        courtships = courtships.filter(
-            or_(
-                and_(
-                    UserRelationship.user_a_id != me.id,
-                    UserRelationship.user_a_id.in_(user_ids),
-                ),
-                and_(
-                    UserRelationship.user_b_id != me.id,
-                    UserRelationship.user_b_id.in_(user_ids),
-                ),
-            )
-        )
-
     return success_response(
-        {"courtships": [c.serialize(me) for c in courtships]}
+        {"courtships": [c.get_other(me).serialize(me) for c in courtships]}
     )
 
 

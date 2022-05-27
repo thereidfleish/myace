@@ -54,6 +54,9 @@ class User(db.Model):
                 "students": self.count_students(),
             },
         }
+        # courtship field
+        rel = client.get_relationship_with(self)
+        response["courship"] = None if rel is None else rel.serialize(client)
         # private profile information
         # I believe the show_private param helps reduce the odds of data leaks
         if show_private and self.id == client.id:
@@ -298,7 +301,6 @@ class UserRelationship(db.Model):
         ), "Precondition failed. Cannot serialize a UserRelationship if the client isn't involved."
         res = {
             "type": self.role_of_other(client),
-            "user": self.get_other(client).serialize(client),
         }
         # add "dir" field if relationship is a request
         if self.type.is_request():

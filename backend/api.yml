@@ -700,11 +700,7 @@ paths:
                   - type
                 properties:
                   user_id:
-                    type: integer
-                    description: "The other user's ID."
-                    format: int64
-                    minimum: 1
-                    example: 2
+                    $ref: '#/components/schemas/UserID'
                   type:
                     $ref: '#/components/schemas/CourtshipReqType'
       responses:
@@ -713,7 +709,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CourtshipReqResponse'
+                $ref: '#/components/schemas/UserOverviewWCourtshipReq'
         default:
           description: Unexpected error
           content:
@@ -723,47 +719,9 @@ paths:
 
   /courtships/requests:
     get:
-      summary: Get courtship requests
+      summary: Get all courtship requests
       description:
-          Get a list of all incoming and outgoing courtship requests involving the current user.
-
-            <table>
-                <tr>
-                    <th>Dir</th>
-                    <th>Request Type</th>
-                    <th>Meaning</th>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>friend</td>
-                    <td>You request to add another user as a friend</td>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>coach</td>
-                    <td>You request that another user becomes your coach</td>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>student</td>
-                    <td>You request that another user becomes your student</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>friend</td>
-                    <td>Another user requests to add you as a friend</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>coach</td>
-                    <td>Another user requests that you coach them</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>student</td>
-                    <td>Another user requests to coach you</td>
-                </tr>
-            </table>
+          Get a list of all users with whom the client has an incoming or outgoing courtship request.
       tags:
         - Courtships
       parameters:
@@ -779,12 +737,6 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/CourtshipReqDir'
-        - name: users
-          in: query
-          description: Filter response to requests to/from users specified by a comma separated list of user IDs.
-          required: false
-          schema:
-            type: string
       responses:
         '200':
           description: 'Retrieved courtship requests'
@@ -798,7 +750,7 @@ paths:
                   requests:
                     type: array
                     items:
-                        $ref: '#/components/schemas/CourtshipReqResponse'
+                        $ref: '#/components/schemas/UserOverviewWCourtshipReq'
         default:
           description: Unexpected error
           content:
@@ -865,45 +817,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /courtships:
+  /users/{user_id}/courtships:
     get:
-      summary: Get courtships
+      summary: Get all courtships
       description:
-          Get a list of established courtships involving the current user.
-
-            <table>
-            <tr>
-                <th>Courtship Type</th>
-                <th>Meaning</th>
-            </tr>
-            <tr>
-                <td>friend</td>
-                <td>This user is your friend</td>
-            </tr>
-            <tr>
-                <td>coach</td>
-                <td>This user is your coach</td>
-            </tr>
-            <tr>
-                <td>friend</td>
-                <td>This user is your student</td>
-            </tr>
-            </table>
+          Get a list of all users who have established courtships with a given user.
       tags:
         - Courtships
       parameters:
+        - name: user_id
+          in: path
+          description: The user whose courtships the client wishes to fetch.
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserIDOrMe'
         - name: type
           in: query
-          description: Filter response by the type of courtship. For example, "student" will only return the current user's students.
+          description: Filter response by the type of courtship. For example, "student" will only return the user's students.
           required: false
           schema:
             $ref: '#/components/schemas/CourtshipType'
-        - name: users
-          in: query
-          description: Filter response to courtships to/from users specified by a comma separated list of user IDs.
-          required: false
-          schema:
-            type: string
       responses:
         '200':
           description: 'Retrieved courtships'
@@ -917,7 +850,7 @@ paths:
                   courtships:
                     type: array
                     items:
-                        $ref: "#/components/schemas/Courtship"
+                        $ref: "#/components/schemas/UserOverviewWCourtship"
         default:
           description: Unexpected error
           content:
@@ -925,7 +858,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /courtships/{other_user_id}/:
+  /users/{other_user_id}/courtships/:
     delete:
       summary: Delete courtship
       tags:
@@ -999,7 +932,7 @@ components:
 
     VisibilityDefault:
       type: string
-      description: "The default visibility mode. For example, 'coaches' automatically shares an upload with all of the user's coaches."
+      description: The default visibility mode. For example, "coaches" automatically shares an upload with all of the user's coaches.
       enum:
         - private
         - coaches-only
@@ -1048,6 +981,7 @@ components:
             email:
               description: "The user's email address."
               type: string
+              format: email
               example: johnsmith@gmail.com
 
     UserID:
@@ -1056,6 +990,13 @@ components:
       format: int64
       minimum: 1
       example: 1
+
+    UserIDOrMe:
+      oneOf:
+        - type: string
+          description: "An alias for the client's ID."
+          enum: [me]
+        - $ref: "#/components/schemas/UserID"
 
     UserUsername:
       type: string
@@ -1072,9 +1013,9 @@ components:
       description: "A personalized biography."
       example: I couldn't figure out why the ball was getting bigger. Then it hit me.
 
-    UserOverview:
+    UserOverviewNoCourtship:
       type: object
-      description: "A synopsis of a user's profile. What you might find as an identifier to a user's comment or upload."
+      description: "A building-block for other schemas."
       required:
         - id
         - username
@@ -1124,6 +1065,48 @@ components:
               minimum: 0
               example: 10
 
+    UserOverview:
+      type: object
+      description: "A synopsis of a user's profile. What you might find as an identifier to a user's comment or upload."
+      allOf:
+        - $ref: "#/components/schemas/UserOverviewNoCourtship"
+        - type: object
+          required:
+            - courtship
+          properties:
+            courtship:
+              type: object
+              nullable: true
+              description: "The client's relationship with this user. Will be `null` if the client *is* this user."
+              example: null
+              oneOf:
+                - $ref: "#/components/schemas/Courtship"
+                - $ref: "#/components/schemas/CourtshipReq"
+
+    UserOverviewWCourtship:
+      type: object
+      description: "A profile synopsis of a user with whom the client has an established courtship."
+      allOf:
+        - $ref: "#/components/schemas/UserOverviewNoCourtship"
+        - type: object
+          required:
+            - courtship
+          properties:
+            courtship:
+              $ref: "#/components/schemas/Courtship"
+
+    UserOverviewWCourtshipReq:
+      type: object
+      description: "A profile synopsis of a user with whom the client has a pending courtship request."
+      allOf:
+        - $ref: "#/components/schemas/UserOverviewNoCourtship"
+        - type: object
+          required:
+            - courtship
+          properties:
+            courtship:
+              $ref: "#/components/schemas/CourtshipReq"
+
     CourtshipType:
       type: string
       enum:
@@ -1140,37 +1123,86 @@ components:
 
     CourtshipReqDir:
       type: string
-      description: "The direction of the request. 'out' signifies the user sent the request."
+      description: "The direction of the request. `out` signifies the user sent the request."
       enum:
         - in
         - out
 
     Courtship:
       type: object
-      description: "An established courtship."
+      description: An established courtship.
+            <table>
+            <tr>
+                <th>Courtship Type</th>
+                <th>Meaning</th>
+            </tr>
+            <tr>
+                <td>friend</td>
+                <td>This user is your friend</td>
+            </tr>
+            <tr>
+                <td>coach</td>
+                <td>This user is your coach</td>
+            </tr>
+            <tr>
+                <td>friend</td>
+                <td>This user is your student</td>
+            </tr>
+            </table>
       required:
         - type
-        - user
       properties:
         type:
           $ref: "#/components/schemas/CourtshipType"
-        user:
-          $ref: "#/components/schemas/UserOverview"
 
-    CourtshipReqResponse:
+    CourtshipReq:
       type: object
-      description: "A pending courtship request."
+      description: A pending courtship request.
+            <table>
+                <tr>
+                    <th>Dir</th>
+                    <th>Request Type</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td>out</td>
+                    <td>friend</td>
+                    <td>You request to add another user as a friend</td>
+                </tr>
+                <tr>
+                    <td>out</td>
+                    <td>coach</td>
+                    <td>You request that another user becomes your coach</td>
+                </tr>
+                <tr>
+                    <td>out</td>
+                    <td>student</td>
+                    <td>You request that another user becomes your student</td>
+                </tr>
+                <tr>
+                    <td>in</td>
+                    <td>friend</td>
+                    <td>Another user requests to add you as a friend</td>
+                </tr>
+                <tr>
+                    <td>in</td>
+                    <td>coach</td>
+                    <td>Another user requests that you coach them</td>
+                </tr>
+                <tr>
+                    <td>in</td>
+                    <td>student</td>
+                    <td>Another user requests to coach you</td>
+                </tr>
+            </table>
       required:
         - type
         - dir
-        - user
       properties:
         type:
           $ref: "#/components/schemas/CourtshipReqType"
         dir:
           $ref: "#/components/schemas/CourtshipReqDir"
-        user:
-          $ref: "#/components/schemas/UserOverview"
 
     BucketID:
       type: integer
