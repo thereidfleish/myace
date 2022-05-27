@@ -7,6 +7,7 @@ from . import routes, success_response, failure_response
 from ..cookiesigner import CookieSigner
 from ..models import User
 from ..settings import G_CLIENT_IDS
+from ..extensions import db
 
 from flask import request
 
@@ -35,26 +36,51 @@ def login():
     if token is None:
         return failure_response("Missing token.", 400)
 
-    # Check if the token will verify with any of the specified oauth tokens
-    valid = False
-    for id in G_CLIENT_IDS:
-        try:
-            idinfo = id_token.verify_oauth2_token(
-                token, requests.Request(), G_CLIENT_IDS
-            )
-            valid = True
-            break
-        except ValueError:
-            pass  # don't set valid to True
-
-    if not valid:
-        return failure_response(
-            "Could not authenticate user. Unauthorized.", 401
+    # TODO: Find a better way to test. This is godawful.
+    test_tokens = {
+        "backendtesttoken1": {
+            "gid": "test_gid_1",
+            "email": "john@email.com",
+            "display_name": "John Smith",
+        },
+        "backendtesttoken2": {
+            "gid": "test_gid_2",
+            "email": "sarah@email.com",
+            "display_name": "Sarah Silverman",
+        },
+        "backendtesttoken3": {
+            "gid": "test_gid_3",
+            "email": "peter@email.com",
+            "display_name": "Peter Piper",
+        },
+    }
+    if token in test_tokens:
+        gid, email, display_name = (
+            test_tokens[token]["gid"],
+            test_tokens[token]["email"],
+            test_tokens[token]["display_name"],
         )
+    else:
+        # Check if the token will verify with any of the specified oauth tokens
+        valid = False
+        for id in G_CLIENT_IDS:
+            try:
+                idinfo = id_token.verify_oauth2_token(
+                    token, requests.Request(), G_CLIENT_IDS
+                )
+                valid = True
+                break
+            except ValueError:
+                pass  # don't set valid to True
 
-    gid = idinfo.get("sub")
-    email = idinfo.get("email")
-    display_name = idinfo.get("name")
+        if not valid:
+            return failure_response(
+                "Could not authenticate user. Unauthorized.", 401
+            )
+
+        gid = idinfo.get("sub")
+        email = idinfo.get("email")
+        display_name = idinfo.get("name")
 
     if gid is None or email is None or display_name is None:
         return failure_response(

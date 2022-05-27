@@ -2,16 +2,16 @@
 from __future__ import annotations
 import os
 import datetime
+import json
 from dataclasses import dataclass
-from requests import Session, Response
-from typing import Iterable
 
-HOST = "localhost"
+from flask.testing import FlaskClient
+from . import HOST
 
 
-def log_response(res: Response) -> str:
+def log_response(res) -> str:
     """:return: a string-formatted response."""
-    return f"Response status code: {res.status_code}\nContent:\n{res.text}"
+    return f"Response status code: {res.status_code}\nData:\n{res.data}"
 
 
 @dataclass
@@ -141,55 +141,57 @@ def parse_courtship_json(j: dict) -> Courtship:
     return Courtship(j["type"], parse_user_json(j["user"]))
 
 
-def get_user_opt(s: Session) -> User | None:
+def get_user_opt(client: FlaskClient) -> User | None:
     """Retrieve the currently logged in user if logged in or None if not."""
-    res = s.get(f"{HOST}/users/me/")
+    res = client.get(f"{HOST}/users/me/")
     if res.status_code == 401:
         return None
     assert res.status_code == 200, log_response(res)
-    return parse_user_json(res.json())
+    return parse_user_json(json.loads(res.data))
 
 
-def get_user(s: Session) -> User:
+def get_user(client: FlaskClient) -> User:
     """Retrieve the currently logged in user.
 
     Raises exception if not logged in.
     """
-    user = get_user_opt(s)
+    user = get_user_opt(client)
     assert user is not None
     return user
 
 
-def is_logged_in(s: Session) -> bool:
+def is_logged_in(client: FlaskClient) -> bool:
     """Check if any user is logged in."""
-    return get_user_opt(s) is not None
+    return get_user_opt(client) is not None
 
 
-def is_user_logged_in(s: Session, user: User) -> bool:
+def is_user_logged_in(client: FlaskClient, user: User) -> bool:
     """Check if a given user is logged in."""
-    check = get_user_opt(s)
+    check = get_user_opt(client)
     return check is not None and check == user
 
 
-def login(s: Session, google_token: str) -> User:
+def login(client: FlaskClient, google_token: str) -> User:
     """Create app session by logging in with google."""
     body = {
         "token": google_token,
-        "type": 0,
     }
-    res = s.post(url=f"{HOST}/login/", json=body)
+    res = client.post(f"{HOST}/login/", json=body)
     assert res.status_code == 200 or res.status_code == 201, log_response(res)
-    return parse_user_json(res.json())
+    print(res.data)
+    return parse_user_json(json.loads(res.data))
 
 
-def logout(s: Session) -> None:
+def logout(client: FlaskClient) -> None:
     """Logout of session."""
-    res = s.post(f"{HOST}/logout/")
+    res = client.post(f"{HOST}/logout/")
     assert res.status_code == 200, log_response(res)
-    assert not is_logged_in(s)
+    assert not is_logged_in(client)
 
 
-def update_user(s: Session, username=None, display_name=None, biography=None):
+def update_user(
+    client: FlaskClient, username=None, display_name=None, biography=None
+):
     """Update a user with current information."""
     body = dict()
     if username is not None:
@@ -198,10 +200,10 @@ def update_user(s: Session, username=None, display_name=None, biography=None):
         body["display_name"] = display_name
     if biography is not None:
         body["biography"] = biography
-    res = s.put(f"{HOST}/users/me/", json=body)
+    res = client.put(f"{HOST}/users/me/", json=body)
     assert res.status_code == 200, log_response(res)
     # Verify change was successful # TODO: move to test
-    user = get_user(s)
+    user = get_user(client)
     if username is not None:
         assert user.username == username
     if display_name is not None:
@@ -210,22 +212,24 @@ def update_user(s: Session, username=None, display_name=None, biography=None):
         assert user.bio == biography
 
 
-def delete_user(s: Session) -> None:
+def delete_user(client: FlaskClient) -> None:
     """Delete the logged in user."""
-    res = s.delete(f"{HOST}/users/me/")
+    res = client.delete(f"{HOST}/users/me/")
     assert res.status_code == 204, log_response(res)
-    assert not is_logged_in(s)
+    assert not is_logged_in(client)
 
 
-def search(s: Session, q: str) -> list[User]:
+def search(client: FlaskClient, q: str) -> list[User]:
     """Perform a user search query."""
-    res = s.get(f"{HOST}/users/search?q={q}")
+    res = client.get(f"{HOST}/users/search?q={q}")
     assert res.status_code == 200, log_response(res)
-    return [parse_user_json(u) for u in res.json()]
+    return [parse_user_json(u) for u in json.loads(res.data)]
 
 
 def get_all_uploads(
-    s: Session, bucket_id: int | None = None, shared_with: int | None = None
+    client: FlaskClient,
+    bucket_id: int | None = None,
+    shared_with: int | None = None,
 ) -> list[Upload]:
     """Get the current user's uploads."""
     params = dict()
@@ -233,13 +237,13 @@ def get_all_uploads(
         params["bucket"] = bucket_id
     if shared_with is not None:
         params["shared-with"] = shared_with
-    res = s.get(f"{HOST}/users/me/uploads", params=params)
+    res = client.get(f"{HOST}/users/me/uploads", params=params)
     assert res.status_code == 200, log_response(res)
-    return [parse_upload_json(u) for u in res.json()]
+    return [parse_upload_json(u) for u in json.loads(res.data)]
 
 
 def get_other_users_uploads(
-    s: Session,
+    client: FlaskClient,
     other_id: int,
     bucket_id: int | None = None,
 ) -> list[Upload]:
@@ -247,23 +251,23 @@ def get_other_users_uploads(
     params = dict()
     if bucket_id is not None:
         params["bucket"] = bucket_id
-    res = s.get(f"{HOST}/users/{other_id}/uploads", params=params)
+    res = client.get(f"{HOST}/users/{other_id}/uploads", params=params)
     assert res.status_code == 200, log_response(res)
-    return [parse_upload_json(u) for u in res.json()]
+    return [parse_upload_json(u) for u in json.loads(res.data)]
 
 
 def get_upload(
-    s: Session,
+    client: FlaskClient,
     id: int,
 ) -> Upload:
     """Get an upload by ID."""
-    res = s.get(f"{HOST}/uploads/{id}/")
+    res = client.get(f"{HOST}/uploads/{id}/")
     assert res.status_code == 200, log_response(res)
-    return parse_upload_json(res.json())
+    return parse_upload_json(json.loads(res.data))
 
 
 def edit_upload(
-    s: Session,
+    client: FlaskClient,
     id: int,
     display_title: str | None = None,
     bucket_id: int | None = None,
@@ -280,19 +284,19 @@ def edit_upload(
             "default": visibility.default,
             "also_shared_with": visibility.also_shared_with,
         }
-    res = s.put(f"{HOST}/uploads/{id}/", json=body)
+    res = client.put(f"{HOST}/uploads/{id}/", json=body)
     assert res.status_code == 200, log_response(res)
-    return parse_upload_json(res.json())
+    return parse_upload_json(json.loads(res.data))
 
 
-def delete_upload(s: Session, id: int) -> None:
+def delete_upload(client: FlaskClient, id: int) -> None:
     """Delete an upload by ID."""
-    res = s.delete(f"{HOST}/uploads/{id}/")
+    res = client.delete(f"{HOST}/uploads/{id}/")
     assert res.status_code == 204, log_response(res)
 
 
 def create_upload_url(
-    s: Session,
+    client: FlaskClient,
     filename: str,
     display_title: str,
     bucket_id: int,
@@ -314,9 +318,9 @@ def create_upload_url(
             "also_shared_with": visibility.also_shared_with,
         },
     }
-    res = s.post(url=f"{HOST}/uploads/", json=body)
+    res = client.post(f"{HOST}/uploads/", json=body)
     assert res.status_code == 201, log_response(res)
-    j = res.json()
+    j = json.loads(res.data)
     # replace underscores with hyphens
     fields = j["fields"]
     for old_key in list(fields):
@@ -326,7 +330,7 @@ def create_upload_url(
 
 
 def create_upload(
-    s: Session,
+    client: FlaskClient,
     path_to_file: str,
     display_title: str,
     bucket_id: int,
@@ -335,102 +339,103 @@ def create_upload(
     """Upload a file, convert to stream_ready, and return that upload model."""
     filename = os.path.basename(path_to_file)
     id, presigned_url, fields = create_upload_url(
-        s, filename, display_title, bucket_id, visibility
+        client, filename, display_title, bucket_id, visibility
     )
     with open(path_to_file, "rb") as f:
         files = {"file": (filename, f)}
-        upload_res = s.post(presigned_url, data=fields, files=files)
+        upload_res = client.post(presigned_url, data=fields, files=files)
         assert (
             upload_res.status_code == 204
         ), "Failed to upload file to presigned URL!"
 
     # Convert to stream_ready
-    create_url_res = s.post(url=f"{HOST}/uploads/{id}/convert/")
+    create_url_res = client.post(f"{HOST}/uploads/{id}/convert/")
     assert create_url_res.status_code == 200
-    return get_upload(s, id)
+    return get_upload(client, id)
 
 
-def get_download_url(s: Session, upload_id: int) -> str:
+def get_download_url(client: FlaskClient, upload_id: int) -> str:
     """Get a presigned URL to download a specified upload."""
-    res = s.get(f"{HOST}/uploads/{upload_id}/download/")
+    res = client.get(f"{HOST}/uploads/{upload_id}/download/")
     assert res.status_code == 200, log_response(res)
-    return res.json()["url"]
+    return json.loads(res.data)["url"]
 
 
 def get_all_comments(
-    s: Session, upload_id: int | None = None
+    client: FlaskClient, upload_id: int | None = None
 ) -> list[Comment]:
     """Get all comments authored by the current user."""
     params = dict()
     if upload_id is not None:
         params["upload"] = upload_id
-    res = s.get(f"{HOST}/comments", params=params)
+    res = client.get(f"{HOST}/comments", params=params)
     assert res.status_code == 200
-    return [parse_comment_json(c) for c in res.json()]
+    return [parse_comment_json(c) for c in json.loads(res.data)]
 
 
-def create_comment(s: Session, text: str, upload_id: int) -> Comment:
+def create_comment(client: FlaskClient, text: str, upload_id: int) -> Comment:
     """Create a comment under an upload."""
     body = {"text": text, "upload_id": upload_id}
-    res = s.post(f"{HOST}/comments/", json=body)
+    res = client.post(f"{HOST}/comments/", json=body)
     assert res.status_code == 201
-    return parse_comment_json(res.json())
+    return parse_comment_json(json.loads(res.data))
 
 
-def delete_comment(s: Session, comment_id: int) -> None:
+def delete_comment(client: FlaskClient, comment_id: int) -> None:
     """Delete a comment by ID."""
-    res = s.delete(f"{HOST}/comments/{comment_id}/")
+    res = client.delete(f"{HOST}/comments/{comment_id}/")
     assert res.status_code == 204
 
 
-def create_bucket(s: Session, name: str) -> Bucket:
+def create_bucket(client: FlaskClient, name: str) -> Bucket:
     """Create a bucket under the current user."""
-    res = s.post(f"{HOST}/buckets/", json={"name": name})
+    res = client.post(f"{HOST}/buckets/", json={"name": name})
     assert res.status_code == 201
-    return parse_bucket_json(res.json())
+    return parse_bucket_json(json.loads(res.data))
 
 
-def get_all_buckets(s: Session, user_id: int | None) -> list[Bucket]:
+def get_all_buckets(client: FlaskClient, user_id: int | None) -> list[Bucket]:
     """Get a list of all buckets owned by any user."""
     params = dict()
     if user_id is not None:
         params["user"] = user_id
-    res = s.get(f"{HOST}/buckets", params=params)
+    res = client.get(f"{HOST}/buckets", params=params)
     assert res.status_code == 200
-    return [parse_bucket_json(b) for b in res.json()]
+    return [parse_bucket_json(b) for b in json.loads(res.data)]
 
 
-def edit_bucket(s: Session, bucket_id: int, name: str | None) -> Bucket:
+def edit_bucket(
+    client: FlaskClient, bucket_id: int, name: str | None
+) -> Bucket:
     """Update the properties of a bucket."""
     body = dict()
     if name is not None:
         body["name"] = name
-    res = s.put(f"{HOST}/buckets/{bucket_id}/", json=body)
+    res = client.put(f"{HOST}/buckets/{bucket_id}/", json=body)
     assert res.status_code == 200
-    return parse_bucket_json(res.json())
+    return parse_bucket_json(json.loads(res.data))
 
 
-def delete_bucket(s: Session, bucket_id: int) -> None:
+def delete_bucket(client: FlaskClient, bucket_id: int) -> None:
     """Delete a bucket by ID."""
-    res = s.delete(f"{HOST}/buckets/{bucket_id}/")
+    res = client.delete(f"{HOST}/buckets/{bucket_id}/")
     assert res.status_code == 204
 
 
 def create_courtship_req(
-    s: Session, other_id: int, type: str
+    client: FlaskClient, other_id: int, type: str
 ) -> CourtshipRequest:
     """Create a courtship request of a certain type to another user."""
     body = {"user_id": other_id, "type": type}
-    res = s.post(f"{HOST}/courtships/requests/", json=body)
+    res = client.post(f"{HOST}/courtships/requests/", json=body)
     assert res.status_code == 201
-    return parse_courtship_req_json(res.json())
+    return parse_courtship_req_json(json.loads(res.data))
 
 
 def get_courtship_reqs(
-    s: Session,
+    client: FlaskClient,
     type: str | None = None,
     dir: str | None = None,
-    users: Iterable[int] | None = None,
 ) -> list[CourtshipRequest]:
     """Get all courtship requests involving the current user."""
     params = dict()
@@ -438,42 +443,42 @@ def get_courtship_reqs(
         params["type"] = type
     if dir is not None:
         params["dir"] = dir
-    if users is not None:
-        params["users"] = ",".join(str(id) for id in users)
-    res = s.get(f"{HOST}/courtships/requests", params=params)
+    res = client.get(f"{HOST}/courtships/requests", params=params)
     assert res.status_code == 200
-    return [parse_courtship_req_json(cr) for cr in res.json()]
+    return [parse_courtship_req_json(cr) for cr in json.loads(res.data)]
 
 
-def update_incoming_court_req(s: Session, other_id: int, status: str) -> None:
+def update_incoming_court_req(
+    client: FlaskClient, other_id: int, status: str
+) -> None:
     """Respond to an incoming courtship request."""
-    res = s.put(
+    res = client.put(
         f"{HOST}/courtships/requests/{other_id}/", json={"status": status}
     )
     assert res.status_code == 204
 
 
-def delete_outgoing_court_req(s: Session, other_id: int) -> None:
+def delete_outgoing_court_req(client: FlaskClient, other_id: int) -> None:
     """Delete an outgoing courtship request."""
-    res = s.delete(f"{HOST}/courtships/requests/{other_id}/")
+    res = client.delete(f"{HOST}/courtships/requests/{other_id}/")
     assert res.status_code == 204
 
 
 def get_all_courtships(
-    s: Session, type: str | None = None, users: Iterable[int] | None = None
+    client: FlaskClient,
+    user_id: int | str,
+    type: str | None = None,
 ) -> list[Courtship]:
     """Get all established courtships involving the current user."""
     params = dict()
     if type is not None:
         params["type"] = type
-    if users is not None:
-        params["users"] = ",".join(str(id) for id in users)
-    res = s.get(f"{HOST}/courtships", params=params)
+    res = client.get(f"{HOST}/users/{user_id}/courtships", params=params)
     assert res.status_code == 200
-    return [parse_courtship_json(c) for c in res.json()]
+    return [parse_courtship_json(c) for c in json.loads(res.data)]
 
 
-def delete_courtship(s: Session, other_id: int) -> None:
+def delete_courtship(client: FlaskClient, other_id: int) -> None:
     """Delete an established courtship by ID."""
-    res = s.delete(f"{HOST}/courtships/{other_id}/")
+    res = client.delete(f"{HOST}/courtships/{other_id}/")
     assert res.status_code == 204

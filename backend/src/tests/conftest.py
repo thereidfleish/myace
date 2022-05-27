@@ -10,7 +10,7 @@ from app.models import db as _db
 @pytest.fixture
 def app():
     """Create application for the tests."""
-    _app = create_app("tests.settings")
+    _app = create_app()
     _app.logger.setLevel(logging.CRITICAL)
     ctx = _app.test_request_context()
     ctx.push()
@@ -30,3 +30,11 @@ def db(app):
     # Explicitly close DB connection
     _db.session.close()
     _db.drop_all()
+
+
+@pytest.fixture
+def test_client(app, scope="module"):
+    """Create test client for functional tests. Client is shared across module."""
+    with app.test_client() as client:
+        # must be inside application context
+        yield client
