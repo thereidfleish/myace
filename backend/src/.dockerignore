@@ -1,5 +1,7 @@
-__pycache__/
+/**/__pycache__/
 .gitignore
 .env
 venv/
 tests/
+app.egg-info/
+.*cache/

@@ -1,4 +1,4 @@
-# pip install -e .
+# pip install .
 from setuptools import setup
 
 setup(
@@ -6,16 +6,17 @@ setup(
     packages=["app"],
     include_package_data=True,
     install_requires=[
-        "flask",
-        "flask-sqlalchemy",
-        "flask-login",
-        "environs",
-        "botocore",
         "boto3",
+        "botocore",
         "cryptography",
+        "environs",
+        "flask",
+        "flask-login",
+        "flask-sqlalchemy",
         "google-auth",
-        "requests",
+        "gunicorn",
         "psycopg2",
         "pytest",
+        "requests",
     ],
 )

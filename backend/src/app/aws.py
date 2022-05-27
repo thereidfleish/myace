@@ -230,17 +230,20 @@ class AWS:
 
 
 def main() -> None:
-    from dotenv import load_dotenv
-
     # load environment variables
-    load_dotenv()
-    # constants
-    ACCESS_KEY_ID = str(os.environ.get("AWS_ACCESS_KEY_ID")).strip()
-    SECRET_ACCESS_KEY = str(os.environ.get("AWS_SECRET_ACCESS_KEY")).strip()
-    CF_PUBLIC_KEY_ID = str(os.environ.get("CF_PUBLIC_KEY_ID")).strip()
-    CF_PRIVATE_KEY_FILE = str(os.environ.get("CF_PRIVATE_KEY_FILE"))
+    from app.settings import (
+        AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY,
+        CF_PUBLIC_KEY_ID,
+        CF_PRIVATE_KEY,
+    )
+
+    # create AWS instance
     aws = AWS(
-        ACCESS_KEY_ID, SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY_FILE
+        AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY,
+        CF_PUBLIC_KEY_ID,
+        CF_PRIVATE_KEY,
     )
 
     # Reset the playlist files
