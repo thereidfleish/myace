@@ -2,9 +2,11 @@
 
 import json
 
+from flask import request
+from sqlalchemy import or_, and_
 import flask_login
 from . import routes, success_response, failure_response
-from ..models import UserRelationship
+from ..models import User, UserRelationship, RelationshipType
 
 
 @routes.route("/users/search")
