@@ -6,6 +6,7 @@ from flask import request
 import flask_login
 from . import routes, success_response, failure_response
 from ..models import Bucket
+from ..extensions import db
 
 
 @routes.route("/buckets/", methods=["POST"])
@@ -32,17 +33,12 @@ def create_bucket():
     return success_response(bucket.serialize(me), 201)
 
 
-@routes.route("/buckets")
+@routes.route("/users/<user_id>/buckets")
 @flask_login.login_required
-def get_buckets():
+def get_buckets(user_id):
     me = flask_login.current_user
-    user_id = request.args.get("user")
-    if user_id is None:
-        # Default behavior: get my buckets
-        buckets = Bucket.query.filter_by(user_id=me.id)
-    else:
-        # Optionally filter by user ID
-        buckets = Bucket.query.filter_by(user_id=user_id)
+    user_id = me.id if user_id == "me" else user_id
+    buckets = Bucket.query.filter_by(user_id=user_id)
 
     return success_response(
         {

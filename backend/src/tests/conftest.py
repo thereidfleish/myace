@@ -6,6 +6,8 @@ import pytest
 from app import create_app
 from app.models import db as _db
 
+from .functional import USER_A_GID, USER_B_GID, USER_C_GID
+
 from .functional.routes import login, is_user_logged_in
 
 
@@ -34,41 +36,9 @@ def db(app):
     _db.drop_all()
 
 
-@pytest.fixture
-def test_client(app):
-    """Create test client for functional tests. Client is shared across module."""
+@pytest.fixture(scope="function")
+def test_client(app, db):
+    """Create test client for functional tests."""
     with app.test_client() as client:
         # must be inside application context
         yield client
-
-
-@pytest.fixture
-def user(test_client):
-    """Supply tests with a logged-in user."""
-    user = login(test_client, "backendtesttoken1")
-    assert is_user_logged_in(test_client, user)
-    return user
-
-
-@pytest.fixture
-def login_user_a(test_client):
-    """:return: client in which user A is logged in and the user"""
-    user = login(test_client, "backendtesttoken1")
-    assert is_user_logged_in(test_client, user)
-    return test_client, user
-
-
-@pytest.fixture
-def login_user_b(test_client):
-    """:return: client in which user B is logged in and the user"""
-    user = login(test_client, "backendtesttoken2")
-    assert is_user_logged_in(test_client, user)
-    return test_client, user
-
-
-@pytest.fixture
-def login_user_c(test_client):
-    """:return: client in which user C is logged in and the user"""
-    user = login(test_client, "backendtesttoken3")
-    assert is_user_logged_in(test_client, user)
-    return test_client, user
