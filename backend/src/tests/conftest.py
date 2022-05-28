@@ -6,6 +6,8 @@ import pytest
 from app import create_app
 from app.models import db as _db
 
+from .functional.routes import login, is_user_logged_in
+
 
 @pytest.fixture
 def app():
@@ -33,8 +35,32 @@ def db(app):
 
 
 @pytest.fixture
-def test_client(app, scope="module"):
+def test_client(app):
     """Create test client for functional tests. Client is shared across module."""
     with app.test_client() as client:
         # must be inside application context
         yield client
+
+
+@pytest.fixture
+def user_a(test_client):
+    """Supply tests with logged-in user A."""
+    user = login(test_client, "backendtesttoken1")
+    assert is_user_logged_in(test_client, user)
+    return user
+
+
+@pytest.fixture
+def user_b(test_client):
+    """Supply tests with logged-in user B."""
+    user = login(test_client, "backendtesttoken2")
+    assert is_user_logged_in(test_client, user)
+    return user
+
+
+@pytest.fixture
+def user_c(test_client):
+    """Supply tests with logged-in user C."""
+    user = login(test_client, "backendtesttoken3")
+    assert is_user_logged_in(test_client, user)
+    return user

@@ -191,7 +191,7 @@ def logout(client: FlaskClient) -> None:
 
 def update_user(
     client: FlaskClient, username=None, display_name=None, biography=None
-):
+) -> None:
     """Update a user with current information."""
     body = dict()
     if username is not None:

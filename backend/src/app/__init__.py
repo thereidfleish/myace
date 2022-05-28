@@ -1,10 +1,10 @@
 """The app module, containing the app factory function."""
 
 from flask import Flask
-from flask import send_file
+from flask import send_file, request
 
 from .routes import routes, success_response, failure_response
-from .models import db
+from .models import db, User
 from .aws import AWS
 from .settings import (
     AWS_ACCESS_KEY_ID,
