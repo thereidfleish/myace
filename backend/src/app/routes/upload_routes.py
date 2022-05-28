@@ -6,7 +6,7 @@ from flask import make_response, request
 import flask_login
 
 from . import routes, success_response, failure_response
-from ..models import User, VisibilityDefault, visib_of_str
+from ..models import User, Upload, VisibilityDefault, visib_of_str
 
 
 @routes.route("/users/me/uploads")
