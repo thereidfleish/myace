@@ -15,9 +15,8 @@ def test_login(test_client: FlaskClient):
     assert type(routes.login(test_client, "backendtesttoken1")) == User
 
 
-def test_logout(test_client: FlaskClient, user_a: User):
+def test_logout(test_client: FlaskClient, user: User):
     """Test the logout route."""
-    print("logged in" if routes.is_logged_in(test_client) else "not logged in")
     initial = routes.get_user(test_client)
     assert type(initial) == User
     routes.logout(test_client)
@@ -28,21 +27,21 @@ def test_logout(test_client: FlaskClient, user_a: User):
     routes.logout(test_client)
 
 
-def test_get_current(test_client: FlaskClient, user_a: User):
+def test_get_current(test_client: FlaskClient, user: User):
     """Test get current user route."""
-    assert routes.is_user_logged_in(test_client, user_a)
-    assert routes.get_user(test_client) == user_a
+    assert routes.is_user_logged_in(test_client, user)
+    assert routes.get_user(test_client) == user
 
 
-def test_update_current(test_client: FlaskClient, user_a: User):
+def test_update_current(test_client: FlaskClient, user: User):
     """Test get current user route."""
     new_name = "Bob"
     new_username = "abcdefghijklmnop"
     new_bio = "New biography!!"
     # Ensure user does not have these attributes
-    assert user_a.dname != new_name
-    assert user_a.username != new_username
-    assert user_a.bio != new_bio
+    assert user.dname != new_name
+    assert user.username != new_username
+    assert user.bio != new_bio
     routes.update_user(test_client, new_username, new_name, new_bio)
     # Ensure updated user does have these attributes
     updated = routes.get_user(test_client)
@@ -50,5 +49,24 @@ def test_update_current(test_client: FlaskClient, user_a: User):
     assert updated.username == new_username
     assert updated.bio == new_bio
     # Revert back to old conditions and compare
-    routes.update_user(test_client, user_a.username, user_a.dname, user_a.bio)
-    assert routes.get_user(test_client) == user_a
+    routes.update_user(test_client, user.username, user.dname, user.bio)
+    assert routes.get_user(test_client) == user
+
+
+# def test_username_taken(test_client: FlaskClient, login_user_a, login_user_b):
+#     """Test that two users cannot have the same username."""
+#     client_a, user_a = login_user_a()
+#     client_a, user_a = login_user_a()
+#     routes.update_user(test_client)
+
+
+# def test_delete_user(test_client: FlaskClient, user: User):
+#     """Test deleting current user."""
+#     routes.delete_user(test_client)
+#     assert not routes.is_logged_in(test_client)
+#     body = {
+#         "token": "backendtesttoken1",
+#     }
+#     res = test_client.post(f"{HOST}/login/", json=body)
+#     # ensure another login attempt with return "user created"
+#     assert res.status_code == 201

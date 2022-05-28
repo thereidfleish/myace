@@ -178,7 +178,6 @@ def login(client: FlaskClient, google_token: str) -> User:
     }
     res = client.post(f"{HOST}/login/", json=body)
     assert res.status_code == 200 or res.status_code == 201, log_response(res)
-    print(res.data)
     return parse_user_json(json.loads(res.data))
 
 

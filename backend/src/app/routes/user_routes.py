@@ -7,7 +7,7 @@ from . import routes, success_response, failure_response
 from ..cookiesigner import CookieSigner
 from ..models import User
 from ..settings import G_CLIENT_IDS
-from ..extensions import db
+from ..extensions import aws, db
 
 from flask import request
 

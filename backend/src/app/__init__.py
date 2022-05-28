@@ -5,20 +5,14 @@ from flask import send_file, request
 
 from .routes import routes, success_response, failure_response
 from .models import db, User
-from .aws import AWS
 from .settings import (
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY,
     CF_PUBLIC_KEY_ID,
     CF_PRIVATE_KEY,
+    VIEW_DOCS_KEY,
 )
 from .extensions import db, login_manager
-
-
-# global AWS instance
-aws = AWS(
-    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CF_PUBLIC_KEY_ID, CF_PRIVATE_KEY
-)
 
 
 def create_app(test_config=None):

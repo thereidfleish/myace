@@ -10,7 +10,7 @@ from sqlalchemy import or_, and_
 from typing import List, Optional
 
 from .extensions import db
-from .aws import AWS
+from .aws_util import AWS
 
 # TODO: transition from exposing primary keys in routes to using UUIDs or IDENTITY or SERIAL
 
