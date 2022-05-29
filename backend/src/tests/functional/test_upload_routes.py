@@ -64,16 +64,17 @@ def configured_client(test_client: FlaskClient) -> FlaskClient:
     return test_client
 
 
-# def test_get_all_uploads(configured_client: FlaskClient):
-#     """Test the get all uploads route."""
-#     uploads = routes.get_all_uploads(configured_client)
-#     assert len(uploads) == 2
-#     # Test filter by bucket
-#     user = routes.get_user(configured_client)
-#     buckets = routes.get_all_buckets(configured_client, user.id)
-#     for b in buckets:
-#         uploads_filtered = routes.get_all_uploads(
-#             configured_client, bucket_id=b.id
-#         )
-#         assert len(uploads_filtered) == b.size
-#     # TODO test filter by shared-with
+def test_get_all_uploads(configured_client: FlaskClient):
+    """Test the get all uploads route."""
+    user = routes.login(configured_client, USER_A_GID)
+    uploads = routes.get_all_uploads(configured_client)
+    assert len(uploads) == 2
+    # Test filter by bucket
+    user = routes.get_user(configured_client)
+    buckets = routes.get_all_buckets(configured_client, user.id)
+    for b in buckets:
+        uploads_filtered = routes.get_all_uploads(
+            configured_client, bucket_id=b.id
+        )
+        assert len(uploads_filtered) == b.size
+    # TODO test filter by shared-with

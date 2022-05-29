@@ -99,11 +99,11 @@ class Upload:
 
 def parse_user_json(j: dict) -> User:
     """Parse a dict into its user object."""
-    courtship = None
+    courtship: Courtship | CourtshipRequest | None = None
     if j["courtship"] is not None:
         cship_type = j["courtship"]["type"]
         cship_dir = j["courtship"].get("dir")
-        courtship: Courtship | CourtshipRequest | None = (
+        courtship = (
             Courtship(cship_type)
             if cship_dir is None
             else CourtshipRequest(cship_type, cship_dir)
@@ -261,7 +261,7 @@ def get_all_uploads(
     res = client.get(_add_params(f"{HOST}/users/me/uploads", params))
     assert res.status_code == 200, log_response(res)
     print(res.data)
-    return [parse_upload_json(u) for u in json.loads(res.data)]
+    return [parse_upload_json(u) for u in json.loads(res.data)["uploads"]]
 
 
 def get_other_users_uploads(
@@ -392,7 +392,7 @@ def get_all_comments(
         params["upload"] = upload_id
     res = client.get(_add_params(f"{HOST}/comments", params))
     assert res.status_code == 200
-    return [parse_comment_json(c) for c in json.loads(res.data)]
+    return [parse_comment_json(c) for c in json.loads(res.data)["comments"]]
 
 
 def create_comment(client: FlaskClient, text: str, upload_id: int) -> Comment:
@@ -418,12 +418,9 @@ def create_bucket(client: FlaskClient, name: str) -> Bucket:
 
 def get_all_buckets(client: FlaskClient, user_id: int | None) -> list[Bucket]:
     """Get a list of all buckets owned by any user."""
-    params = dict()
-    if user_id is not None:
-        params["user"] = user_id
-    res = client.get(_add_params(f"{HOST}/buckets", params))
+    res = client.get(f"{HOST}/users/{user_id}/buckets")
     assert res.status_code == 200
-    return [parse_bucket_json(b) for b in json.loads(res.data)]
+    return [parse_bucket_json(b) for b in json.loads(res.data)["buckets"]]
 
 
 def edit_bucket(
@@ -467,7 +464,7 @@ def get_courtship_reqs(
         params["dir"] = dir
     res = client.get(_add_params(f"{HOST}/courtships/requests", params))
     assert res.status_code == 200
-    return [parse_user_json(u) for u in json.loads(res.data)]
+    return [parse_user_json(u) for u in json.loads(res.data)["requests"]]
 
 
 def update_incoming_court_req(
@@ -497,7 +494,7 @@ def get_all_courtships(
         params["type"] = type
     res = client.get(_add_params(f"{HOST}/users/{user_id}/courtships", params))
     assert res.status_code == 200
-    return [parse_user_json(u) for u in json.loads(res.data)]
+    return [parse_user_json(u) for u in json.loads(res.data)["courtships"]]
 
 
 def delete_courtship(client: FlaskClient, other_id: int) -> None:

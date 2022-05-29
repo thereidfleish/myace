@@ -165,9 +165,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                    $ref: "#/components/schemas/Upload"
+                type: object
+                required: [uploads]
+                properties:
+                  uploads:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Upload"
         default:
           description: Unexpected error
           content:
@@ -200,9 +204,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                    $ref: "#/components/schemas/Upload"
+                type: object
+                required: [uploads]
+                properties:
+                  uploads:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Upload"
         default:
           description: Unexpected error
           content:
@@ -469,10 +477,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                    type: object
-                    $ref: "#/components/schemas/Comment"
+                type: object
+                required: [comments]
+                properties:
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      $ref: "#/components/schemas/Comment"
         default:
           description: Unexpected error
           content:
@@ -579,10 +591,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                    type: object
-                    $ref: "#/components/schemas/Bucket"
+                type: object
+                required: [buckets]
+                properties:
+                  buckets:
+                    type: array
+                    items:
+                        type: object
+                        $ref: "#/components/schemas/Bucket"
         default:
           description: Unexpected error
           content:

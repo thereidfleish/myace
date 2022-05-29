@@ -176,7 +176,7 @@ def delete_me():
     me: User = flask_login.current_user
 
     # TODO: delete profile picture
-    aws.delete_uploads(me.uploads)
+    aws.delete_uploads([u.id for u in me.uploads])
     # Delete user.
     # It is the DB's responsibility to ensure deletion of rows containing
     # foreign keys.

@@ -88,6 +88,7 @@ jobs:
           S3_CF_DOMAIN: ${{ secrets.S3_CF_DOMAIN }}
           S3_CF_SUBDOMAIN: ${{ secrets.S3_CF_SUBDOMAIN }}
           VIEW_DOCS_KEY: ${{ secrets.VIEW_DOCS_KEY }}
+          FLASK_ENV: development # print 500 errors to stderr
 
       # TODO: automatically install AWS requirements if missing
       - name: Check for AWS-CLI v2
