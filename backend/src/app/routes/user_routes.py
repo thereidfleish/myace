@@ -102,9 +102,7 @@ def login():
     # Begin user session
     flask_login.login_user(user, remember=True)
 
-    return success_response(
-        user.serialize(user, show_private=True), 201 if user_created else 200
-    )
+    return success_response(user.serialize(user), 201 if user_created else 200)
 
 
 @routes.route("/logout/", methods=["POST"])
@@ -114,11 +112,14 @@ def logout():
     return success_response()
 
 
-@routes.route("/users/me/")
+@routes.route("/users/<user_id>/")
 @flask_login.login_required
-def get_me():
+def get_user(user_id):
     me = flask_login.current_user
-    return success_response(me.serialize(me, show_private=True))
+    user = me if user_id == "me" else User.query.filter_by(id=user_id).first()
+    if user is None:
+        return failure_response("User not found.")
+    return success_response(user.serialize(me))
 
 
 @routes.route("/users/me/", methods=["PUT"])
@@ -166,7 +167,7 @@ def edit_me():
             me.biography = new_bio
 
     db.session.commit()
-    return success_response(me.serialize(me, show_private=True))
+    return success_response(me.serialize(me))
 
 
 @routes.route("/users/me/", methods=["DELETE"])
@@ -175,7 +176,7 @@ def delete_me():
     me: User = flask_login.current_user
 
     # TODO: delete profile picture
-    aws.delete_uploads(me.uploads)
+    aws.delete_uploads([u.id for u in me.uploads])
     # Delete user.
     # It is the DB's responsibility to ensure deletion of rows containing
     # foreign keys.

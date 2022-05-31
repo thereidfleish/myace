@@ -1,17 +1,45 @@
 """Provides helper functions to interact with backend server."""
 from __future__ import annotations
+from typing import Any
+from dataclasses import dataclass
 import os
 import datetime
 import json
-from dataclasses import dataclass
 
 from flask.testing import FlaskClient
-from . import HOST
+from . import (
+    HOST,
+)
 
 
 def log_response(res) -> str:
     """:return: a string-formatted response."""
     return f"Response status code: {res.status_code}\nData:\n{res.data}"
+
+
+def _add_params(url: str, params: dict[str, Any]) -> str:
+    """Append query parameters onto URL."""
+    if len(params) == 0:
+        return url
+    url += "?"
+    for k, v in params.items():
+        url += "&" + k + "=" + str(v)
+    return url
+
+
+@dataclass
+class CourtshipRequest:
+    """Courtship request model."""
+
+    type: str
+    dir: str
+
+
+@dataclass
+class Courtship:
+    """Courtship request model."""
+
+    type: str
 
 
 @dataclass
@@ -22,7 +50,8 @@ class User:
     username: str
     dname: str
     bio: str
-    email: str
+    courtship: Courtship | CourtshipRequest | None
+    email: str | None = None
 
 
 @dataclass
@@ -68,31 +97,24 @@ class Upload:
     url: str | None = None
 
 
-@dataclass
-class CourtshipRequest:
-    """Courtship request model."""
-
-    type: str
-    dir: str
-    user: User
-
-
-@dataclass
-class Courtship:
-    """Courtship request model."""
-
-    type: str
-    user: User
-
-
 def parse_user_json(j: dict) -> User:
     """Parse a dict into its user object."""
+    courtship: Courtship | CourtshipRequest | None = None
+    if j["courtship"] is not None:
+        cship_type = j["courtship"]["type"]
+        cship_dir = j["courtship"].get("dir")
+        courtship = (
+            Courtship(cship_type)
+            if cship_dir is None
+            else CourtshipRequest(cship_type, cship_dir)
+        )
     return User(
         j["id"],
         j["username"],
         j["display_name"],
         j["biography"],
-        j["email"],
+        courtship=courtship,
+        email=j["email"],
     )
 
 
@@ -131,19 +153,9 @@ def parse_comment_json(j: dict) -> Comment:
     )
 
 
-def parse_courtship_req_json(j: dict) -> CourtshipRequest:
-    """Parse a dict into its courtship request object."""
-    return CourtshipRequest(j["type"], j["dir"], parse_user_json(j["user"]))
-
-
-def parse_courtship_json(j: dict) -> Courtship:
-    """Parse a dict into its courtship object."""
-    return Courtship(j["type"], parse_user_json(j["user"]))
-
-
-def get_user_opt(client: FlaskClient) -> User | None:
+def get_user_opt(client: FlaskClient, user_id_param: str | int) -> User | None:
     """Retrieve the currently logged in user if logged in or None if not."""
-    res = client.get(f"{HOST}/users/me/")
+    res = client.get(f"{HOST}/users/{user_id_param}/")
     if res.status_code == 401:
         return None
     assert res.status_code == 200, log_response(res)
@@ -155,19 +167,29 @@ def get_user(client: FlaskClient) -> User:
 
     Raises exception if not logged in.
     """
-    user = get_user_opt(client)
+    user = get_user_opt(client, "me")
+    assert user is not None
+    return user
+
+
+def get_user_by_id(client: FlaskClient, user_id: int) -> User:
+    """Retrieve a user by ID.
+
+    Raises exception if not logged in.
+    """
+    user = get_user_opt(client, user_id)
     assert user is not None
     return user
 
 
 def is_logged_in(client: FlaskClient) -> bool:
-    """Check if any user is logged in."""
-    return get_user_opt(client) is not None
+    """Check if the current user is logged in."""
+    return get_user_opt(client, "me") is not None
 
 
 def is_user_logged_in(client: FlaskClient, user: User) -> bool:
     """Check if a given user is logged in."""
-    check = get_user_opt(client)
+    check = get_user_opt(client, user.id)
     return check is not None and check == user
 
 
@@ -236,9 +258,10 @@ def get_all_uploads(
         params["bucket"] = bucket_id
     if shared_with is not None:
         params["shared-with"] = shared_with
-    res = client.get(f"{HOST}/users/me/uploads", params=params)
+    res = client.get(_add_params(f"{HOST}/users/me/uploads", params))
     assert res.status_code == 200, log_response(res)
-    return [parse_upload_json(u) for u in json.loads(res.data)]
+    print(res.data)
+    return [parse_upload_json(u) for u in json.loads(res.data)["uploads"]]
 
 
 def get_other_users_uploads(
@@ -250,7 +273,7 @@ def get_other_users_uploads(
     params = dict()
     if bucket_id is not None:
         params["bucket"] = bucket_id
-    res = client.get(f"{HOST}/users/{other_id}/uploads", params=params)
+    res = client.get(_add_params(f"{HOST}/users/{other_id}/uploads", params))
     assert res.status_code == 200, log_response(res)
     return [parse_upload_json(u) for u in json.loads(res.data)]
 
@@ -367,9 +390,9 @@ def get_all_comments(
     params = dict()
     if upload_id is not None:
         params["upload"] = upload_id
-    res = client.get(f"{HOST}/comments", params=params)
+    res = client.get(_add_params(f"{HOST}/comments", params))
     assert res.status_code == 200
-    return [parse_comment_json(c) for c in json.loads(res.data)]
+    return [parse_comment_json(c) for c in json.loads(res.data)["comments"]]
 
 
 def create_comment(client: FlaskClient, text: str, upload_id: int) -> Comment:
@@ -395,12 +418,9 @@ def create_bucket(client: FlaskClient, name: str) -> Bucket:
 
 def get_all_buckets(client: FlaskClient, user_id: int | None) -> list[Bucket]:
     """Get a list of all buckets owned by any user."""
-    params = dict()
-    if user_id is not None:
-        params["user"] = user_id
-    res = client.get(f"{HOST}/buckets", params=params)
+    res = client.get(f"{HOST}/users/{user_id}/buckets")
     assert res.status_code == 200
-    return [parse_bucket_json(b) for b in json.loads(res.data)]
+    return [parse_bucket_json(b) for b in json.loads(res.data)["buckets"]]
 
 
 def edit_bucket(
@@ -423,28 +443,28 @@ def delete_bucket(client: FlaskClient, bucket_id: int) -> None:
 
 def create_courtship_req(
     client: FlaskClient, other_id: int, type: str
-) -> CourtshipRequest:
+) -> User:
     """Create a courtship request of a certain type to another user."""
     body = {"user_id": other_id, "type": type}
     res = client.post(f"{HOST}/courtships/requests/", json=body)
     assert res.status_code == 201
-    return parse_courtship_req_json(json.loads(res.data))
+    return parse_user_json(json.loads(res.data))
 
 
 def get_courtship_reqs(
     client: FlaskClient,
     type: str | None = None,
     dir: str | None = None,
-) -> list[CourtshipRequest]:
+) -> list[User]:
     """Get all courtship requests involving the current user."""
     params = dict()
     if type is not None:
         params["type"] = type
     if dir is not None:
         params["dir"] = dir
-    res = client.get(f"{HOST}/courtships/requests", params=params)
+    res = client.get(_add_params(f"{HOST}/courtships/requests", params))
     assert res.status_code == 200
-    return [parse_courtship_req_json(cr) for cr in json.loads(res.data)]
+    return [parse_user_json(u) for u in json.loads(res.data)["requests"]]
 
 
 def update_incoming_court_req(
@@ -467,14 +487,14 @@ def get_all_courtships(
     client: FlaskClient,
     user_id: int | str,
     type: str | None = None,
-) -> list[Courtship]:
+) -> list[User]:
     """Get all established courtships involving the current user."""
     params = dict()
     if type is not None:
         params["type"] = type
-    res = client.get(f"{HOST}/users/{user_id}/courtships", params=params)
+    res = client.get(_add_params(f"{HOST}/users/{user_id}/courtships", params))
     assert res.status_code == 200
-    return [parse_courtship_json(c) for c in json.loads(res.data)]
+    return [parse_user_json(u) for u in json.loads(res.data)["courtships"]]
 
 
 def delete_courtship(client: FlaskClient, other_id: int) -> None:

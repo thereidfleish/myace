@@ -2,11 +2,12 @@
 
 import json
 from typing import TypedDict
-from flask import make_response
+from flask import make_response, request
 import flask_login
 
 from . import routes, success_response, failure_response
-from ..models import User, VisibilityDefault, visib_of_str
+from ..models import User, Bucket, Upload, VisibilityDefault, visib_of_str
+from ..extensions import aws, db
 
 
 @routes.route("/users/me/uploads")
@@ -27,6 +28,10 @@ def get_all_uploads():
         sw_user: User = User.query.filter_by(id=sw_id).first()
         if sw_user is None:
             return failure_response("User not found.")
+        if sw_user == me:
+            return failure_response(
+                "Cannot share an upload with yourself.", 403
+            )
         uploads = filter(lambda u: sw_user.can_view_upload(u), uploads)
 
     return success_response(
@@ -230,7 +235,7 @@ def start_convert(upload_id):
     upload.mediaconvert_job_id = convert_job_id
     db.session.commit()
 
-    return success_response()
+    return success_response(code=204)
 
 
 @routes.route("/uploads/<int:upload_id>/", methods=["PUT"])

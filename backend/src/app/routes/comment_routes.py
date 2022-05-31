@@ -2,9 +2,11 @@
 
 import json
 
+from flask import request
 import flask_login
 from . import routes, success_response, failure_response
-from ..models import Comment
+from ..models import Comment, Upload
+from ..extensions import db
 
 
 @routes.route("/comments")

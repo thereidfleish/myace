@@ -2,10 +2,13 @@
 
 import json
 
+
+from flask import request
 from sqlalchemy import or_, and_
 import flask_login
 from . import routes, success_response, failure_response
-from ..models import User, UserRelationship
+from ..models import User, UserRelationship, RelationshipType
+from ..extensions import db
 
 
 @routes.route("/users/search")
@@ -183,8 +186,7 @@ def delete_outgoing_courtship_request(other_user_id):
 @flask_login.login_required
 def get_all_courtships(user_id):
     me = flask_login.current_user
-    if user_id == "me":
-        user_id = me.id
+    user_id = me.id if user_id == "me" else user_id
     # Get all UserRelationships involving the specified user
     courtships = UserRelationship.query.filter(
         or_(

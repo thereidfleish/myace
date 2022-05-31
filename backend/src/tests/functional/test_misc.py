@@ -1,7 +1,15 @@
+import json
 from flask.testing import FlaskClient
 
 from . import routes, HOST
 from app.settings import VIEW_DOCS_KEY
+
+
+def test_health_check(test_client: FlaskClient):
+    """Test the health check route."""
+    res = test_client.get(f"{HOST}/health/")
+    assert res.status_code == 200
+    assert json.loads(res.data).get("status") == "OK"
 
 
 def test_docs(test_client: FlaskClient):

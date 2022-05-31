@@ -39,7 +39,7 @@ class User(db.Model):
         self.display_name = display_name
         self.email = email
 
-    def serialize(self, client: User, show_private=False):
+    def serialize(self, client: User):
         """:return: a serialized User from the perspective of the client"""
         # public profile information
         response = {
@@ -56,10 +56,9 @@ class User(db.Model):
         }
         # courtship field
         rel = client.get_relationship_with(self)
-        response["courship"] = None if rel is None else rel.serialize(client)
+        response["courtship"] = None if rel is None else rel.serialize(client)
         # private profile information
-        # I believe the show_private param helps reduce the odds of data leaks
-        if show_private and self.id == client.id:
+        if self.id == client.id:
             response["email"] = self.email
         return response
 
