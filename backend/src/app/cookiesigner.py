@@ -3,7 +3,7 @@ import json
 import base64
 import os
 
-from .aws_util import AWS
+from .aws import rsa_sign
 
 
 def _generate_cookies(policy: str, signature: str, cf_key_id: str) -> dict:
@@ -19,8 +19,7 @@ def _replace_unsupported_chars(message: str) -> str:
 
 
 class CookieSigner:
-    def __init__(self, aws: AWS, expiration_in_hrs: int, cf_key_id: str):
-        self.aws = aws
+    def __init__(self, expiration_in_hrs: int, cf_key_id: str):
         self.expiration_in_hrs = expiration_in_hrs
         self.__cf_key_id = cf_key_id
         self.object_url_header = os.environ.get("S3_OBJECT_URL_HEADER")
@@ -50,7 +49,7 @@ class CookieSigner:
         return policy_json, policy_64
 
     def _generate_signature(self, policy_json: str) -> str:
-        sig_bytes = self.aws.rsa_sign(policy_json.encode("utf-8"))
+        sig_bytes = rsa_sign(policy_json.encode("utf-8"))
         sig_64 = _replace_unsupported_chars(
             str(base64.b64encode(sig_bytes), "utf-8")
         )

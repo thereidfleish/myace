@@ -6,8 +6,9 @@ from flask import make_response, request
 import flask_login
 
 from . import routes, success_response, failure_response
+from .. import aws
 from ..models import User, Bucket, Upload, VisibilityDefault, visib_of_str
-from ..extensions import aws, db
+from ..extensions import db
 
 
 @routes.route("/users/me/uploads")
@@ -37,9 +38,7 @@ def get_all_uploads():
     return success_response(
         {
             "uploads": [
-                up.serialize(me, aws)
-                for up in uploads
-                if me.can_view_upload(up)
+                up.serialize(me) for up in uploads if me.can_view_upload(up)
             ]
         }
     )
@@ -61,9 +60,7 @@ def get_all_uploads_other_user(other_id):
     return success_response(
         {
             "uploads": [
-                up.serialize(me, aws)
-                for up in uploads
-                if me.can_view_upload(up)
+                up.serialize(me) for up in uploads if me.can_view_upload(up)
             ]
         }
     )
@@ -83,12 +80,10 @@ def get_upload(upload_id):
         return failure_response("User forbidden to view upload.", 403)
 
     # Create response
-    response = upload.serialize(me, aws)
+    response = upload.serialize(me)
 
     if upload.stream_ready:
-        signer = CookieSigner(
-            aws=aws, expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID
-        )
+        signer = CookieSigner(expiration_in_hrs=1, cf_key_id=CF_PUBLIC_KEY_ID)
         url = (
             "https://"
             + S3_CF_SUBDOMAIN
@@ -281,7 +276,7 @@ def edit_upload(upload_id):
             return failure_response(b, 400)
 
     db.session.commit()
-    return success_response(upload.serialize(me, aws))
+    return success_response(upload.serialize(me))
 
 
 @routes.route("/uploads/<int:upload_id>/", methods=["DELETE"])

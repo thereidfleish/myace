@@ -5,6 +5,7 @@ import json
 from flask import request
 import flask_login
 from . import routes, success_response, failure_response
+from .. import aws
 from ..models import Bucket
 from ..extensions import db
 

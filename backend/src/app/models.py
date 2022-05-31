@@ -10,7 +10,7 @@ from sqlalchemy import or_, and_
 from typing import List, Optional
 
 from .extensions import db
-from .aws_util import AWS
+from . import aws
 
 # TODO: transition from exposing primary keys in routes to using UUIDs or IDENTITY or SERIAL
 
@@ -431,7 +431,7 @@ class Upload(db.Model):
     # Comments
     comments = db.relationship("Comment", back_populates="upload")
 
-    def serialize(self, client: User, aws: AWS):
+    def serialize(self, client: User):
         """:return: a serialized Upload from the perspective of the client"""
         # Check stream_ready
         if not self.stream_ready and self.mediaconvert_job_id is not None:

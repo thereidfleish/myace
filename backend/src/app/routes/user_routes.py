@@ -4,10 +4,11 @@ import re
 import flask_login
 from . import routes, success_response, failure_response
 
+from .. import aws
 from ..cookiesigner import CookieSigner
 from ..models import User
 from ..settings import G_CLIENT_IDS
-from ..extensions import aws, db
+from ..extensions import db
 
 from flask import request
 
