@@ -26,11 +26,11 @@ struct UserData {
     
     var comments: [Comment] = []
     
-    var courtships: [Courtship] = []
+    var courtships: [SharedData] = []
     
-    var incomingCourtshipRequests: [CourtshipRequest] = []
+    var incomingCourtshipRequests: [SharedData] = []
     
-    var outgoingCourtshipRequests: [CourtshipRequest] = []
+    var outgoingCourtshipRequests: [SharedData] = []
     
 //    var incomingFriendRequests: [Friend]
 //    var outgoingFriendRequests: [Friend]
@@ -98,8 +98,75 @@ struct SharedData: Codable, Identifiable, Equatable {
     var biography: String = ""
     var n_uploads: Int = -1;
     var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
+    var courtship: Courtship?
     //var email: String? = nil
     //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+}
+
+//struct SharedDataRequest: Codable, Identifiable, Equatable {
+//    var id: Int = -1
+//    var username: String = ""
+//    var display_name: String = ""
+//    var biography: String = ""
+//    var n_uploads: Int = -1;
+//    var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
+//    var courtship: Courtship = Courtship(type: .friend)
+//    //var email: String? = nil
+//    //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+//}
+
+enum CourtshipType: String, Codable {
+    case friend = "friend"
+    case coach = "coach"
+    case student = "student"
+    case friend_req = "friend-req"
+    case coach_req = "coach-req"
+    case student_req = "student-req"
+}
+
+//enum CourtshipRequestType: String, Codable {
+//    case friend = "friend-req"
+//    case coach = "coach-req"
+//    case student = "student-req"
+//}
+
+enum CourtshipRequestDir: String, Codable {
+    case `in` = "in"
+    case out = "out"
+}
+
+struct CourtshipRequestReq: Codable {
+    var user_id: Int
+    var type: CourtshipType
+}
+
+struct CourtshipRequestRes: Codable {
+    var requests: [SharedData]
+}
+
+struct GetCourtshipsRes: Codable {
+    var courtships: [SharedData]
+}
+
+//struct Courtship: Codable, Identifiable {
+//    var id: Int?
+//    var type: String
+//    var dir: String?
+//    var user: SharedData
+//}
+
+struct Courtship: Codable, Equatable {
+    var type: CourtshipType
+    var dir: CourtshipRequestDir?
+}
+
+//struct CourtshipRequest: Codable {
+//    var type: CourtshipRequestType
+//    var dir: CourtshipRequestDir
+//}
+
+struct UpdateIncomingCourtshipRequestReq: Codable {
+    var status: String
 }
 
 struct CourtshipTypeQuantity: Codable, Equatable {
@@ -116,7 +183,7 @@ struct Upload: Codable, Identifiable {
     var bucket: Bucket = Bucket()
     //var thumbnail: String? = nil
     var visibility: Visibility = Visibility()
-    var thumbnail: String? = nil
+    var thumbnail: String = ""
     var url: String? = nil
     
 //    var isVisible: Bool {
@@ -237,51 +304,7 @@ struct FriendReq: Codable {
     var courtships: [Courtship]
 }
 
-enum CourtshipType: String, Codable {
-    case friend = "friend"
-    case coach = "coach"
-    case student = "student"
-}
 
-enum CourtshipRequestType: String, Codable {
-    case friend = "friend-req"
-    case coach = "coach-req"
-    case student = "student-req"
-}
-
-struct CourtshipRequestReq: Codable {
-    var user_id: Int
-    var type: CourtshipRequestType
-}
-
-struct CourtshipRequestRes: Codable {
-    var requests: [CourtshipRequest]
-}
-
-struct GetCourtshipsRes: Codable {
-    var courtships: [Courtship]
-}
-
-//struct Courtship: Codable, Identifiable {
-//    var id: Int?
-//    var type: String
-//    var dir: String?
-//    var user: SharedData
-//}
-
-struct Courtship: Codable {
-    var type: CourtshipType
-    var user: SharedData
-}
-
-struct CourtshipRequest: Codable {
-    var type: CourtshipRequestType
-    var user: SharedData
-}
-
-struct UpdateIncomingCourtshipRequestReq: Codable {
-    var status: String
-}
 
 struct EditUploadReq: Codable {
     var display_title: String? = nil

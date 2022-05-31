@@ -14,7 +14,7 @@ struct StudentUploadView: View {
     @State private var errorMessage = ""
     @State private var awaiting = false
     @State var didAppear = false
-    @State private var filteredCourtships: [Courtship] = []
+    @State private var filteredCourtships: [SharedData] = []
     @State var coach: Bool
     
     //@State private var coaches: [Courtship] = []
@@ -57,7 +57,7 @@ struct StudentUploadView: View {
         do {
             awaiting = true
             try await nc.getCourtships(type: nil, users: nil)
-            filteredCourtships = nc.userData.courtships.filter { coach ? $0.type == .student : $0.type == .coach}
+            filteredCourtships = nc.userData.courtships.filter { coach ? $0.courtship?.type == .student : $0.courtship?.type == .coach}
             awaiting = false
             print("DONE!")
         } catch {
@@ -89,8 +89,8 @@ struct StudentUploadView: View {
                     }
                     
                     ScrollView {
-                        ForEach(filteredCourtships, id: \.self.user.id) { user in
-                            UserCardHomeView(user: user.user, coach: coach)
+                        ForEach(filteredCourtships, id: \.self.id) { user in
+                            UserCardHomeView(user: user, coach: coach)
                         }
                     }
                     

@@ -29,7 +29,7 @@ struct UserCardView: View {
         }
     }
     
-    func createCourtshipRequest(userID: String, type: CourtshipRequestType) async {
+    func createCourtshipRequest(userID: String, type: CourtshipType) async {
         do {
             awaiting = true
             try await nc.createCourtshipRequest(userID: userID, type: type)
@@ -133,7 +133,7 @@ struct UserCardView: View {
                             Image(systemName: "person.text.rectangle.fill")
                                 .foregroundColor(Color.white)
                                 .frame(width: 15)
-                            Text(nc.userData.courtships.first(where :{$0.user.id == user.id})?.type.rawValue.capitalized ?? "")
+                            Text(nc.userData.courtships.first(where :{$0.id == user.id})?.courtship?.type.rawValue.capitalized ?? "")
                                 .bucketTextExternalStyle()
                         }
                     }
@@ -146,7 +146,7 @@ struct UserCardView: View {
                     ProgressView()
                 } else {
                     // Handle if the user is already a courtship
-                    if (nc.userData.courtships.contains(where: {$0.user.id == user.id})) {
+                    if (nc.userData.courtships.contains(where: {$0.id == user.id})) {
                         Button(action: {
                             showRemoveFriendAlert = true
                         }, label: {
@@ -159,7 +159,7 @@ struct UserCardView: View {
                     }
                     
                     // Handle if the user is not a courtship but sent you a courtship request
-                    else if (nc.userData.incomingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
+                    else if (nc.userData.incomingCourtshipRequests.contains(where: {$0.id == user.id})) {
                         HStack {
                             Button(action: {
                                 Task {
@@ -188,7 +188,7 @@ struct UserCardView: View {
                     }
                     
                     // Handle if the user sent an outgoing friend request to this user
-                    else if (nc.userData.outgoingCourtshipRequests.contains(where: {$0.user.id == user.id})) {
+                    else if (nc.userData.outgoingCourtshipRequests.contains(where: {$0.id == user.id})) {
                         Button(action: {
                             Task {
                                 await deleteOutgoingFriendRequest(userID: String(user.id))

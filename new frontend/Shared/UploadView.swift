@@ -151,15 +151,15 @@ struct UploadView: View {
                         TextField("Search for users...", text: $searchText)
                             .textFieldStyle()
                         
-                        ForEach(nc.userData.courtships.filter { ($0.user.display_name.lowercased().contains(searchText.lowercased()) || $0.user.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0.user)) }, id: \.self.user.id) { courtship in
+                        ForEach(nc.userData.courtships.filter { ($0.display_name.lowercased().contains(searchText.lowercased()) || $0.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0)) }, id: \.self.id) { courtship in
                             
                             Button(action: {
                                 withAnimation {
-                                    visibility.also_shared_with.append(courtship.user)
+                                    visibility.also_shared_with.append(courtship)
                                 }
                                 
                             }, label: {
-                                Text("\(courtship.user.display_name) (\(courtship.user.username))")
+                                Text("\(courtship.display_name) (\(courtship.username))")
                                     .buttonStyle()
                             }).disabled(uploading)
                         }

@@ -59,10 +59,10 @@ struct FriendsView: View {
                             Text("Click the + icon to search for and add your courtships!")
                                 .bucketTextInternalStyle()
                         }
-                        ForEach(nc.userData.courtships, id: \.self.user.id) { courtship in
-                            NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
+                        ForEach(nc.userData.courtships, id: \.self.id) { courtship in
+                            NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
                             {
-                                UserCardView(user: courtship.user)
+                                UserCardView(user: courtship)
                             }
                         }
                         
@@ -72,10 +72,10 @@ struct FriendsView: View {
                             Text(nc.userData.incomingCourtshipRequests.count > 0 ? "Incoming Courtship Requests" : "No Incoming Courtship Requests")
                                 .bucketTextInternalStyle()
                             
-                            ForEach(nc.userData.incomingCourtshipRequests, id: \.self.user.id) { courtship in
-                                NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
+                            ForEach(nc.userData.incomingCourtshipRequests, id: \.self.id) { courtship in
+                                NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
                                 {
-                                    UserCardView(user: courtship.user)
+                                    UserCardView(user: courtship)
                                 }
                             }
                             
@@ -83,10 +83,10 @@ struct FriendsView: View {
                                 .padding(.top)
                                 .bucketTextInternalStyle()
                             
-                            ForEach(nc.userData.outgoingCourtshipRequests, id: \.self.user.id) { courtship in
-                                NavigationLink(destination: ProfileView(yourself: false, user: courtship.user).navigationBarHidden(true))
+                            ForEach(nc.userData.outgoingCourtshipRequests, id: \.self.id) { courtship in
+                                NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
                                 {
-                                    UserCardView(user: courtship.user)
+                                    UserCardView(user: courtship)
                                 }
                             }
                         }

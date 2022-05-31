@@ -345,7 +345,7 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func createCourtshipRequest(userID: String, type: CourtshipRequestType) async throws {
+    func createCourtshipRequest(userID: String, type: CourtshipType) async throws {
         let req: CourtshipRequestReq = CourtshipRequestReq(user_id: Int(userID)!, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -447,7 +447,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getCourtships(type: CourtshipType?, users: String?) async throws {
-        var stringBuilder: String = "\(host)/courtships\(type == nil && users == nil ? "" : "?")"
+        var stringBuilder: String = "\(host)/users/\(userData.shared.id)/courtships\(type == nil && users == nil ? "" : "?")"
         
         if (type != nil) {
             stringBuilder += "type=\(type!)"
@@ -462,7 +462,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            print(data.prettyPrintedJSONString!)
+            //print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             let decodedResponse = try decoder.decode(GetCourtshipsRes.self, from: data)
             DispatchQueue.main.sync {

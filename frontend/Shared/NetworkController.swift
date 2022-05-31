@@ -55,7 +55,7 @@ class NetworkController: ObservableObject {
                 userData.shared = decodedResponse
             }
         } catch {
-            print("Hiiiii")
+            print("Update Current User")
             throw NetworkError.failedDecode
         }
     }
@@ -99,7 +99,7 @@ class NetworkController: ObservableObject {
                 return decodedResponse
             }
         } catch {
-            print("Hiiiii")
+            print("Get Upload failed decode")
             throw NetworkError.failedDecode
         }
         throw NetworkError.noReturn
@@ -156,7 +156,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("Get Comments Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -243,19 +243,19 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("Get Uploads Failed Decode")
             throw NetworkError.failedDecode
         }
     }
     
     // GET
     func getBuckets() async throws {
-        let url = URL(string: "\(host)/buckets/")!
+        let url = URL(string: "\(host)/\(userData.id)/buckets/")!
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             
-            //print("JSON Data: \(data.prettyPrintedJSONString)")
+            print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
@@ -264,7 +264,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("Get Buckets Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -287,7 +287,7 @@ class NetworkController: ObservableObject {
     }
     
     // POST
-    func createCourtshipRequest(userID: String, type: String) async throws {
+    func createCourtshipRequest(userID: String, type: CourtshipType) async throws {
         let req: CourtshipRequestReq = CourtshipRequestReq(user_id: Int(userID)!, type: type)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -339,7 +339,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("Get Courtship Requests Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -414,7 +414,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("Get Courtships")
             throw NetworkError.failedDecode
         }
     }
