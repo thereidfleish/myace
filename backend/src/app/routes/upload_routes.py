@@ -294,7 +294,7 @@ def delete_upload(upload_id):
 
     # Delete upload
     db.session.delete(upload)
-    aws.delete_uploads(upload_id)
+    aws.delete_uploads([upload_id])
     db.session.commit()
 
     return success_response(code=204)
@@ -311,7 +311,7 @@ def get_download_url(upload_id):
         return failure_response("User forbidden to view upload.", 403)
     return success_response(
         {
-            "url": aws.get_upload_url(
+            "url": aws.get_download_url(
                 upload.id, upload.filename, expiration_in_hours=1
             )
         }

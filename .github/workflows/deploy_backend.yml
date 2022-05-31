@@ -85,6 +85,8 @@ jobs:
           DB_USERNAME: dbmasteruser
           FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
           G_CLIENT_IDS: ${{ secrets.G_CLIENT_IDS }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          S3_BUCKET_REGION: ${{ secrets.S3_BUCKET_REGION }}
           S3_CF_DOMAIN: ${{ secrets.S3_CF_DOMAIN }}
           S3_CF_SUBDOMAIN: ${{ secrets.S3_CF_SUBDOMAIN }}
           VIEW_DOCS_KEY: ${{ secrets.VIEW_DOCS_KEY }}

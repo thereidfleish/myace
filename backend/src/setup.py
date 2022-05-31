@@ -8,6 +8,7 @@ setup(
     install_requires=[
         "boto3",
         "botocore",
+        "cffi",
         "cryptography",
         "environs",
         "flask",

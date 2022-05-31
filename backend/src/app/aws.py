@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import time
+import enum
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -37,6 +38,9 @@ _cloudfront = boto3.client(
     "cloudfront",
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+)
+CONVERT_TEMPLATE_FP = os.path.join(
+    os.path.dirname(__file__), "mediaconvert-job-template.json"
 )
 _mediaconvert = boto3.client(
     "mediaconvert",
@@ -77,7 +81,6 @@ def _get_presigned_url(object_key: str, expiration: datetime.datetime) -> str:
     :param expiration: The datetime obj when the URL should expire
     :return: Presigned URL pointing to the object
     """
-    print(f"Generating presigned URL for {object_key}")
     url = f"{cf_domain}/{object_key}"
     cloudfront_signer = CloudFrontSigner(CF_PUBLIC_KEY_ID, rsa_sign)
     # Create a signed url using a canned policy
@@ -87,7 +90,7 @@ def _get_presigned_url(object_key: str, expiration: datetime.datetime) -> str:
     return signed_url
 
 
-def get_upload_url(
+def get_download_url(
     upload_uuid: str, filename: str, expiration_in_hours: int
 ) -> str:
     """Generate a presigned Cloudfront URL to view the original upload.
@@ -145,7 +148,7 @@ def create_mediaconvert_job(upload_uuid: str, filename: str) -> str:
     :return: The mediaconvert job ID
     """
     # Load json job template
-    with open("mediaconvert-job-template.json", "r") as f:
+    with open(CONVERT_TEMPLATE_FP, "r") as f:
         job_object = json.load(f)
     # Complete template
     job_object["Settings"]["Inputs"][0][
@@ -163,47 +166,71 @@ def create_mediaconvert_job(upload_uuid: str, filename: str) -> str:
     return id
 
 
-def get_mediaconvert_status(job_id: str) -> str:
+@enum.unique
+class ConvertStatus(enum.Enum):
+    """The status of an AWS MediaConvert job."""
+
+    SUBMITTED = enum.auto()
+    PROGRESSING = enum.auto()
+    COMPLETE = enum.auto()
+    CANCELED = enum.auto()
+    ERROR = enum.auto()
+
+
+def get_mediaconvert_status(job_id: str) -> ConvertStatus:
     """Get an AWS MediaConvert job's status.
 
     :param job_id: The MediaConvert job ID
-    :return: 'SUBMITTED' | 'PROGRESSING' | 'COMPLETE' | 'CANCELED' | 'ERROR'
     """
     response = _mediaconvert.get_job(Id=job_id)
     status = response["Job"]["Status"]
-    return status
+    to_enum = {
+        "SUBMITTED": ConvertStatus.SUBMITTED,
+        "PROGRESSING": ConvertStatus.PROGRESSING,
+        "COMPLETE": ConvertStatus.COMPLETE,
+        "CANCELED": ConvertStatus.CANCELED,
+        "ERROR": ConvertStatus.ERROR,
+    }
+    return to_enum[status]
 
 
-def delete_uploads(*upload_ids: int) -> None:
-    """Delete videos with listed upload_ids from S3.
+def delete_uploads(upload_ids: list[int]) -> None:
+    """Delete a list of uploads by ID from S3.
 
-    :param upload_ids: upload_ids of the videos to be deleted.
+    :param upload_ids: IDs of the uploads to be deleted.
     """
-    found = False
-    # We must use a paginator since AWS will only send the first 1000 objects using list objects.
-    paginator = _s3.get_paginator("list_objects")
 
-    # Paginate for each upload id.
-    for upload_id in upload_ids:
-        pages = paginator.paginate(
-            Bucket=S3_BUCKET_NAME, Prefix=f"uploads/{upload_id}/"
+    def delete_1000(queue: list[str]) -> list[str]:
+        """Delete the first 1000 keys in queue and return remaining."""
+        _s3.delete_objects(
+            Bucket=S3_BUCKET_NAME,
+            Delete={
+                "Objects": [{"Key": key} for key in queue[:1000]],
+                "Quiet": True,  # limit response size - only contains errors
+            },
         )
+        return queue[1000:]
 
-        delete_keys = dict(Objects=[])
-        # For each object in the contents of the paginator, append it to our list of deleted keys.
-        for item in pages.search("Contents"):
-            if item is None:
-                return False
-            delete_keys["Objects"].append(dict(Key=item["Key"]))
+    queue: list[str] = []
+    for id in upload_ids:
+        res = _s3.list_objects_v2(
+            Bucket=S3_BUCKET_NAME, Prefix=f"uploads/{id}"
+        )
+        for obj in res["Contents"]:
+            key = obj["Key"]
+            queue.append(key)
+            if len(queue) > 1000:
+                queue = delete_1000(queue)
 
-            # Since delete_objects also has a cap at 1000, execute when we reach this cap.
-            if len(delete_keys["Objects"]) >= 1000:
-                _s3.delete_objects(Bucket=S3_BUCKET_NAME, Delete=delete_keys)
-                delete_keys = dict(Objects=[])
-                found = True
+    # clear remaining keys in queue
+    while len(queue) > 0:
+        queue = delete_1000(queue)
 
-        # Delete all remaining objects
-        if len(delete_keys["Objects"]):
-            _s3.delete_objects(Bucket=S3_BUCKET_NAME, Delete=delete_keys)
-            found = True
-    assert found, "Expected to find uploads."
+
+def s3_key_exists(key: str) -> bool:
+    """Check if an object exists in the S3 bucket."""
+    try:
+        _s3.get_object(Bucket=S3_BUCKET_NAME, Key=key)
+    except _s3.exceptions.NoSuchKey:
+        return False
+    return True

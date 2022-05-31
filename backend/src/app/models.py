@@ -436,7 +436,7 @@ class Upload(db.Model):
         # Check stream_ready
         if not self.stream_ready and self.mediaconvert_job_id is not None:
             status = aws.get_mediaconvert_status(self.mediaconvert_job_id)
-            if status == "COMPLETE":
+            if status == aws.ConvertStatus.COMPLETE:
                 self.stream_ready = True
                 db.session.commit()
         response = {
