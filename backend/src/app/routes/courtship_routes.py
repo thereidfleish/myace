@@ -1,5 +1,6 @@
 """Routes that pertain to courtships."""
 
+import datetime
 import json
 
 
@@ -7,7 +8,7 @@ from flask import request
 from sqlalchemy import or_, and_
 import flask_login
 from . import routes, success_response, failure_response
-from ..models import User, UserRelationship, RelationshipType
+from ..models import User, UserRelationship, RelationshipType, rel_req_of_str
 from ..extensions import db
 
 

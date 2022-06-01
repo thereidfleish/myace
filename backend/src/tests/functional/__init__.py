@@ -2,6 +2,6 @@
 
 HOST = "http://localhost"
 
-USER_A_GID = "backendtesttoken1"
-USER_B_GID = "backendtesttoken2"
-USER_C_GID = "backendtesttoken3"
+USER_A_TOKEN = "backendtesttoken1"
+USER_B_TOKEN = "backendtesttoken2"
+USER_C_TOKEN = "backendtesttoken3"

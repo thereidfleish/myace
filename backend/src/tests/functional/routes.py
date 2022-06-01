@@ -50,6 +50,10 @@ class User:
     username: str
     dname: str
     bio: str
+    n_uploads: int
+    n_friends: int
+    n_coaches: int
+    n_students: int
     courtship: Courtship | CourtshipRequest | None
     email: str | None = None
 
@@ -113,8 +117,12 @@ def parse_user_json(j: dict) -> User:
         j["username"],
         j["display_name"],
         j["biography"],
+        j["n_uploads"],
+        j["n_courtships"]["friends"],
+        j["n_courtships"]["coaches"],
+        j["n_courtships"]["students"],
         courtship=courtship,
-        email=j["email"],
+        email=j.get("email"),
     )
 
 
@@ -501,3 +509,30 @@ def delete_courtship(client: FlaskClient, other_id: int) -> None:
     """Delete an established courtship by ID."""
     res = client.delete(f"{HOST}/courtships/{other_id}/")
     assert res.status_code == 204
+
+
+# non-route helper
+def establish_courtship(
+    client: FlaskClient,
+    sender_token: str,
+    receiver_token: str,
+    type: str,
+) -> None:
+    """Sender creates a request to receiver and receiver accepts.
+
+    :param type: friend-req | student-req | coach-req
+    Effect: sender is logged in."""
+    assert type in ("friend-req", "student-req", "coach-req")
+    receiver = login(client, receiver_token)
+    sender = login(client, sender_token)
+    initial_cship = get_user_by_id(client, receiver.id).courtship
+    assert initial_cship is None
+    # create req
+    create_courtship_req(client, receiver.id, type)
+    # accept req
+    receiver = login(client, receiver_token)
+    update_incoming_court_req(client, sender.id, "accept")
+    # login and assert courtship exists
+    sender = login(client, sender_token)
+    final_cship = get_user_by_id(client, receiver.id)
+    assert final_cship is not None
