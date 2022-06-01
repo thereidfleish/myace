@@ -55,7 +55,7 @@ class NetworkController: ObservableObject {
                 userData.shared = decodedResponse
             }
         } catch {
-            print("Update Current User")
+            print("Update Current User failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -78,6 +78,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
+            print("Edit upload Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -126,6 +127,7 @@ class NetworkController: ObservableObject {
                 print(response)
             }
         } catch {
+            print("Delete Upload Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -185,7 +187,7 @@ class NetworkController: ObservableObject {
             
             userData.comments.append(decodedResponse)
         } catch {
-            
+            print("Create Comment Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -215,7 +217,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            
+            print("Add bucket Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -281,6 +283,7 @@ class NetworkController: ObservableObject {
             return decodedResponse.users
             
         } catch {
+            print("search user Failed Decode")
             throw NetworkError.failedDecode
         }
         //throw NetworkError.noReturn
@@ -307,7 +310,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             
         } catch {
-            
+            print("create courtship request Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -365,7 +368,7 @@ class NetworkController: ObservableObject {
             print(data)
             print(response)
         } catch {
-            
+            print("updateIncomingCourtshipRequest Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -385,6 +388,7 @@ class NetworkController: ObservableObject {
             print(response)
             
         } catch {
+            print("deleteOutgoingCourtshipRequest Failed Decode")
             throw NetworkError.failedDecode
         }
     }
@@ -414,7 +418,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Get Courtships")
+            print("Get Courtships failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -432,6 +436,7 @@ class NetworkController: ObservableObject {
            
             
         } catch {
+            print("remove Courtship failed decode")
             throw NetworkError.failedDecode
         }
     }

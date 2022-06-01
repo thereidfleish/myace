@@ -56,6 +56,7 @@ class NetworkController: ObservableObject {
                 userData.shared = decodedResponse
             }
         } catch {
+            print("updateCurrentUser failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -78,6 +79,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
+            print("editUpload failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -99,6 +101,7 @@ class NetworkController: ObservableObject {
                 return decodedResponse
             }
         } catch {
+            print("getUpload failed decode")
             throw NetworkError.failedDecode
         }
         throw NetworkError.noReturn
@@ -118,6 +121,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
+            print("deleteUpload failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -147,6 +151,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("getComments failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -175,7 +180,7 @@ class NetworkController: ObservableObject {
             
             userData.comments.append(decodedResponse)
         } catch {
-            
+            print("createComments failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -193,6 +198,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
+            print("deleteComments failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -224,33 +230,28 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            
+            print("createBucket failed decode")
             throw NetworkError.failedDecode
         }
     }
     
     // GET
-    func getBuckets(userID: String?) async throws {
-        var url: URL
-        if let userID = userID {
-            url = URL(string: "\(host)/buckets?user=\(userID)")!
-        } else {
-            url = URL(string: "\(host)/buckets")!
-        }
-        
+    func getBuckets(userID: String) async throws {
+        var url = URL(string: "\(host)/\(userID)/buckets")!
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             
             print("JSON Data: \(data.prettyPrintedJSONString)")
-            //print(response)
+            print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode(BucketRes.self, from: data)
+            let decodedResponse = try decoder.decode([Bucket].self, from: data)
             DispatchQueue.main.sync {
-                userData.buckets = decodedResponse.buckets
+                userData.buckets = decodedResponse
             }
             
         } catch {
+            print("getBuckets failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -273,6 +274,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
+            print("editBucket failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -290,6 +292,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
+            print("deleteBucket failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -322,6 +325,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("getUploads failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -339,6 +343,7 @@ class NetworkController: ObservableObject {
             return decodedResponse.users
             
         } catch {
+            print("searchUser failed decode")
             throw NetworkError.failedDecode
         }
         //throw NetworkError.noReturn
@@ -365,7 +370,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             
         } catch {
-            
+            print("createCourtshipRequest failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -398,6 +403,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
+            print("getCourtshipRequests failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -422,7 +428,7 @@ class NetworkController: ObservableObject {
             print(data)
             print(response)
         } catch {
-            
+            print("updateIncomingCourtshipRequest failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -441,6 +447,7 @@ class NetworkController: ObservableObject {
             print(response)
             
         } catch {
+            print("deleteOutgoingCourtshipRequest failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -462,7 +469,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            //print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             let decodedResponse = try decoder.decode(GetCourtshipsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -470,7 +477,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("Hiiiii")
+            print("getCourtships failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -488,7 +495,7 @@ class NetworkController: ObservableObject {
            
             
         } catch {
-            print("Hiiiii")
+            print("removeCourtship failed decode")
             throw NetworkError.failedDecode
         }
     }

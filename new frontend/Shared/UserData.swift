@@ -93,12 +93,14 @@ struct Helper {
 
 struct SharedData: Codable, Identifiable, Equatable {
     var id: Int = -1
+    var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
     var username: String = ""
     var display_name: String = ""
     var biography: String = ""
-    var n_uploads: Int = -1;
-    var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
     var courtship: Courtship?
+    var n_uploads: Int = -1;
+    
+    
     //var email: String? = nil
     //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 }
@@ -114,6 +116,11 @@ struct SharedData: Codable, Identifiable, Equatable {
 //    //var email: String? = nil
 //    //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
 //}
+
+struct Courtship: Codable, Equatable {
+    var type: CourtshipType
+    var dir: CourtshipRequestDir?
+}
 
 enum CourtshipType: String, Codable {
     case friend = "friend"
@@ -155,10 +162,7 @@ struct GetCourtshipsRes: Codable {
 //    var user: SharedData
 //}
 
-struct Courtship: Codable, Equatable {
-    var type: CourtshipType
-    var dir: CourtshipRequestDir?
-}
+
 
 //struct CourtshipRequest: Codable {
 //    var type: CourtshipRequestType

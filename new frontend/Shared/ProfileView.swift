@@ -31,7 +31,7 @@ struct ProfileView: View {
                 try await nc.getUploads(userID: user?.id ?? -1, bucketID: nil)
                 
             } else {
-                try await nc.getBuckets(userID: nil)
+                try await nc.getBuckets(userID: String(nc.userData.shared.id))
                 try await nc.getUploads(userID: nil, bucketID: nil)
             }
             awaiting = false

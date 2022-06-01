@@ -43,7 +43,7 @@ struct StudentUploadDetailView: View {
         do {
             awaiting = true
             print("getting buckets1")
-            try await nc.getBuckets(userID: coach ? String(otherUser.id) : nil)
+            try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
             print("getting uploads1")
             try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
