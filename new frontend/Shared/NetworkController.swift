@@ -237,7 +237,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func getBuckets(userID: String) async throws {
-        var url = URL(string: "\(host)/\(userID)/buckets")!
+        var url = URL(string: "\(host)/users/\(userID)/buckets")!
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             
@@ -245,9 +245,9 @@ class NetworkController: ObservableObject {
             print(response)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            let decodedResponse = try decoder.decode([Bucket].self, from: data)
+            let decodedResponse = try decoder.decode(BucketRes.self, from: data)
             DispatchQueue.main.sync {
-                userData.buckets = decodedResponse
+                userData.buckets = decodedResponse.buckets
             }
             
         } catch {
