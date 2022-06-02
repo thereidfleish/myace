@@ -92,6 +92,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/me/:
     put:
       summary: Update current user
       description: This route edits the profile of the user who is currently logged in.
