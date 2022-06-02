@@ -112,7 +112,7 @@ struct StudentUploadDetailView: View {
                         }
                     }.sheet(isPresented: $showsUploadAlert, onDismiss: {
                         Task {
-                            await initialize()
+                            //await initialize()
                         }
                         
                     }) {

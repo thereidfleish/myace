@@ -20,7 +20,7 @@ struct UploadView: View {
     @State private var progressPercent = ""
     @State private var uploadName = ""
     @State private var uploadBucketName = ""
-    var url: [URL]
+    @State var url: [URL]
     @State var bucketID: String?
     var otherUser: SharedData?
     @State private var visibility: Visibility = Visibility()
@@ -72,11 +72,12 @@ struct UploadView: View {
     func initialize() {
         Task {
             do {
-                uploadInfo = try await nc.getUpload(uploadID: nc.editUploadID)
+                //uploadInfo = try await nc.getUpload(uploadID: nc.editUploadID)
                 uploadName = uploadInfo.display_title
                 bucketID = String(uploadInfo.bucket.id)
                 visibility = uploadInfo.visibility
                 uploadBucketName = uploadInfo.bucket.name
+                url = [URL(string: uploadInfo.url!)!]
                 awaiting = false
             } catch {
                 

@@ -110,7 +110,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
@@ -319,9 +319,9 @@ class NetworkController: ObservableObject {
     func getMyUploads(shared_with_ID: Int?, bucketID: String?) async throws {
         var url: URL
         if (shared_with_ID != nil && bucketID != nil) {
-            url = URL(string: "\(host)/users/me/uploads?user=\(shared_with_ID!)&bucket=\(bucketID!)")!
+            url = URL(string: "\(host)/users/me/uploads?shared-with=\(shared_with_ID!)&bucket=\(bucketID!)")!
         } else if let shared_with_ID = shared_with_ID {
-            url = URL(string: "\(host)/users/me/uploads?user=\(shared_with_ID)")!
+            url = URL(string: "\(host)/users/me/uploads?shared-with=\(shared_with_ID)")!
         } else if let bucketID = bucketID {
             url = URL(string: "\(host)/users/me/uploads?bucket=\(bucketID)")!
         } else {
@@ -343,7 +343,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getUploads failed decode")
+            print("getMyUploads failed decode")
             throw NetworkError.failedDecode
         }
     }
@@ -372,7 +372,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getUploads failed decode")
+            print("getOtherUserUploads failed decode")
             throw NetworkError.failedDecode
         }
     }
