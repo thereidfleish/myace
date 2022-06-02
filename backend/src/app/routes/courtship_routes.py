@@ -6,6 +6,7 @@ import json
 
 from flask import request
 from sqlalchemy import or_, and_
+from sqlalchemy.sql import func
 import flask_login
 from . import routes, success_response, failure_response
 from ..models import User, UserRelationship, RelationshipType, rel_req_of_str
@@ -21,7 +22,13 @@ def search_users():
     if query is None:
         return failure_response("Missing query URL parameter.", 400)
     # Search
-    found = User.query.filter(User.username.startswith(query))
+    query = query.lower()
+    found = User.query.filter(
+        or_(
+            func.lower(User.display_name).startswith(query),
+            User.username.startswith(query),  # username is already lowercase
+        )
+    )
     # Exclude current user from search results
     return success_response(
         {"users": [u.serialize(me) for u in found if u != me]}
