@@ -69,33 +69,40 @@ struct StudentUploadView: View {
     var body: some View {
         NavigationView {
             VStack {
-                VStack(alignment: .leading) {
-                    Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
-                        .bucketNameStyle()
-                        .foregroundColor(Color.green)
-                    
-                    Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
-                        .sectionHeadlineStyle()
-                        .foregroundColor(Color.green)
-                    
-                    if nc.userData.courtships.isEmpty {
-                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
-                            .multilineTextAlignment(.center)
-                            .padding(.top)
-                    }
-                    
-                    ScrollView {
-                        ForEach(nc.userData.courtships, id: \.self.id) { user in
-                            UserCardHomeView(user: user, currentUserAs: currentUserAs)
-                        }
-                    }
-                    
-                }.sheet(isPresented: $showingNewBucketView) {
-                    NewBucketView()
-                    
+                if(awaiting) {
+                    ProgressView()
                 }
+                else if(showingError) {
+                    Text(nc.errorMessage).padding()
+                }
+                else {
+                    VStack(alignment: .leading) {
+                        Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
+                            .bucketNameStyle()
+                            .foregroundColor(Color.green)
+                        
+                        Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
+                            .sectionHeadlineStyle()
+                            .foregroundColor(Color.green)
+                        
+                        if nc.userData.courtships.isEmpty {
+                            Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                                .multilineTextAlignment(.center)
+                                .padding(.top)
+                        }
+                        
+                        ScrollView {
+                            ForEach(nc.userData.courtships, id: \.self.id) { user in
+                                UserCardHomeView(user: user, currentUserAs: currentUserAs)
+                            }
+                        }
+                        
+                    }.sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
+                        
+                    }
                 
-                
+                }
                 
                 
             }.padding(.horizontal)
