@@ -216,11 +216,14 @@ def delete_uploads(upload_ids: list[int]) -> None:
         res = _s3.list_objects_v2(
             Bucket=S3_BUCKET_NAME, Prefix=f"uploads/{id}"
         )
-        for obj in res["Contents"]:
-            key = obj["Key"]
-            queue.append(key)
-            if len(queue) > 1000:
-                queue = delete_1000(queue)
+        objects = res.get("Contents")
+        if objects is not None:
+            # Upload exists in S3 bucket, append keys to deletion queue
+            for obj in res["Contents"]:
+                key = obj["Key"]
+                queue.append(key)
+                if len(queue) > 1000:
+                    queue = delete_1000(queue)
 
     # clear remaining keys in queue
     while len(queue) > 0:

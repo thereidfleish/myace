@@ -183,3 +183,33 @@ def test_edit_upload(test_client):
     assert final.display_title == "My new display title"
     assert final in routes.get_all_uploads(test_client, bucket_id=bucket2.id)
     assert final in routes.get_all_uploads(test_client, shared_with=user_b.id)
+
+
+def test_delete_upload(test_client):
+    """Ensure user can only delete their uploads and verify deletion works."""
+    # setup two users with one upload each
+    user_b = routes.login(test_client, USER_B_TOKEN)
+    bucket_b = routes.create_bucket(test_client, "bucketb")
+    upload_b_id, _, _ = routes.create_upload_url(
+        test_client,
+        "vid.mp4",
+        "UploadB",
+        bucket_b.id,
+        routes.VisibilitySetting("private", []),
+    )
+    user_a = routes.login(test_client, USER_A_TOKEN)
+    bucket_a = routes.create_bucket(test_client, "bucketa")
+    upload_a_id, _, _ = routes.create_upload_url(
+        test_client,
+        "vid.mp4",
+        "UploadA",
+        bucket_a.id,
+        routes.VisibilitySetting("private", []),
+    )
+    # attempt deleting upload user doesn't own
+    with pytest.raises(AssertionError) as e_info:
+        routes.delete_upload(test_client, upload_b_id)
+    # verify successful deletion
+    routes.delete_upload(test_client, upload_a_id)
+    with pytest.raises(AssertionError) as e_info:
+        routes.get_upload(test_client, upload_a_id)
