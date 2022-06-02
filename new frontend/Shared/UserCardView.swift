@@ -115,7 +115,7 @@ struct UserCardView: View {
             }
             
             HStack {
-                NavigationLink(destination: ProfileView(yourself: false, user: user).navigationBarHidden(true))
+                NavigationLink(destination: ProfileView(yourself: false, user: user))
                 {
                     VStack(alignment: .leading) {
                         Text(user.display_name)

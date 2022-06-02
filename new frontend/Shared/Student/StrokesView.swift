@@ -40,17 +40,17 @@ struct StrokesView: View {
         do {
             awaiting = true
             print("getting buckets")
-            try await nc.getBuckets(userID: currentUserAs == .coach ? String(otherUser.id) : "me")
+            try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .observer ? String(otherUser.id) : "me")
             print("getting uploads")
-            if(currentUserAs == .coach) {
+            if(currentUserAs == .coach || currentUserAs == .observer) {
                 try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
             }
             else if(currentUserAs == .student) {
                 try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
             }
-            else {
-                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
-            }
+//            else if (currentUserAs == .neitherStudentNorCoach) {
+//                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
+//            }
             awaiting = false
 //            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             print("Finsihed init")
@@ -91,7 +91,7 @@ struct StrokesView: View {
                 HStack {
                     Text("Strokes")
                         .bucketTextInternalStyle()
-                    if (currentUserAs == .student) {
+                    if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                         Button(action: {
                             isShowingNewStrokeView.toggle()
                         }, label: {
@@ -103,7 +103,7 @@ struct StrokesView: View {
                 }
                 
                 if (nc.userData.buckets.count == 0) {
-                    Text("Welcome to your space with, \(otherUser.display_name).  \(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet shared any videos with you.")")
+                    Text("\(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
                         .multilineTextAlignment(.center)
                         .bucketTextInternalStyle()
                 }
@@ -128,7 +128,7 @@ struct StrokesView: View {
                                 .circularButtonStyle()
                         })
                         
-                        if (currentUserAs == .student) {
+                        if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                             Menu {
                                 Button {
                                     

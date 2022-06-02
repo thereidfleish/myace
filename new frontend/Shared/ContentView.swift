@@ -105,16 +105,21 @@ struct ContentView: View {
              
              }
              */
-            ProfileView(yourself: true)
-                .tabItem {
-                    VStack {
-                        Image(systemName: "person.crop.circle.fill")
-                            .foregroundColor(.green)
-                        Text("My Profile")
-                            .foregroundColor(.green)
-                    }
+            
+            NavigationView {
+                ProfileView(yourself: true, user: networkController.userData.shared)
+            }
+            .navigationViewStyle(.stack) // helps with Jumping Back bug
+            .tabItem {
+                VStack {
+                    Image(systemName: "person.crop.circle.fill")
+                        .foregroundColor(.green)
+                    Text("My Profile")
+                        .foregroundColor(.green)
                 }
-                .tag(4)
+            }
+            .tag(4)
+            
             
             
         }.accentColor(Color.green)

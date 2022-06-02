@@ -598,7 +598,7 @@ class NetworkController: ObservableObject {
 enum CurrentUserAs {
     case student
     case coach
-    case neitherStudentNorCoach
+    case observer
 }
 
 extension DateFormatter {

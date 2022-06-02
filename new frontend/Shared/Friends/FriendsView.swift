@@ -15,26 +15,20 @@ struct FriendsView: View {
     @State private var didAppear = false
     @State var tabIndex = 0
     
-    func initialize() {
-        if(!didAppear) {
-            didAppear = true
-            Task {
-                do {
-                    awaiting = true
-                    try await nc.getCourtships(user_id: "me", type: nil)
-                    try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
-                    try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
-                    awaiting = false
-                    print("DONE!")
-                } catch {
-                    print(error)
-                    errorMessage = error.localizedDescription
-                    showingError = true
-                    awaiting = false
-                }
-            }
+    func initialize() async {
+        do {
+            awaiting = true
+            try await nc.getCourtships(user_id: "me", type: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
+            awaiting = false
+            print("DONE!")
+        } catch {
+            print(error)
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
         }
-        
     }
     
     var body: some View {
@@ -59,10 +53,7 @@ struct FriendsView: View {
                                 .bucketTextInternalStyle()
                         }
                         ForEach(nc.userData.courtships, id: \.self.id) { courtship in
-                            NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
-                            {
-                                UserCardView(user: courtship)
-                            }
+                            UserCardView(user: courtship)
                         }
                         
                     }
@@ -72,10 +63,7 @@ struct FriendsView: View {
                                 .bucketTextInternalStyle()
                             
                             ForEach(nc.userData.incomingCourtshipRequests, id: \.self.id) { courtship in
-                                NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
-                                {
-                                    UserCardView(user: courtship)
-                                }
+                                UserCardView(user: courtship)
                             }
                             
                             Text(nc.userData.outgoingCourtshipRequests.count > 0 ? "Outgoing Courtship Requests" : "No Outgoing Courtship Requests")
@@ -83,10 +71,7 @@ struct FriendsView: View {
                                 .bucketTextInternalStyle()
                             
                             ForEach(nc.userData.outgoingCourtshipRequests, id: \.self.id) { courtship in
-                                NavigationLink(destination: ProfileView(yourself: false, user: courtship).navigationBarHidden(true))
-                                {
-                                    UserCardView(user: courtship)
-                                }
+                                UserCardView(user: courtship)
                             }
                         }
                         
@@ -104,7 +89,9 @@ struct FriendsView: View {
                                         
                     )
             }
-        }.onAppear(perform: {initialize()})
+        }.task {
+            await initialize()
+        }
         
         
         
