@@ -14,10 +14,10 @@ struct SettingsView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showDeleteAccount: Bool = false
     
-    func deleteUser()  {
+    func deleteCurrentUser()  {
         Task {
             do {
-                try await nc.deleteUser(userID: String(nc.userData.shared.id))
+                try await nc.deleteCurrentUser()
                 GIDSignIn.sharedInstance.signOut()
                 print("logged out")
                 nc.clearUserData()
@@ -55,7 +55,7 @@ struct SettingsView: View {
                             Text("Are you sure you want to delete your account?  This cannot be undone!")
                                 .foregroundColor(.red)
                             Button(action: {
-                                deleteUser()
+                                deleteCurrentUser()
                             }, label: {
                                 Text("Permanently Delete Account")
                                     .foregroundColor(.red)

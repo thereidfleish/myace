@@ -63,8 +63,8 @@ class NetworkController: ObservableObject {
     }
     
     // DELETE
-    func deleteUser(userID: String) async throws {
-        let url = URL(string: "\(host)/users/\(userID)/")!
+    func deleteCurrentUser() async throws {
+        let url = URL(string: "\(host)/users/me/")!
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -75,7 +75,7 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
-            print("deleteUser failed decode")
+            print("deleteCurrentUser failed decode")
             throw NetworkError.failedDecode
         }
     }
