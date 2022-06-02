@@ -13,8 +13,7 @@ struct StrokesView: View {
 //    @State private var showingFeedback = false
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     var otherUser: SharedData
-    var currentUserAsCoach: Bool
-    var currentUserAsStudent: Bool
+    var currentUserAs: CurrentUserAs
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
 //    @State private var showingEditingName = false
@@ -40,12 +39,12 @@ struct StrokesView: View {
         do {
             awaiting = true
             print("getting buckets")
-            try await nc.getBuckets(userID: currentUserAsCoach ? String(otherUser.id) : String(nc.userData.shared.id))
+            try await nc.getBuckets(userID: currentUserAs == .coach ? String(otherUser.id) : "me")
             print("getting uploads")
-            if(currentUserAsCoach) {
+            if(currentUserAs == .coach) {
                 try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
             }
-            else if(currentUserAsStudent) {
+            else if(currentUserAs == .student) {
                 try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
             }
             else {
@@ -85,7 +84,7 @@ struct StrokesView: View {
                 HStack {
                     Text("Strokes")
                         .bucketTextInternalStyle()
-                    if (!currentUserAsCoach) {
+                    if (currentUserAs == .student) {
                         Button(action: {
                             isShowingNewStrokeView.toggle()
                         }, label: {
@@ -94,6 +93,12 @@ struct StrokesView: View {
                                 .circularButtonStyle()
                         })
                     }
+                }
+                
+                if (nc.userData.buckets.count == 0) {
+                    Text("Welcome to your space with, \(otherUser.display_name).  \(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet shared any videos with you.")")
+                        .multilineTextAlignment(.center)
+                        .bucketTextInternalStyle()
                 }
                 
                 ForEach(nc.userData.buckets) { bucket in
@@ -116,7 +121,7 @@ struct StrokesView: View {
                                 .circularButtonStyle()
                         })
                         
-                        if (!currentUserAsCoach) {
+                        if (currentUserAs == .student) {
                             Menu {
                                 Button {
                                     
@@ -149,10 +154,6 @@ struct StrokesView: View {
             }
             
         }
-       // .onAppear(perform: {awaiting = true})
-        .task {
-            await initialize()
-        } // THIS IS THE CULPRIT
         .mediaImporter(isPresented: $isShowingMediaPicker,
                        allowedMediaTypes: .all,
                        allowsMultipleSelection: false) { result in
@@ -185,7 +186,9 @@ struct StrokesView: View {
         }) {
             NewBucketView()
         }
-        
+        .task {
+            await initialize()
+        }
     }
 }
 

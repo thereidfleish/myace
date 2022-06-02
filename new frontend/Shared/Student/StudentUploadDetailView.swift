@@ -24,8 +24,7 @@ struct StudentUploadDetailView: View {
     @State var url: [URL] = []
     @State private var originalName = ""
     var otherUser: SharedData
-    var currentUserAsCoach: Bool
-    var currentUserAsStudent: Bool
+    var currentUserAs: CurrentUserAs
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
@@ -61,74 +60,72 @@ struct StudentUploadDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Text(otherUser.display_name)
-                    .padding(.top)
-                    .bucketTextInternalStyle()
+//                Text(otherUser.display_name)
+//                    .padding(.top)
+//                    .bucketTextInternalStyle()
                 
-
-                
-                if (nc.userData.buckets.count == 0) {
-                    Text("Welcome to your space with your coach, \(otherUser.display_name).  To start, create a stroke. ")
-                        .multilineTextAlignment(.center)
-                        .bucketTextInternalStyle()
-                    
-                    HStack {
-                        Button(action: {
-                            isShowingMediaPicker.toggle()
-                        }, label: {
-                            Text("Upload Video")
-                                .padding(.vertical, 15)
-                                .frame(maxWidth: .infinity)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.green, lineWidth: 3)
-                                )
-                                .foregroundColor(.green)
-                        }).disabled(uploading)
-
-                        Button(action: {
-                            isShowingCamera.toggle()
-                        }, label: {
-                            Text("Capture a Video")
-                                .buttonStyle()
-                        })
-
-
-                    }
-                    .padding(.bottom)
-                    .mediaImporter(isPresented: $isShowingMediaPicker,
-                                   allowedMediaTypes: .all,
-                                   allowsMultipleSelection: false) { result in
-                        switch result {
-                        case .success(let url):
-                            self.url = url
-                            print(url)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                showsUploadAlert = true
-                            }
-                        case .failure(let error):
-                            print(error)
-                            self.url = []
-                        }
-                    }.sheet(isPresented: $showsUploadAlert, onDismiss: {
-                        Task {
-                            //await initialize()
-                        }
-                        
-                    }) {
-                        UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
-                    }
-                    .sheet(isPresented: $isShowingCamera) {
-                        CameraView(otherUser: otherUser)
-                        
-                    }
-                }
+//                if (nc.userData.buckets.count == 0) {
+//                    Text("Welcome to your space with your coach, \(otherUser.display_name).  To start, create a stroke. ")
+//                        .multilineTextAlignment(.center)
+//                        .bucketTextInternalStyle()
+//
+//                    HStack {
+//                        Button(action: {
+//                            isShowingMediaPicker.toggle()
+//                        }, label: {
+//                            Text("Upload Video")
+//                                .padding(.vertical, 15)
+//                                .frame(maxWidth: .infinity)
+//                                .overlay(
+//                                    RoundedRectangle(cornerRadius: 10)
+//                                        .stroke(Color.green, lineWidth: 3)
+//                                )
+//                                .foregroundColor(.green)
+//                        }).disabled(uploading)
+//
+//                        Button(action: {
+//                            isShowingCamera.toggle()
+//                        }, label: {
+//                            Text("Capture a Video")
+//                                .buttonStyle()
+//                        })
+//
+//
+//                    }
+//                    .padding(.bottom)
+//                    .mediaImporter(isPresented: $isShowingMediaPicker,
+//                                   allowedMediaTypes: .all,
+//                                   allowsMultipleSelection: false) { result in
+//                        switch result {
+//                        case .success(let url):
+//                            self.url = url
+//                            print(url)
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                                showsUploadAlert = true
+//                            }
+//                        case .failure(let error):
+//                            print(error)
+//                            self.url = []
+//                        }
+//                    }.sheet(isPresented: $showsUploadAlert, onDismiss: {
+//                        Task {
+//                            //await initialize()
+//                        }
+//
+//                    }) {
+//                        UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
+//                    }
+//                    .sheet(isPresented: $isShowingCamera) {
+//                        CameraView(otherUser: otherUser)
+//
+//                    }
+//                }
                 
 
                 
 //                StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads.filter { ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) })
                 //StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads)
-                StrokesView(otherUser: otherUser, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: currentUserAsStudent)
+                StrokesView(otherUser: otherUser, currentUserAs: currentUserAs)
 
                 
             }.padding(.horizontal)

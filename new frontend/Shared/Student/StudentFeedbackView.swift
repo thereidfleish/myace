@@ -11,14 +11,13 @@ import AVKit
 struct StudentFeedbackView: View {
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     @EnvironmentObject private var nc: NetworkController
-    @State var text: String
+    @State private var text: String = ""
     var student: Bool
-    var showOnlyVideo: Bool
     var uploadID: String
     @State private var showingError = false
     @State private var awaiting = true
     @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket: Bucket(id: -1, last_modified: Date(), name: ""), url: "")
-    @State var didAppear = false
+    @State private var didAppear = false
     //    @State private var player = AVPlayer(url:  URL(string: "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8")!)
     @State private var player = AVPlayer()
     
@@ -61,28 +60,28 @@ struct StudentFeedbackView: View {
     }
     
     func getComments() async {
-            do {
-                commentsAwaiting = true
-                try await nc.getComments(uploadID: uploadID, courtshipType: nil)
-                commentsAwaiting = false
-            } catch {
-                print(error)
-                showingError = true
-                commentsAwaiting = false
-            }
+        do {
+            commentsAwaiting = true
+            try await nc.getComments(uploadID: uploadID, courtshipType: nil)
+            commentsAwaiting = false
+        } catch {
+            print(error)
+            showingError = true
+            commentsAwaiting = false
+        }
     }
     
     func createComment() async {
-            do {
-                try await nc.createComment(uploadID: uploadID, text: "$\(String(currentSeconds))$" + createCommentText)
-                createCommentText = ""
-                withAnimation {
-                    showingCommentEditor = false
-                }
-            } catch {
-                print(error)
-                showingError = true
+        do {
+            try await nc.createComment(uploadID: uploadID, text: "$\(String(currentSeconds))$" + createCommentText)
+            createCommentText = ""
+            withAnimation {
+                showingCommentEditor = false
             }
+        } catch {
+            print(error)
+            showingError = true
+        }
     }
     
     
@@ -195,21 +194,21 @@ struct StudentFeedbackView: View {
                             }
                         }
                     }
-                    .onAppear(perform: {
-                        DispatchQueue.main.async {
-                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
-                                // Hack to fix concurrency issue at the beginning
-                                if (!player.currentItem!.duration.seconds.isNaN) {
-                                    withAnimation {
-                                        playerDuration = Int(player.currentItem!.duration.seconds)
-                                    }
-                                    
-                                }
-                                
-                                currentSeconds = Int(player.currentTime().seconds)
-                            })
-                        }
-                    })
+//                    .onAppear(perform: {
+//                        DispatchQueue.main.async {
+//                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+//                                // Hack to fix concurrency issue at the beginning
+//                                if (!player.currentItem!.duration.seconds.isNaN) {
+//                                    withAnimation {
+//                                        playerDuration = Int(player.currentItem!.duration.seconds)
+//                                    }
+//                                    
+//                                }
+//                                
+//                                currentSeconds = Int(player.currentTime().seconds)
+//                            })
+//                        }
+//                    })
                 }
                 
                 
@@ -253,38 +252,22 @@ struct StudentFeedbackView: View {
                 }
                 .padding(.bottom)
                 
-                //                    Button("tap me!") {
-                //                        print(Int(player.currentItem!.duration.seconds))
-                //                        print(player.currentTime().seconds)
-                //                    }
-                //
-                //                    Button("tap me2!") {
-                //                        print(player.currentItem?.duration.seconds)
-                //                        player.seek(to: CMTimeMakeWithSeconds(4, preferredTimescale: 1))
-                //                        currentSeconds = Int(player.currentItem!.duration.seconds)
-                //                    }
                 
-                if (!showOnlyVideo) {
-                    if (student) {
-                        Text(text)
-                            .multilineTextAlignment(.leading)
-                    }
-                    else {
-                        
-                        Text("Unsaved changes")
-                            .font(.footnote)
-                            .foregroundColor(Color.red)
-                        
-                        TextEditor(text: $text)
-                            .padding(1)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.gray, lineWidth: 1)
-                            )
-                            .frame(minHeight: UIScreen.screenHeight - 200)
-                        
-                    }
-                }
+//                Text(text)
+//                    .multilineTextAlignment(.leading)
+//
+//                Text("Unsaved changes")
+//                    .font(.footnote)
+//                    .foregroundColor(Color.red)
+//
+//                TextEditor(text: $text)
+//                    .padding(1)
+//                    .overlay(
+//                        RoundedRectangle(cornerRadius: 5)
+//                            .stroke(Color.gray, lineWidth: 1)
+//                    )
+//                    .frame(minHeight: UIScreen.screenHeight - 200)
+                
                 
                 
             }.padding(.horizontal)

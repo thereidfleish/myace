@@ -506,15 +506,11 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getCourtships(type: CourtshipType?, users: String?) async throws {
-        var stringBuilder: String = "\(host)/users/\(userData.shared.id)/courtships\(type == nil && users == nil ? "" : "?")"
+    func getCourtships(user_id: String, type: CourtshipType?) async throws {
+        var stringBuilder: String = "\(host)/users/\(user_id)/courtships"
         
         if (type != nil) {
-            stringBuilder += "type=\(type!)"
-        }
-        
-        if (users != nil) {
-            stringBuilder += "\(type != nil ? "&" : "")users=\(users!)"
+            stringBuilder += "?type=\(type!)"
         }
         
         let url = URL(string: stringBuilder)!
@@ -559,6 +555,12 @@ class NetworkController: ObservableObject {
         case noReturn
         case failedUpload
     }
+}
+
+enum CurrentUserAs {
+    case student
+    case coach
+    case neitherStudentNorCoach
 }
 
 extension DateFormatter {

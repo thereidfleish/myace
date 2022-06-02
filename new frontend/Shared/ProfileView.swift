@@ -24,7 +24,7 @@ struct ProfileView: View {
     func initialize() async {
         do {
             awaiting = true
-            try await nc.getCourtships(type: nil, users: nil)
+            try await nc.getCourtships(user_id: "me", type: nil)
             
             if(!yourself) {
                 try await nc.getBuckets(userID: String(user?.id ?? -1))
@@ -103,7 +103,7 @@ struct ProfileView: View {
                         .font(.footnote)
                         .foregroundColor(Color.green)
                     
-                    StrokesView(otherUser: yourself ? nc.userData.shared : user!, currentUserAsCoach: false, currentUserAsStudent: false)
+                    StrokesView(otherUser: yourself ? nc.userData.shared : user!, currentUserAs: .neitherStudentNorCoach)
                     //StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
                     //.onAppear(perform: {initialize()})
                     
@@ -138,15 +138,14 @@ struct ProfileView: View {
             
             
         }
-        .task {
-            await initialize()
-        }
         .sheet(isPresented: $presentingSettingsSheet, onDismiss: {
             Task {
                 await initialize()
             }
         }) {
             SettingsView()
+        }.task {
+            await initialize()
         }
     }
 }

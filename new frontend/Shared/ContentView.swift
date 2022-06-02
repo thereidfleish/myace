@@ -14,7 +14,7 @@ struct ContentView: View {
     @EnvironmentObject private var networkController: NetworkController
     var body: some View {
         TabView(selection: $selection) {
-            StudentUploadView(currentUserAsCoach: false)
+            StudentUploadView(currentUserAs: .student)
                     .tabItem {
                         VStack {
                             Image(systemName: "square.and.arrow.up.circle.fill")
@@ -25,7 +25,7 @@ struct ContentView: View {
                     }
                     .tag(0)
             
-            StudentUploadView(currentUserAsCoach: true)
+            StudentUploadView(currentUserAs: .coach)
                     .tabItem {
                         VStack {
                             Image(systemName: "square.and.arrow.up.circle.fill")

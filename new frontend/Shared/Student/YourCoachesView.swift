@@ -14,8 +14,7 @@ struct StudentUploadView: View {
     @State private var errorMessage = ""
     @State private var awaiting = false
     @State var didAppear = false
-    @State private var filteredCourtships: [SharedData] = []
-    @State var currentUserAsCoach: Bool
+    var currentUserAs: CurrentUserAs
     
     //@State private var coaches: [Courtship] = []
     
@@ -56,8 +55,7 @@ struct StudentUploadView: View {
     func initialize() async {
         do {
             awaiting = true
-            try await nc.getCourtships(type: nil, users: nil)
-            filteredCourtships = nc.userData.courtships.filter { currentUserAsCoach ? $0.courtship?.type == .student : $0.courtship?.type == .coach}
+            try await nc.getCourtships(user_id: "me", type: currentUserAs == .student ? CourtshipType.coach : CourtshipType.student)
             awaiting = false
             print("DONE!")
         } catch {
@@ -69,28 +67,26 @@ struct StudentUploadView: View {
     }
     
     var body: some View {
-        
         NavigationView {
             VStack {
-                
                 VStack(alignment: .leading) {
                     Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
                         .bucketNameStyle()
                         .foregroundColor(Color.green)
                     
-                    Text(currentUserAsCoach ? "Your Students" : "Your Coaches")
+                    Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
                         .sectionHeadlineStyle()
                         .foregroundColor(Color.green)
                     
-                    if filteredCourtships.isEmpty {
-                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAsCoach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                    if nc.userData.courtships.isEmpty {
+                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
                             .multilineTextAlignment(.center)
                             .padding(.top)
                     }
                     
                     ScrollView {
-                        ForEach(filteredCourtships, id: \.self.id) { user in
-                            UserCardHomeView(user: user, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: !currentUserAsCoach)
+                        ForEach(nc.userData.courtships, id: \.self.id) { user in
+                            UserCardHomeView(user: user, currentUserAs: currentUserAs)
                         }
                     }
                     
@@ -103,19 +99,12 @@ struct StudentUploadView: View {
                 
                 
             }.padding(.horizontal)
-                .task {
-                    await initialize()
-                }
                 .navigationBarTitle("Home", displayMode: .inline)
                 .navigationBarItems(leading: Refresher().refreshable {
                     await initialize()
-                },trailing: Button(action: {
-                    showingNewBucketView.toggle()
-                }, label: {
-                    Text("Add Stroke")
-                        .foregroundColor(Color.green)
-                        .fontWeight(.bold)
-                }))
+                })
+        }.task {
+            await initialize()
         }
     }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct VideoThumbnailView: View {
     var upload: Upload
     var body: some View {
-        NavigationLink(destination: StudentFeedbackView(text: "SJ", student: true, showOnlyVideo: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
+        NavigationLink(destination: StudentFeedbackView(student: true, uploadID: "\(upload.id)").navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline))
         {
             if (!upload.stream_ready) {
                 ProgressView()
