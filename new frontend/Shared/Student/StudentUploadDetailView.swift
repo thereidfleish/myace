@@ -24,7 +24,8 @@ struct StudentUploadDetailView: View {
     @State var url: [URL] = []
     @State private var originalName = ""
     var otherUser: SharedData
-    var coach: Bool
+    var currentUserAsCoach: Bool
+    var currentUserAsStudent: Bool
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
@@ -42,10 +43,10 @@ struct StudentUploadDetailView: View {
     func initialize() async {
         do {
             awaiting = true
-            print("getting buckets1")
-            try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
-            print("getting uploads1")
-            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+//            print("getting buckets1")
+//            try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
+//            print("getting uploads1")
+//            try await nc.getUploads(shared_with_ID: coach ? otherUser.id : nil, bucketID: nil)
             //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
             print("Finsihed init")
             awaiting = false
@@ -127,7 +128,7 @@ struct StudentUploadDetailView: View {
                 
 //                StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads.filter { ($0.visibility.default != .private && $0.visibility.default != .friends_only) || ($0.visibility.also_shared_with.filter { $0.id == otherUser.id }.isEmpty == false) })
                 //StrokesView(otherUser: otherUser, filteredBucketsAndUploads: nc.userData.uploads)
-                StrokesView(otherUser: otherUser, coach: coach)
+                StrokesView(otherUser: otherUser, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: currentUserAsStudent)
 
                 
             }.padding(.horizontal)

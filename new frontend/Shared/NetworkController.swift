@@ -316,12 +316,12 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func getUploads(userID: Int?, bucketID: String?) async throws {
+    func getMyUploads(shared_with_ID: Int?, bucketID: String?) async throws {
         var url: URL
-        if (userID != nil && bucketID != nil) {
-            url = URL(string: "\(host)/users/me/uploads?user=\(userID!)&bucket=\(bucketID!)")!
-        } else if let userID = userID {
-            url = URL(string: "\(host)/users/me/uploads?user=\(userID)")!
+        if (shared_with_ID != nil && bucketID != nil) {
+            url = URL(string: "\(host)/users/me/uploads?user=\(shared_with_ID!)&bucket=\(bucketID!)")!
+        } else if let shared_with_ID = shared_with_ID {
+            url = URL(string: "\(host)/users/me/uploads?user=\(shared_with_ID)")!
         } else if let bucketID = bucketID {
             url = URL(string: "\(host)/users/me/uploads?bucket=\(bucketID)")!
         } else {
@@ -331,7 +331,36 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            print(data.prettyPrintedJSONString)
+            print(data.prettyPrintedJSONString!)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
+            DispatchQueue.main.sync {
+                //userData.bucketContents = decodedResponse
+                //userData.bucketContents.uploads.sort(by: {$0.created > $1.created})
+                userData.uploads = decodedResponse.uploads
+                print("Got given bucket in nc!")
+            }
+            
+        } catch {
+            print("getUploads failed decode")
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    // GET
+    func getOtherUserUploads(userID: Int?, bucketID: String?) async throws {
+        var url: URL
+        if let bucketID = bucketID {
+            url = URL(string: "\(host)/users/\(userID!)/uploads?bucket=\(bucketID)")!
+        } else {
+            url = URL(string: "\(host)/users/\(userID!)/uploads")!
+        }
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print(response)
+            print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)

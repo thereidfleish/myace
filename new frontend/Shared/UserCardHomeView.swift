@@ -13,13 +13,14 @@ struct UserCardHomeView: View {
     @State private var showingStatus = false
     @State private var statusMessage = ""
     @State var user: SharedData
-    var coach: Bool
+    var currentUserAsCoach: Bool
+    var currentUserAsStudent: Bool
     
     var body: some View {
         
         VStack {
             HStack {
-                NavigationLink(destination: StudentUploadDetailView(otherUser: user, coach: coach).navigationTitle(user.display_name).navigationBarTitleDisplayMode(.inline))
+                NavigationLink(destination: StudentUploadDetailView(otherUser: user, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: currentUserAsStudent).navigationTitle(user.display_name).navigationBarTitleDisplayMode(.inline))
                 {
                     VStack(alignment: .leading) {
                         Text(user.display_name)

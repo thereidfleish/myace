@@ -13,7 +13,8 @@ struct StrokesView: View {
 //    @State private var showingFeedback = false
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     var otherUser: SharedData
-    var coach: Bool
+    var currentUserAsCoach: Bool
+    var currentUserAsStudent: Bool
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
 //    @State private var showingEditingName = false
@@ -39,11 +40,19 @@ struct StrokesView: View {
         do {
             awaiting = true
             print("getting buckets")
-            try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
+            try await nc.getBuckets(userID: currentUserAsCoach ? String(otherUser.id) : String(nc.userData.shared.id))
             print("getting uploads")
-            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+            if(currentUserAsCoach) {
+                try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
+            }
+            else if(currentUserAsStudent) {
+                try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
+            }
+            else {
+                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
+            }
             awaiting = false
-//            //try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+//            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             print("Finsihed init")
             
             
@@ -76,7 +85,7 @@ struct StrokesView: View {
                 HStack {
                     Text("Strokes")
                         .bucketTextInternalStyle()
-                    if (!coach) {
+                    if (!currentUserAsCoach) {
                         Button(action: {
                             isShowingNewStrokeView.toggle()
                         }, label: {
@@ -107,7 +116,7 @@ struct StrokesView: View {
                                 .circularButtonStyle()
                         })
                         
-                        if (!coach) {
+                        if (!currentUserAsCoach) {
                             Menu {
                                 Button {
                                     
@@ -135,7 +144,7 @@ struct StrokesView: View {
                     
                     
                     //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
-                    ExternalUploadView(bucket: bucket, coach: coach, otherUser: otherUser)
+                    ExternalUploadView(bucket: bucket, otherUser: otherUser)
                 }
             }
             

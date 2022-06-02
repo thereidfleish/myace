@@ -209,7 +209,7 @@ struct UserCardView: View {
                         Menu {
                             Button {
                                 Task {
-                                    await createCourtshipRequest(userID: String(user.id), type: .friend)
+                                    await createCourtshipRequest(userID: String(user.id), type: .friend_req)
                                 }
                                 
                             } label: {
@@ -218,7 +218,7 @@ struct UserCardView: View {
                             
                             Button {
                                 Task {
-                                    await createCourtshipRequest(userID: String(user.id), type: .student)
+                                    await createCourtshipRequest(userID: String(user.id), type: .student_req)
                                 }
                                 
                             } label: {
@@ -227,7 +227,7 @@ struct UserCardView: View {
                             
                             Button {
                                 Task {
-                                    await createCourtshipRequest(userID: String(user.id), type: .coach)
+                                    await createCourtshipRequest(userID: String(user.id), type: .coach_req)
                                 }
                                 
                             } label: {
@@ -248,7 +248,7 @@ struct UserCardView: View {
                 
             }.alert("Are you sure you want to remove \(user.display_name) (\(user.username)) as a courtship?", isPresented: $showRemoveFriendAlert) {
                 Button("Cancel", role: .cancel) { }
-                Button("Remove Friend", role: .destructive) {
+                Button("Remove Courtship", role: .destructive) {
                     Task {
                         await removeFriend(userID: String(user.id))
                     }

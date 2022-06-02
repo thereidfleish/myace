@@ -15,7 +15,7 @@ struct StudentUploadView: View {
     @State private var awaiting = false
     @State var didAppear = false
     @State private var filteredCourtships: [SharedData] = []
-    @State var coach: Bool
+    @State var currentUserAsCoach: Bool
     
     //@State private var coaches: [Courtship] = []
     
@@ -57,7 +57,7 @@ struct StudentUploadView: View {
         do {
             awaiting = true
             try await nc.getCourtships(type: nil, users: nil)
-            filteredCourtships = nc.userData.courtships.filter { coach ? $0.courtship?.type == .student : $0.courtship?.type == .coach}
+            filteredCourtships = nc.userData.courtships.filter { currentUserAsCoach ? $0.courtship?.type == .student : $0.courtship?.type == .coach}
             awaiting = false
             print("DONE!")
         } catch {
@@ -78,19 +78,19 @@ struct StudentUploadView: View {
                         .bucketNameStyle()
                         .foregroundColor(Color.green)
                     
-                    Text(coach ? "Your Students" : "Your Coaches")
+                    Text(currentUserAsCoach ? "Your Students" : "Your Coaches")
                         .sectionHeadlineStyle()
                         .foregroundColor(Color.green)
                     
                     if filteredCourtships.isEmpty {
-                        Text("Welcome!  To get started, use the search bar to search for some \(coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAsCoach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
                             .multilineTextAlignment(.center)
                             .padding(.top)
                     }
                     
                     ScrollView {
                         ForEach(filteredCourtships, id: \.self.id) { user in
-                            UserCardHomeView(user: user, coach: coach)
+                            UserCardHomeView(user: user, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: !currentUserAsCoach)
                         }
                     }
                     

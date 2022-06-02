@@ -11,7 +11,7 @@ struct ExternalUploadView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingFeedback = false
     var bucket: Bucket
-    var coach: Bool
+    //var coach: Bool
     var otherUser: SharedData
     @State private var showingEditingName = false
     @State private var showingEditingNameUploadID: String = ""
@@ -25,8 +25,8 @@ struct ExternalUploadView: View {
     func initialize() async {
         do {
             awaiting = true
-            print("getting uploads")
-            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+//            print("getting uploads")
+//            try await nc.getUploads(shared_with_ID: coach ? otherUser.id : nil, bucketID: nil)
             awaiting = false
             print("Finished init")
             
