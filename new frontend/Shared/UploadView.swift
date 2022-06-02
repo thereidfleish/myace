@@ -14,7 +14,7 @@ struct UploadView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var awaiting = false
+    @State private var awaiting = true
     @State private var uploading = false
     @State private var uploadingStatus = ""
     @State private var progressPercent = ""
@@ -29,8 +29,12 @@ struct UploadView: View {
                                                                   .friends_only: "Friends Only",
                                                                   .friends_and_coaches: "Friends and Coaches Only",
                                                                   .`public`: "Public"]
+    var editMode: Bool = false
+    //var editUploadID: String
     //@State private var alsoSharedWith: [SharedData] = []
     @State private var searchText = ""
+    
+    @State private var uploadInfo: Upload = Upload()
     
     func computeBucketName() -> String {
         for bucket in nc.userData.buckets {
@@ -65,152 +69,184 @@ struct UploadView: View {
         return "Choose a stroke to upload the video into"
     }
     
+    func initialize() {
+        Task {
+            do {
+                uploadInfo = try await nc.getUpload(uploadID: nc.editUploadID)
+                uploadName = uploadInfo.display_title
+                bucketID = String(uploadInfo.bucket.id)
+                visibility = uploadInfo.visibility
+                uploadBucketName = uploadInfo.bucket.name
+                awaiting = false
+            } catch {
+                
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading) {
-                    
-                    Text("Set Video Title")
-                        .bucketTextInternalStyle()
-                        .onAppear {
-                            if otherUser != nil  && otherUser?.id != nc.userData.shared.id {
-                                visibility.also_shared_with.append(otherUser!)
-                            }
-                        }
-                    
-                    TextField("My Video", text: $uploadName)
-                        .textFieldStyle()
-                    
-                    
-                    Text("Stroke")
-                        .padding(.top)
-                        .bucketTextInternalStyle()
-                    
-                    HStack {
-                        Text(computeBucketName())
+                if(awaiting && editMode) { // Don't need to initialize if not in edit mode
+                    ProgressView()
+                }
+                else {
+                    VStack(alignment: .leading) {
                         
-                        Menu {
-                            ForEach(nc.userData.buckets) { bucket in
-                                Button(bucketID == "\(bucket.id)" ? "\(bucket.name)  🎾" : bucket.name) {
-                                    bucketID = "\(bucket.id)"
+                        Text("Set Video Title")
+                            .bucketTextInternalStyle()
+                            .onAppear {
+                                if otherUser != nil  && otherUser?.id != nc.userData.shared.id {
+                                    visibility.also_shared_with.append(otherUser!)
                                 }
                             }
-                        } label: {
-                            Image(systemName: "pencil.circle.fill")
-                                .resizable()
-                                .circularButtonStyle()
-                            
-                        }.disabled(uploading)
-                    }
-                    
-                    Group {
-                        Text("Visibility")
+                        
+                        TextField("My Video", text: $uploadName)
+                            .textFieldStyle()
+                        
+                        
+                        Text("Stroke")
                             .padding(.top)
                             .bucketTextInternalStyle()
                         
-                        Text("Global:")
-                            .padding(.top, 5.0)
-                            .smallestSubsectionStyle()
-                        
                         HStack {
-                            Text(visOptions[visibility.default]!)
+                            Text(computeBucketName())
                             
                             Menu {
-                                ForEach(Array(visOptions.keys), id: \.self) { visOp in
-                                    Button(visOptions[visOp]!) {
-                                        visibility.default = visOp
+                                ForEach(nc.userData.buckets) { bucket in
+                                    Button(bucketID == "\(bucket.id)" ? "\(bucket.name)  🎾" : bucket.name) {
+                                        bucketID = "\(bucket.id)"
                                     }
                                 }
                             } label: {
                                 Image(systemName: "pencil.circle.fill")
                                     .resizable()
                                     .circularButtonStyle()
+                                
                             }.disabled(uploading)
                         }
                         
-                        Text("Overrides:")
-                            .padding(.top, 5.0)
-                            .smallestSubsectionStyle()
-                        
-                        ForEach(visibility.also_shared_with.indices, id: \.self) { index in
+                        Group {
+                            Text("Visibility")
+                                .padding(.top)
+                                .bucketTextInternalStyle()
+                            
+                            Text("Global:")
+                                .padding(.top, 5.0)
+                                .smallestSubsectionStyle()
+                            
                             HStack {
-                                Text("\(visibility.also_shared_with[index].display_name) (\(visibility.also_shared_with[index].username))")
+                                Text(visOptions[visibility.default]!)
                                 
-                                Button(action: {
-                                    visibility.also_shared_with.remove(at: index)
-                                }, label: {
-                                    Image(systemName: "trash.circle.fill")
+                                Menu {
+                                    ForEach(Array(visOptions.keys), id: \.self) { visOp in
+                                        Button(visOptions[visOp]!) {
+                                            visibility.default = visOp
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "pencil.circle.fill")
                                         .resizable()
                                         .circularButtonStyle()
-                                        .foregroundColor(.red)
-                                }).disabled(uploading)
+                                }.disabled(uploading)
                             }
                             
-                        }
-                        
-                        TextField("Search for users...", text: $searchText)
-                            .textFieldStyle()
-                        
-                        ForEach(nc.userData.courtships.filter { ($0.display_name.lowercased().contains(searchText.lowercased()) || $0.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0)) }, id: \.self.id) { courtship in
+                            Text("Overrides:")
+                                .padding(.top, 5.0)
+                                .smallestSubsectionStyle()
                             
-                            Button(action: {
-                                withAnimation {
-                                    visibility.also_shared_with.append(courtship)
+                            ForEach(visibility.also_shared_with.indices, id: \.self) { index in
+                                HStack {
+                                    Text("\(visibility.also_shared_with[index].display_name) (\(visibility.also_shared_with[index].username))")
+                                    
+                                    Button(action: {
+                                        visibility.also_shared_with.remove(at: index)
+                                    }, label: {
+                                        Image(systemName: "trash.circle.fill")
+                                            .resizable()
+                                            .circularButtonStyle()
+                                            .foregroundColor(.red)
+                                    }).disabled(uploading)
                                 }
                                 
-                            }, label: {
-                                Text("\(courtship.display_name) (\(courtship.username))")
-                                    .buttonStyle()
-                            }).disabled(uploading)
+                            }
+                            
+                            TextField("Search for users...", text: $searchText)
+                                .textFieldStyle()
+                            
+                            ForEach(nc.userData.courtships.filter { ($0.display_name.lowercased().contains(searchText.lowercased()) || $0.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0)) }, id: \.self.id) { courtship in
+                                
+                                Button(action: {
+                                    withAnimation {
+                                        visibility.also_shared_with.append(courtship)
+                                    }
+                                    
+                                }, label: {
+                                    Text("\(courtship.display_name) (\(courtship.username))")
+                                        .buttonStyle()
+                                }).disabled(uploading)
+                            }
                         }
-                    }
-                    
-                    
-                    
-                    
-                    
-                    
-                    Text("Preview Video")
-                        .padding(.top)
-                        .bucketTextInternalStyle()
-                    
-                    VideoPlayer(player: AVPlayer(url: url[0]))
-                        .frame(height: 300)
-                    
-                    if (!uploading) {
-                        Button(action: {
-                            uploadInit(fileURL: url[0], uploadName: uploadName)
-                        }, label: {
-                            Text("Upload")
-                                .buttonStyle()
-                                .opacity(bucketID == "" ? 0.5 : 1)
-                        }).disabled(bucketID == "")
-                    } else {
-                        ProgressView()
-                    }
-                    
-                    
-                    Text(uploadingStatus)
-                        .bucketNameStyle()
-                        .foregroundColor(Color.green)
-                    
-                    Text(progressPercent)
-                        .videoInfoStyle()
-                        .foregroundColor(Color.green)
-                    
-                }.padding()
-                    .navigationTitle("Upload Video")
-                    .navigationBarItems(leading: Button(action: {
-                        self.mode.wrappedValue.dismiss()
-                    }, label: {
-                        Text("Cancel")
+                        
+                        Text("Preview Video")
+                            .padding(.top)
+                            .bucketTextInternalStyle()
+                        
+                        VideoPlayer(player: AVPlayer(url: url[0]))
+                            .frame(height: 300)
+                        
+                        if (!uploading) {
+                            Button(action: {
+                                if(editMode) {
+                                    editUpload()
+                                }
+                                else {
+                                    uploadInit(fileURL: url[0], uploadName: uploadName)
+                                }
+                            }, label: {
+                                Text(editMode ? "Save" : "Upload")
+                                    .buttonStyle()
+                                    .opacity(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
+                            }).disabled(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)
+                        } else {
+                            ProgressView()
+                        }
+                        
+                        
+                        Text(uploadingStatus)
+                            .bucketNameStyle()
                             .foregroundColor(Color.green)
-                            .fontWeight(.bold)
-                    }))
-            }
+                        
+                        Text(progressPercent)
+                            .videoInfoStyle()
+                            .foregroundColor(Color.green)
+                        
+                    }.padding()
+                        .navigationTitle("Upload Video")
+                        .navigationBarItems(leading: Button(action: {
+                            self.mode.wrappedValue.dismiss()
+                        }, label: {
+                            Text("Cancel")
+                                .foregroundColor(Color.green)
+                                .fontWeight(.bold)
+                        }))
+                }
+            }.onAppear(perform: {if(editMode) {initialize()}})
             
         }
         
+    }
+    
+    func editUpload() {
+        Task {
+            do {
+                try await nc.editUpload(uploadID: nc.editUploadID, displayTitle: uploadName == uploadInfo.display_title ? nil : uploadName, bucketID: bucketID! == String(uploadInfo.bucket.id) ? nil : Int(bucketID!), visibility: uploadInfo.visibility == visibility ? nil : visibility)
+            } catch {
+                print(error)
+                errorMessage = error.localizedDescription
+                showingError = true
+            }
+        }
     }
     
     func uploadInit(fileURL: URL, uploadName: String) {

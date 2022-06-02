@@ -195,7 +195,7 @@ struct Upload: Codable, Identifiable {
 //    }
 }
 
-struct Visibility: Codable {
+struct Visibility: Codable, Equatable {
     var `default`: VisibilityOptions = .private
     var also_shared_with: [SharedData] = []
 }

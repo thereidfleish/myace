@@ -14,6 +14,7 @@ class NetworkController: ObservableObject {
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
     @Published var newUser = false
+    @Published var editUploadID: String = ""
     let host = "https://api.myace.ai"
     
     
@@ -90,8 +91,8 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
-            print(data.prettyPrintedJSONString!)
             print(response)
+            print(data.prettyPrintedJSONString!)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {

@@ -19,6 +19,7 @@ struct ExternalUploadView: View {
     @State private var originalName = ""
     @State private var showingDeleteUploadID: String = ""
     @State private var showingDelete = false
+    @State private var showingEditingUpload = false
     @State private var awaiting = true
     
     func initialize() async {
@@ -143,6 +144,13 @@ struct ExternalUploadView: View {
                                     Label("Rename", systemImage: "pencil")
                                 }
                                 
+                                Button {
+                                    nc.editUploadID = String(upload.id)
+                                    showingEditingUpload = true
+                                } label: {
+                                    Label("Edit Upload", systemImage: "pencil")
+                                }
+                                
                                 Button(role: .destructive) {
                                     withAnimation {
                                         if (showingEditingName) {
@@ -174,6 +182,11 @@ struct ExternalUploadView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingEditingUpload) {
+                UploadView(url: [], bucketID: "", otherUser: otherUser, editMode: true)
+            }
+            
+            
         }
     }
 }
