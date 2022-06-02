@@ -21,6 +21,7 @@ struct ExternalUploadView: View {
     @State private var showingDelete = false
     @State private var showingEditingUpload = false
     @State private var awaiting = true
+    @State private var showingError = false
     
     func initialize() async {
         do {
@@ -32,6 +33,7 @@ struct ExternalUploadView: View {
             
             
         } catch {
+            showingError = true
             print(error)
         }
     }
@@ -42,6 +44,7 @@ struct ExternalUploadView: View {
                 try await nc.deleteUpload(uploadID: uploadID)
                 await initialize()
             } catch {
+                
                 print(error)
             }
         }
@@ -53,7 +56,11 @@ struct ExternalUploadView: View {
                 .task {
                     await initialize()
                 }
-        } else {
+        }
+        else if (showingError) {
+            Text(nc.errorMessage).padding()
+        }
+        else {
             ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
                 HStack {
                     if (showingEditingName && String(upload.id) == showingEditingNameUploadID) {

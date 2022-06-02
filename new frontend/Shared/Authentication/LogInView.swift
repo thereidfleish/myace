@@ -53,7 +53,7 @@ struct LogInView: View {
                 if (awaiting) {
                     ProgressView().padding()
                 } else if (showingError) {
-                    Text(Helper.computeErrorMessage(errorMessage: errorMessage)).padding()
+                    Text(nc.errorMessage).padding()
                 } else {
                     
                     Button(action: {

@@ -72,7 +72,7 @@ struct UploadView: View {
     func initialize() {
         Task {
             do {
-                //uploadInfo = try await nc.getUpload(uploadID: nc.editUploadID)
+                uploadInfo = try await nc.getUpload(uploadID: nc.editUploadID)
                 uploadName = uploadInfo.display_title
                 bucketID = String(uploadInfo.bucket.id)
                 visibility = uploadInfo.visibility
@@ -80,7 +80,7 @@ struct UploadView: View {
                 url = [URL(string: uploadInfo.url!)!]
                 awaiting = false
             } catch {
-                
+                showingError = true
             }
         }
     }
@@ -90,6 +90,9 @@ struct UploadView: View {
             ScrollView {
                 if(awaiting && editMode) { // Don't need to initialize if not in edit mode
                     ProgressView()
+                }
+                else if(showingError) {
+                    Text(nc.errorMessage).padding()
                 }
                 else {
                     VStack(alignment: .leading) {
@@ -242,6 +245,7 @@ struct UploadView: View {
         Task {
             do {
                 try await nc.editUpload(uploadID: nc.editUploadID, displayTitle: uploadName == uploadInfo.display_title ? nil : uploadName, bucketID: bucketID! == String(uploadInfo.bucket.id) ? nil : Int(bucketID!), visibility: uploadInfo.visibility == visibility ? nil : visibility)
+                self.mode.wrappedValue.dismiss()
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription

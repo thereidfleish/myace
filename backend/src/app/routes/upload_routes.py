@@ -10,6 +10,7 @@ from .. import aws
 from ..models import User, Bucket, Upload, VisibilityDefault, visib_of_str
 from ..cookiesigner import CookieSigner
 from ..extensions import db
+from ..settings import CF_PUBLIC_KEY_ID, S3_CF_DOMAIN, S3_CF_SUBDOMAIN
 
 
 @routes.route("/users/me/uploads")

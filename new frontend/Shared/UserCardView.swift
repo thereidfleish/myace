@@ -144,7 +144,8 @@ struct UserCardView: View {
                 
                 if (awaiting) {
                     ProgressView()
-                } else {
+                }
+                else {
                     // Handle if the user is already a courtship
                     if (nc.userData.courtships.contains(where: {$0.id == user.id})) {
                         Button(action: {
