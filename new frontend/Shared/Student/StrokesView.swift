@@ -41,9 +41,9 @@ struct StrokesView: View {
             print("getting buckets")
             try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
             print("getting uploads")
-            //try await nc.getUploads(userID: nc.userData.shared.id, bucketID: nil)
+            try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             awaiting = false
-            //try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+//            //try await nc.getUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
             print("Finsihed init")
             
             

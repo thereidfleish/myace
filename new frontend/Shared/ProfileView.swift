@@ -26,14 +26,14 @@ struct ProfileView: View {
             awaiting = true
             try await nc.getCourtships(type: nil, users: nil)
             
-            if(!yourself) {
-                try await nc.getBuckets(userID: String(user?.id ?? -1))
-                try await nc.getUploads(userID: user?.id ?? -1, bucketID: nil)
-                
-            } else {
-                try await nc.getBuckets(userID: String(nc.userData.shared.id))
-                try await nc.getUploads(userID: nil, bucketID: nil)
-            }
+//            if(!yourself) {
+//                try await nc.getBuckets(userID: String(user?.id ?? -1))
+//                try await nc.getUploads(userID: user?.id ?? -1, bucketID: nil)
+//                
+//            } else {
+//                try await nc.getBuckets(userID: String(nc.userData.shared.id))
+//                try await nc.getUploads(userID: nil, bucketID: nil)
+//            }
             awaiting = false
             print("DONE!")
         } catch {

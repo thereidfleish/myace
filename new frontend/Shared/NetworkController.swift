@@ -241,9 +241,8 @@ class NetworkController: ObservableObject {
         var url = URL(string: "\(host)/users/\(userID)/buckets")!
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
-            
-            print("JSON Data: \(data.prettyPrintedJSONString)")
             print(response)
+            print("JSON Data: \(data.prettyPrintedJSONString)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
