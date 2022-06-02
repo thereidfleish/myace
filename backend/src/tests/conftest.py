@@ -6,7 +6,7 @@ import pytest
 from app import create_app
 from app.models import db as _db
 
-from .functional import USER_A_GID, USER_B_GID, USER_C_GID
+from .functional import USER_A_TOKEN, USER_B_TOKEN, USER_C_TOKEN
 
 from .functional.routes import login, is_user_logged_in
 

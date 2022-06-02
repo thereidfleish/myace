@@ -88,7 +88,7 @@ class User(db.Model):
         """:return: the user's nonnegative coach count."""
         return UserRelationship.query.filter(
             and_(
-                self.id == UserRelationship.user_a_id,
+                self.id == UserRelationship.user_b_id,
                 UserRelationship.type == RelationshipType.A_COACHES_B,
             )
         ).count()
@@ -97,7 +97,7 @@ class User(db.Model):
         """:return: the user's nonnegative student count."""
         return UserRelationship.query.filter(
             and_(
-                self.id == UserRelationship.user_b_id,
+                self.id == UserRelationship.user_a_id,
                 UserRelationship.type == RelationshipType.A_COACHES_B,
             )
         ).count()
