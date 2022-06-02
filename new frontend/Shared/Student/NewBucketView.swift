@@ -13,17 +13,15 @@ struct NewBucketView: View {
     private var defaultStrokes = ["Backhand Groundstroke", "Forehand Groundstroke", "Backhand Volley", "Forehand Volley", "Serve"]
     @State private var awaiting = false
     @State private var showingError = false
-    @State private var errorMessage = ""
     @State private var name: String = ""
     
     func add() async {
         do {
             awaiting = true
             try await nc.createBucket(name: name)
-            print("DONE!")
+            self.mode.wrappedValue.dismiss()
         } catch {
             print(error)
-            errorMessage = error.localizedDescription
             showingError = true
         }
         awaiting = false
@@ -62,6 +60,10 @@ struct NewBucketView: View {
                         }.disabled(name == "")
                     }
                     
+                    if (showingError) {
+                        Text(nc.errorMessage)
+                    }
+                    
                     
                 }.padding(.horizontal)
             }.navigationTitle("New Stroke")
@@ -75,12 +77,9 @@ struct NewBucketView: View {
                     Task {
                         await add()
                     }
-                    self.mode.wrappedValue.dismiss()
                 }, label: {
                     if (awaiting) {
                         ProgressView()
-                    } else if (showingError) {
-                        Text(Helper.computeErrorMessage(errorMessage: errorMessage)).padding()
                     } else {
                         Text("Save and Close")
                             .foregroundColor(Color.green)

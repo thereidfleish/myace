@@ -315,3 +315,7 @@ struct EditUploadReq: Codable {
     var bucket_id: Int? = nil
     var visibility: Visibility? = nil
 }
+
+struct ErrorDecode: Codable {
+    var error: String = ""
+}

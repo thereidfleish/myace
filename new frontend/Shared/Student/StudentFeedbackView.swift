@@ -16,7 +16,6 @@ struct StudentFeedbackView: View {
     var showOnlyVideo: Bool
     var uploadID: String
     @State private var showingError = false
-    @State private var errorMessage = ""
     @State private var awaiting = true
     @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket: Bucket(id: -1, last_modified: Date(), name: ""), url: "")
     @State var didAppear = false
@@ -55,7 +54,7 @@ struct StudentFeedbackView: View {
             awaiting = false
         } catch {
             print(error)
-            errorMessage = error.localizedDescription
+            print("JSUJUS")
             showingError = true
             awaiting = false
         }
@@ -68,7 +67,6 @@ struct StudentFeedbackView: View {
                 commentsAwaiting = false
             } catch {
                 print(error)
-                errorMessage = error.localizedDescription
                 showingError = true
                 commentsAwaiting = false
             }
@@ -83,7 +81,6 @@ struct StudentFeedbackView: View {
                 }
             } catch {
                 print(error)
-                errorMessage = error.localizedDescription
                 showingError = true
             }
     }
@@ -130,7 +127,7 @@ struct StudentFeedbackView: View {
                         if (commentsAwaiting) {
                             ProgressView()
                         } else if (showingError) {
-                            Text(Helper.computeErrorMessage(errorMessage: errorMessage)).padding()
+                            Text(nc.errorMessage).padding()
                         } else {
                             ScrollViewReader { proxy in
                                 

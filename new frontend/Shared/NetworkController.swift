@@ -15,7 +15,10 @@ class NetworkController: ObservableObject {
     @Published var uploadURLSaved: Bool = false
     @Published var newUser = false
     @Published var editUploadID: String = ""
+    @Published var errorMessage: String = ""
     let host = "https://api.myace.ai"
+    let decoder = JSONDecoder()
+    var (data, response): (Data, URLResponse) = (Data(), URLResponse())
     
     
     //    enum State {
@@ -46,10 +49,10 @@ class NetworkController: ObservableObject {
         request.httpMethod = "PUT"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             print(response)
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(SharedData.self, from: data) {
                 print(data.prettyPrintedJSONString!)
@@ -71,7 +74,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
@@ -94,7 +97,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "PUT"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
@@ -108,21 +111,24 @@ class NetworkController: ObservableObject {
         let url = URL(string: "\(host)/uploads/\(uploadID)/")!
         
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString)
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
-                let (data, response) = try await URLSession.shared.data(from: URL(string: decodedResponse.url!)!)
+                (data, response) = try await URLSession.shared.data(from: URL(string: decodedResponse.url!)!)
                 print(data.prettyPrintedJSONString)
                 print(response)
                 return decodedResponse
             }
         } catch {
-            print("getUpload failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            errorMessage = decodedResponse.error
             throw NetworkError.failedDecode
         }
+        let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+        errorMessage = decodedResponse.error
         throw NetworkError.noReturn
         //        return Upload(id: -1, created: "?", display_title: "?", stream_ready: false, bucket_id: -1, comments: [], url: "?")
     }
@@ -136,7 +142,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
@@ -162,7 +168,7 @@ class NetworkController: ObservableObject {
             let (data, _) = try await URLSession.shared.data(from: url)
             
             //print("JSON Data: \(data.prettyPrintedJSONString)")
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(CommentsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -193,7 +199,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
             
@@ -213,7 +219,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
@@ -238,10 +244,9 @@ class NetworkController: ObservableObject {
         request.httpMethod = "POST"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString)
             print(response)
-            let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Bucket.self, from: data)
             DispatchQueue.main.sync {
@@ -249,7 +254,8 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("createBucket failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            errorMessage = decodedResponse.error
             throw NetworkError.failedDecode
         }
     }
@@ -258,10 +264,10 @@ class NetworkController: ObservableObject {
     func getBuckets(userID: String) async throws {
         var url = URL(string: "\(host)/users/\(userID)/buckets")!
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print("JSON Data: \(data.prettyPrintedJSONString)")
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
             DispatchQueue.main.sync {
@@ -288,7 +294,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "PUT"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             print(response)
         } catch {
@@ -306,7 +312,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
         } catch {
@@ -329,10 +335,10 @@ class NetworkController: ObservableObject {
         }
         
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -358,10 +364,10 @@ class NetworkController: ObservableObject {
         }
         
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
-            let decoder = JSONDecoder()
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -384,7 +390,7 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             print(data.prettyPrintedJSONString!)
-            let decoder = JSONDecoder()
+            
             let decodedResponse = try decoder.decode(SearchRes.self, from: data)
             print("yay")
             return decodedResponse.users
@@ -412,7 +418,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "POST"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(response)
             print(data.prettyPrintedJSONString)
             
@@ -438,7 +444,7 @@ class NetworkController: ObservableObject {
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
+            
             let decodedResponse = try decoder.decode(CourtshipRequestRes.self, from: data)
             DispatchQueue.main.sync {
                 if dir == "in" {
@@ -471,7 +477,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "PUT"
         
         do {
-            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data)
             print(response)
         } catch {
@@ -489,7 +495,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await URLSession.shared.data(for: request)
             print(data)
             print(response)
             
@@ -514,10 +520,10 @@ class NetworkController: ObservableObject {
         let url = URL(string: stringBuilder)!
                 
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
-            let decoder = JSONDecoder()
+            
             let decodedResponse = try decoder.decode(GetCourtshipsRes.self, from: data)
             DispatchQueue.main.sync {
                 userData.courtships = decodedResponse.courtships
