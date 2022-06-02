@@ -34,6 +34,7 @@ struct StrokesView: View {
                                                                   .friends_only: "Friends Only",
                                                                   .friends_and_coaches: "Friends and Coaches Only",
                                                                   .`public`: "Public"]
+    @State private var showingError = false
     @State private var awaiting = true
     
     func initialize() async {
@@ -57,6 +58,8 @@ struct StrokesView: View {
             
             
         } catch {
+            showingError = true
+            awaiting = false
             print(error)
         }
     }
@@ -81,7 +84,11 @@ struct StrokesView: View {
         VStack(alignment: .leading) {
             if(awaiting) {
                 ProgressView()
-            } else {
+            }
+            else if(showingError) {
+                Text(nc.errorMessage).padding()
+            }
+            else {
                 HStack {
                     Text("Strokes")
                         .bucketTextInternalStyle()

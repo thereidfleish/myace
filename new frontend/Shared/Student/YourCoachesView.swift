@@ -71,51 +71,57 @@ struct StudentUploadView: View {
     var body: some View {
         
         NavigationView {
-            VStack {
-                
-                VStack(alignment: .leading) {
-                    Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
-                        .bucketNameStyle()
-                        .foregroundColor(Color.green)
-                    
-                    Text(currentUserAsCoach ? "Your Students" : "Your Coaches")
-                        .sectionHeadlineStyle()
-                        .foregroundColor(Color.green)
-                    
-                    if filteredCourtships.isEmpty {
-                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAsCoach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
-                            .multilineTextAlignment(.center)
-                            .padding(.top)
-                    }
-                    
-                    ScrollView {
-                        ForEach(filteredCourtships, id: \.self.id) { user in
-                            UserCardHomeView(user: user, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: !currentUserAsCoach)
+            if (awaiting) {
+                ProgressView()
+            } else if (showingError) {
+                Text(nc.errorMessage).padding()
+            }
+            else {
+                VStack {
+                    VStack(alignment: .leading) {
+                        Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
+                            .bucketNameStyle()
+                            .foregroundColor(Color.green)
+                        
+                        Text(currentUserAsCoach ? "Your Students" : "Your Coaches")
+                            .sectionHeadlineStyle()
+                            .foregroundColor(Color.green)
+                        
+                        if filteredCourtships.isEmpty {
+                            Text("Welcome!  To get started, use the search bar to search for some \(currentUserAsCoach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                                .multilineTextAlignment(.center)
+                                .padding(.top)
                         }
+                        
+                        ScrollView {
+                            ForEach(filteredCourtships, id: \.self.id) { user in
+                                UserCardHomeView(user: user, currentUserAsCoach: currentUserAsCoach, currentUserAsStudent: !currentUserAsCoach)
+                            }
+                        }
+                        
+                    }.sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
+                        
                     }
                     
-                }.sheet(isPresented: $showingNewBucketView) {
-                    NewBucketView()
                     
-                }
-                
-                
-                
-                
-            }.padding(.horizontal)
-                .task {
-                    await initialize()
-                }
-                .navigationBarTitle("Home", displayMode: .inline)
-                .navigationBarItems(leading: Refresher().refreshable {
-                    await initialize()
-                },trailing: Button(action: {
-                    showingNewBucketView.toggle()
-                }, label: {
-                    Text("Add Stroke")
-                        .foregroundColor(Color.green)
-                        .fontWeight(.bold)
-                }))
+                    
+                    
+                }.padding(.horizontal)
+                    .task {
+                        await initialize()
+                    }
+                    .navigationBarTitle("Home", displayMode: .inline)
+                    .navigationBarItems(leading: Refresher().refreshable {
+                        await initialize()
+                    },trailing: Button(action: {
+                        showingNewBucketView.toggle()
+                    }, label: {
+                        Text("Add Stroke")
+                            .foregroundColor(Color.green)
+                            .fontWeight(.bold)
+                    }))
+            }
         }
     }
 }
