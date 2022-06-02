@@ -35,10 +35,6 @@ def get_all_uploads():
         sw_user: User = User.query.filter_by(id=sw_id).first()
         if sw_user is None:
             return failure_response("User not found.")
-        if sw_user == me:
-            return failure_response(
-                "Cannot share an upload with yourself.", 403
-            )
         uploads = uploads.filter(Upload.viewable_to(sw_user))
 
     return success_response(
@@ -127,7 +123,12 @@ def get_upload(upload_id):
 
 
 class BadRequest(Exception):
-    """Representative of the 400 HTTP response code."""
+    """Representative of a 4xx HTTP response code."""
+
+    def __init__(self, message, code) -> None:
+        self.message = message
+        self.code = code
+        super().__init__(message)
 
 
 class VisibilityReq(TypedDict):
@@ -138,37 +139,44 @@ class VisibilityReq(TypedDict):
 
 
 def parse_visibility_req(
+    client: User,
     visibility: VisibilityReq,
 ) -> tuple[VisibilityDefault, list[User]]:
     """Parse the "visibility" request obj.
 
-    :raises BadRequest: if the body is incorrectly formatted
+    :raise BadRequest: if parsing fails for any reason
     :return:
         a VisibilityDefault and a list of users with whom an upload is
         individually shared
     """
     if visibility is None:
-        raise BadRequest("Missing visibility.")
+        raise BadRequest("Missing visibility.", 400)
     t = visibility.get("default")
     default = visib_of_str(t)
     if default is None:
-        raise BadRequest("Invalid default visibility.")
-    also_shared_ids = visibility.get("also_shared_with")
-    if also_shared_ids is None:
-        raise BadRequest("Missing also_shared_with.")
-    also_shared_users = User.get_users_by_ids(also_shared_ids)
-    invalid_ids = set(also_shared_ids) - set([id for id in also_shared_ids])
-    if len(invalid_ids) > 0:
+        raise BadRequest("Invalid default visibility.", 400)
+    try:
+        also_shared_ids = set(visibility["also_shared_with"])
+    except KeyError:
+        raise BadRequest("Missing also_shared_with.", 400)
+    # ensure no sharing with yourself
+    if client.id in also_shared_ids:
         raise BadRequest(
-            "Invalid also_shared_with. Contains invalid user IDs."
+            "Cannot share an upload with yourself. Forbidden.", 403
         )
-    return default, also_shared_users
+    # ensure each ID in also_shared_ids is valid (points to a real user)
+    also_shared_users = User.query.filter(User.id.in_(also_shared_ids))
+    if also_shared_users.count() < len(also_shared_ids):
+        raise BadRequest(
+            "Invalid ID in also_shared_with. User not found.", 404
+        )
+    return default, also_shared_users.all()
 
 
 @routes.route("/uploads/", methods=["POST"])
 @flask_login.login_required
 def create_upload_url():
-    user = flask_login.current_user
+    me = flask_login.current_user
 
     # Check for valid fields
     body = json.loads(request.data)
@@ -184,20 +192,20 @@ def create_upload_url():
     bucket = Bucket.query.filter_by(id=bucket_id).first()
     if bucket is None:
         return failure_response("Bucket not found.")
-    if not user.can_modify_bucket(bucket):
+    if not me.can_modify_bucket(bucket):
         return failure_response("User forbidden to modify bucket.", 403)
     # parse visibility field
     visibility = body.get("visibility")
     try:
-        vis_default, shared_with = parse_visibility_req(visibility)
+        vis_default, shared_with = parse_visibility_req(me, visibility)
     except BadRequest as b:
-        return failure_response(b, 400)
+        return failure_response(b.message, b.code)
 
     # Create upload
     new_upload = Upload(
         filename=filename,
         display_title=display_title,
-        user_id=user.id,
+        user_id=me.id,
         bucket_id=bucket_id,
         visibility=vis_default,
     )
@@ -275,12 +283,12 @@ def edit_upload(upload_id):
     visibility = body.get("visibility")
     if visibility is not None:
         try:
-            vis_default, shared_with = parse_visibility_req(visibility)
+            vis_default, shared_with = parse_visibility_req(me, visibility)
             upload.visibility = vis_default
             upload.unshare_with_all()
             upload.share_with(shared_with)
         except BadRequest as b:
-            return failure_response(b, 400)
+            return failure_response(b.message, b.code)
 
     db.session.commit()
     return success_response(upload.serialize(me))

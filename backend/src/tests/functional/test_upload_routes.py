@@ -68,7 +68,7 @@ def test_get_all_uploads(configured_client: FlaskClient):
     # test user A's n_uploads == 2 from B's perspective
     user_b = routes.login(configured_client, USER_B_TOKEN)
     user_a_from_b = routes.get_user_by_id(configured_client, user_a.id)
-    assert user_a_from_b.n_uploads == 2, print(a_uploads)
+    assert user_a_from_b.n_uploads == 2
     # Test filter by bucket
     user_a = routes.login(configured_client, USER_A_TOKEN)
     buckets = routes.get_all_buckets(configured_client, user_a.id)
@@ -84,3 +84,102 @@ def test_get_all_uploads(configured_client: FlaskClient):
         configured_client, shared_with=user_b.id
     )
     assert len(uploads_filtered) == 2
+
+
+def test_get_another_users_uploads(configured_client: FlaskClient):
+    """Test the get another user's uploads route."""
+    user_a = routes.login(configured_client, USER_A_TOKEN)
+    user_b = routes.login(configured_client, USER_B_TOKEN)
+    uploads = routes.get_other_users_uploads(configured_client, user_a.id)
+    assert len(uploads) == 2
+    assert (
+        len(
+            routes.get_other_users_uploads(
+                configured_client, user_a.id, bucket_id=10000
+            )
+        )
+        == 0
+    )
+    assert (
+        len(
+            routes.get_other_users_uploads(
+                configured_client, user_a.id, bucket_id=1
+            )
+        )
+        == 2
+    )
+
+
+def test_get_upload_by_id(configured_client: FlaskClient):
+    """Test the get upload by ID route."""
+    # get set of IDs that are not shared with user B
+    user_b = routes.login(configured_client, USER_B_TOKEN)
+    user_a = routes.login(configured_client, USER_A_TOKEN)
+    a_uploads_sw_b = set(
+        up.id
+        for up in routes.get_all_uploads(
+            configured_client, shared_with=user_b.id
+        )
+    )
+    a_uploads_not_sw_b = (
+        set(up.id for up in routes.get_all_uploads(configured_client))
+        - a_uploads_sw_b
+    )
+    assert len(a_uploads_not_sw_b) > 0
+    # Test invalid IDs
+    user_b = routes.login(configured_client, USER_B_TOKEN)
+    invalid_ids = [-1, 10000000]
+    invalid_ids.extend(a_uploads_not_sw_b)
+    for id in invalid_ids:
+        with pytest.raises(AssertionError) as e_info:
+            routes.get_upload(configured_client, id)
+    # Test valid IDs
+    valid_ids = a_uploads_sw_b
+    for id in valid_ids:
+        assert type(routes.get_upload(configured_client, id)) == Upload
+
+
+def test_edit_upload(test_client):
+    # user B has a bucket with nothing in it
+    user_b = routes.login(test_client, USER_B_TOKEN)
+    bucketb = routes.create_bucket(test_client, "bucketb")
+    # user A has two buckets with one upload
+    user_a = routes.login(test_client, USER_A_TOKEN)
+    bucket1 = routes.create_bucket(test_client, "bucket1")
+    initial_id, _, _ = routes.create_upload_url(
+        test_client,
+        "vid.mp4",
+        "Upload1",
+        bucket1.id,
+        routes.VisibilitySetting("private", []),
+    )
+    bucket2 = routes.create_bucket(test_client, "bucket2")
+    # Attempt adding to bucket that DNE
+    invalid_bucket_ids = (-1, bucketb.id)
+    for id in invalid_bucket_ids:
+        with pytest.raises(AssertionError) as e_info:
+            routes.edit_upload(
+                test_client,
+                initial_id,
+                bucket_id=id,
+            )
+    # attempt sharing with yourself and misc invalid IDs
+    invalid_share_ids = (user_a.id, 100000, -1)
+    for id in invalid_share_ids:
+        with pytest.raises(AssertionError) as e_info:
+            routes.edit_upload(
+                test_client,
+                initial_id,
+                visibility=routes.VisibilitySetting("private", [id]),
+            )
+    # Verify changes persist
+    final = routes.edit_upload(
+        test_client,
+        initial_id,
+        display_title="My new display title",
+        bucket_id=bucket2.id,
+        visibility=routes.VisibilitySetting("private", [user_b.id]),
+    )
+    assert final.display_title == "My new display title"
+    assert final in routes.get_all_uploads(test_client, bucket_id=bucket2.id)
+    assert final in routes.get_all_uploads(test_client, shared_with=user_b.id)

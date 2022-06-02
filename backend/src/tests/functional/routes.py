@@ -282,7 +282,7 @@ def get_other_users_uploads(
         params["bucket"] = bucket_id
     res = client.get(_add_params(f"{HOST}/users/{other_id}/uploads", params))
     assert res.status_code == 200, log_response(res)
-    return [parse_upload_json(u) for u in json.loads(res.data)]
+    return [parse_upload_json(u) for u in json.loads(res.data)["uploads"]]
 
 
 def get_upload(

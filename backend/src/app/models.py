@@ -114,9 +114,6 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other.id, self.id))
         return b_to_a
 
-    def rel_with_subq(self, other_id: int):
-        """A UserRelationship query possibly containing a row w/ both users."""
-
     def coaches(self, other_id: db.Column):
         """:return: An EXISTS subquery true if this user coaches other."""
         return UserRelationship.query.filter(
@@ -218,20 +215,6 @@ class User(db.Model):
     def is_username_unique(username: str) -> bool:
         """:return: if a username is unique."""
         return User.query.filter_by(username=username).first() is None
-
-    @staticmethod
-    def get_users_by_ids(user_ids: List[int]) -> List[User]:
-        """:return: a list of ids to a list of users.
-
-        Invalid IDs are ignored.
-        """
-        # naive implementation. TODO: optimize query
-        users = []
-        for id in user_ids:
-            u = User.query.filter_by(id=id).first()
-            if u is not None:
-                users.append(u)
-        return users
 
     # Methods required by Flask-Login
 
@@ -474,8 +457,9 @@ class Upload(db.Model):
             )
         return response
 
-    def share_with(self, users: List[User]) -> None:
+    def share_with(self, users: list[User]) -> None:
         """Share this upload with a list of users."""
+        assert type(users) == list, type(users)
         self.also_shared_with.extend(users)
         db.session.commit()
 
