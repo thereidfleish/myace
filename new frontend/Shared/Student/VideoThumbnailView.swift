@@ -15,7 +15,7 @@ struct VideoThumbnailView: View {
             if (!upload.stream_ready) {
                 ProgressView()
             } else {
-                AsyncImage(url: URL(string: upload.thumbnail)!) { image in
+                AsyncImage(url: URL(string: upload.thumbnail!)!) { image in
                     image.resizable()
                 } placeholder: {
                     ProgressView()

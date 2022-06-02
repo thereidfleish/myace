@@ -81,9 +81,6 @@ struct NewBucketView: View {
                     if (awaiting) {
                         ProgressView()
                     }
-                    else if(showingError) {
-                        Text(nc.errorMessage).padding()
-                    }
                     else {
                         Text("Save and Close")
                             .foregroundColor(Color.green)

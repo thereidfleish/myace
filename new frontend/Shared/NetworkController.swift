@@ -372,6 +372,7 @@ class NetworkController: ObservableObject {
             print("getMyUploads failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             errorMessage = decodedResponse.error
+            print("ERROR: \(errorMessage)")
             throw NetworkError.failedDecode
         }
     }
