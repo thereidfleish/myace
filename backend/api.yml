@@ -11,7 +11,7 @@ servers:
 paths:
   /register/:
     post:
-      summary: Register by email
+      summary: Register with email
       description: This route creates a new user via email and password and establishes a session.
       tags:
         - User
@@ -73,6 +73,7 @@ paths:
                     properties:
                       method:
                         type: string
+                        description: Login with email and password.
                         enum: [password]
                       email:
                         $ref: "#/components/schemas/UserEmail"
@@ -86,6 +87,7 @@ paths:
                     properties:
                       method:
                         type: string
+                        description: Login with Google OAuth.
                         enum: [google]
                       token:
                         type: string
@@ -1112,12 +1114,14 @@ components:
       type: string
       description: "The user's email address."
       format: email
+      pattern: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
       example: johnsmith@gmail.com
 
     UserPassword:
       type: string
       description: "The user's password."
       format: password
+      pattern: ^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~])[A-Za-z0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~]{6,}$
       example: Tnns31!
 
     UserID:
@@ -1137,6 +1141,7 @@ components:
     UserUsername:
       type: string
       description: "A unique, user-friendly profile identifier."
+      pattern: ^(?=.*?[a-z])[a-z0-9_.]{4,16}$
       example: tennislover9
 
     UserDisplayName:

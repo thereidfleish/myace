@@ -33,8 +33,9 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # Matches all characters disallowed in usernames. Allow alphanumeric, underscores, & periods.
-    ILLEGAL_UNAME_PATTERN = r"[^\w\.]"
+    USERNAME_PATTERN = (
+        r"^(?=.*?[a-z])[a-z0-9_.]{4,16}$"  # lookahead means at least lowercase
+    )
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     display_name = db.Column(db.String, nullable=False)
@@ -42,7 +43,7 @@ class User(db.Model):
 
     login_method = db.Column(db.Enum(LoginMethods), nullable=False)
     password_hash = db.Column(db.String, nullable=True)
-    google_id = db.Column(db.String, nullable=False, unique=True)
+    google_id = db.Column(db.String, nullable=True, unique=True)
 
     uploads = db.relationship("Upload", back_populates="user")
     comments = db.relationship("Comment", back_populates="author")
@@ -53,16 +54,18 @@ class User(db.Model):
         display_name,
         email,
         username=None,
+        biography=None,
         password_hash=None,
         google_id=None,
     ):
         self.display_name = display_name
         self.email = email
-        # Generate a username if one is not supplied
-        if username is None:
-            self.username = self._generate_unique_username(display_name)
-        else:
-            self.username = username
+        self.username = (
+            username
+            if username is not None
+            else self._generate_unique_username(display_name)
+        )
+        self.biography = biography if biography is not None else ""
         # Determine login method
         if password_hash is not None:
             self.password_hash = password_hash
@@ -225,7 +228,7 @@ class User(db.Model):
     def _generate_unique_username(cls, display_name: str) -> str:
         """:return: a unique, legal username based off the user's display name."""
         # Santitize user's display name to use as root of username
-        sanitized = re.sub(cls.ILLEGAL_UNAME_PATTERN, "", display_name).lower()
+        sanitized = re.sub(r"[^\w]", "", display_name).lower()
         # If sanitized display name is empty, use 3 random characters
         if sanitized == "":
             sanitized = "".join(
@@ -236,6 +239,11 @@ class User(db.Model):
         # Continue adding digits until unique
         while not cls.is_username_unique(username):
             username += random.choice(string.digits)
+        # Last resort: if username does not adhere, generate random ascii
+        while not re.fullmatch(cls.USERNAME_PATTERN, username):
+            username = "".join(
+                random.choice(string.ascii_lowercase) for _ in range(10)
+            )
         return username
 
     @staticmethod

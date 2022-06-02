@@ -56,16 +56,9 @@ def test_valid_unique_username(username: str) -> None:
     # Check for capitals
     if any(c.isupper() for c in username):
         raise InvalidStr("Username must be lowercase.")
-    # Check username length
-    if len(username) <= 2:
-        raise InvalidStr("Username must be at least 3 characters long.")
-    # Check if username contains illegal characters
-    regexp = re.compile(User.ILLEGAL_UNAME_PATTERN)
-    illegal_match = regexp.search(username)
-    if illegal_match:
-        raise InvalidStr(
-            f"Username contains illegal character '{illegal_match.group(0)}'.",
-        )
+    # Check username regex
+    if not re.fullmatch(User.USERNAME_PATTERN, username):
+        raise InvalidStr("Invalid username.")
     # Check if username exists
     if not User.is_username_unique(username):
         raise UnavailableUsername
@@ -94,7 +87,7 @@ def test_valid_email(email: str) -> None:
     if any(c.isupper() for c in email):
         raise InvalidStr("Email must be lowercase.")
     # Check email pattern
-    email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
     if not re.fullmatch(email_regex, email):
         raise InvalidStr("Invalid email address.")
 
@@ -107,44 +100,58 @@ def test_valid_password(password: str) -> None:
     # Check None
     if password is None:
         raise InvalidStr("Missing password.")
-    # Check length
-    if len(password) < 6:
-        raise InvalidStr("Password must be at least 6 characters long.")
-    # Check for strong password
-    contains_capital = any(c.isupper() for c in password)
-    contains_number = any(c.isnumeric() for c in password)
-    contains_special = any(not c.isalnum() for c in password)
-    if (
-        int(contains_capital) + int(contains_number) + int(contains_special)
-        < 2
-    ):
+    # Regex match valid passwords
+    symbols = r"\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~"  # allowed special chars
+    ge1_lower = r"(?=.*?[a-z])"  # at least 1 lowercase
+    ge1_upper = r"(?=.*?[A-Z])"  # at least 1 uppercase
+    ge1_num_or_sym = f"(?=.*?[0-9{symbols}])"  # at least 1 number or symbol
+    only_alphanum_and_sym = f"[A-Za-z0-9{symbols}]"
+    pattern = f"""^{ge1_lower}{ge1_upper}{ge1_num_or_sym}{only_alphanum_and_sym}{{6,}}$"""
+    if not re.fullmatch(pattern, password):
         raise InvalidStr(
-            "Password must meet at least 2/3 criteria: contains capital letters, numbers, or special characters.",
+            "Password must be at least 6 characters and contain lowercase, uppercase, and either a number or a symbol.",
         )
 
 
-@app.route("/register/", methods=["POST"])
+def test_valid_bio(bio: str) -> None:
+    """Check if a biography is valid.
+
+    :raise InvalidStr: if invalid, containing a user-friendly error
+    """
+    if bio is None:
+        raise InvalidStr("Missing biography.")
+    if bio.isspace():
+        raise InvalidStr("Biography cannot be only whitespace.")
+    if len(bio) > 150:
+        raise InvalidStr(f"Biography exceeds character limit: {len(bio)}/150.")
+
+
+@routes.route("/register/", methods=["POST"])
 def register():
     body = json.loads(request.data)
 
     # Check for valid username
     username = body.get("username")
-    valid, error_msg = test_valid_unique_username(username)
-    if not valid:
-        return failure_response(error_msg, 400)
+    try:
+        test_valid_unique_username(username)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
+    except UnavailableUsername:
+        return failure_response("Username unavailable", 409)
 
     # Check for valid display name
     display_name = body.get("display_name")
-    if display_name is None:
-        return failure_response("Missing display name.", 400)
-    if display_name.isspace():
-        return failure_response("Invalid display name.", 400)
+    try:
+        test_valid_display_name(display_name)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
 
     # Check for valid email
     email = body.get("email")
-    valid, error_msg = test_valid_email(email)
-    if not valid:
-        return failure_response(error_msg, 400)
+    try:
+        test_valid_email(email)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
 
     # Check for unique email
     user_w_email = User.query.filter_by(email=email).first()
@@ -167,15 +174,21 @@ def register():
     except InvalidStr as e:
         return failure_response(e.message, 400)
 
-    # Salt and hash password
-    hash = salt_and_hash(password)
+    # Check for valid bio
+    bio = body.get("biography")
+    try:
+        if bio is not None:
+            test_valid_bio(bio)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
 
     # Add user
     user = User(
         display_name=display_name,
         email=email,
         username=username,
-        password_hash=hash,
+        biography=bio,
+        password_hash=salt_and_hash(password),
     )
     db.session.add(user)
     db.session.commit()
@@ -183,7 +196,7 @@ def register():
     # Begin user session
     flask_login.login_user(user, remember=True)
 
-    return success_response(user.serialize(show_private=True), 201)
+    return success_response(user.serialize(user), 201)
 
 
 class LoginError(Exception):
@@ -193,7 +206,7 @@ class LoginError(Exception):
         super().__init__(message)
 
 
-def login_w_password(email: str, password: str) -> User:
+def login_w_password(email: str, plaintext: str) -> User:
     """Retrieve a user who has registered with email/password.
 
     :raise: LoginError if login fails
@@ -216,14 +229,15 @@ def login_w_password(email: str, password: str) -> User:
                 400,
             )
     # Check for valid password
-    if not verify_password(password, user.password_hash):
+    if not verify_password(plaintext, user.password_hash):
         raise LoginError("Incorrect password.", 401)
     return user
 
 
-def login_w_google(token: str) -> User:
+def login_w_google(token: str) -> tuple[User, bool]:
     """Retrieve or create a user who has signed in with Google.
 
+    :return: User, user_created_flag
     :raise: LoginError if login fails
     """
     # TODO: Find a better way to test. This is godawful.
@@ -272,9 +286,9 @@ def login_w_google(token: str) -> User:
             )
 
     # Check if user exists
+    user_created = False
     user_w_gid = User.query.filter_by(google_id=gid).first()
     user_w_email = User.query.filter_by(email=email).first()
-    user_created = user_w_gid is None
 
     if user_w_gid is None:
         if user_w_email is None:
@@ -282,6 +296,7 @@ def login_w_google(token: str) -> User:
             user = User(display_name=display_name, email=email, google_id=gid)
             db.session.add(user)
             db.session.commit()
+            user_created = True
         else:
             # There is a user with this email but not the GID
             # Give login method specific error messages
@@ -307,7 +322,7 @@ def login_w_google(token: str) -> User:
             # user_w_email is the same as user_w_gid
             assert user_w_gid == user_w_email
             user = user_w_gid
-    return user
+    return user, user_created
 
 
 @routes.route("/login/", methods=["POST"])
@@ -343,8 +358,7 @@ def login():
             token = body.get("token")
             if token is None:
                 return failure_response("Missing token.", 400)
-            user = login_w_google(token)
-            user_created = True
+            user, user_created = login_w_google(token)
 
         else:
             return failure_response("Invalid login method.", 400)
@@ -405,6 +419,11 @@ def edit_me():
     # Update bio if it changed
     new_bio = body.get("biography")
     if new_bio is not None:
+        # Check for valid bio
+        try:
+            test_valid_bio(new_bio)
+        except InvalidStr as e:
+            return failure_response(e.message, 400)
         new_bio = new_bio.strip()
         if me.biography != new_bio:
             me.biography = new_bio
