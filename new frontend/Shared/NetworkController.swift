@@ -62,6 +62,24 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // DELETE
+    func deleteUser(userID: String) async throws {
+        let url = URL(string: "\(host)/users/\(userID)/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "DELETE"
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            print(data.prettyPrintedJSONString)
+            print(response)
+        } catch {
+            print("deleteUser failed decode")
+            throw NetworkError.failedDecode
+        }
+    }
+    
     // PUT
     func editUpload(uploadID: String, displayTitle: String?, bucketID: Int?, visibility: Visibility?) async throws {
         let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility)
