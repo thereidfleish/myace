@@ -7,6 +7,10 @@ import random
 import re
 import string
 from sqlalchemy import or_, and_
+
+from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.sql.elements import BooleanClauseList
+
 from typing import List, Optional
 
 from .extensions import db
@@ -64,13 +68,13 @@ class User(db.Model):
 
     def n_uploads_visible_to(self, client: User) -> int:
         """:return: The number of this user's uploads visible to the client."""
-        return 0
-        # visible = 0
-        # for u in self.uploads:
-        # TODO: fix this: raise TypeError("Boolean value of this clause is not defined")
-        #     if client.can_view_upload(u):
-        #         visible += 1
-        # return visible
+        return (
+            db.session.query(Upload)
+            .filter(
+                and_(Upload.user_id == self.id, Upload.viewable_to(client))
+            )
+            .count()
+        )
 
     def count_friends(self) -> int:
         """:return: the user's nonnegative friend count."""
@@ -110,44 +114,52 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other.id, self.id))
         return b_to_a
 
-    def coaches(self, other: User) -> bool:
-        """:return: True if this user coaches other."""
-        return UserRelationship.query.filter_by(
-            user_a_id=self.id,
-            user_b_id=other.id,
-            type=RelationshipType.A_COACHES_B,
+    def rel_with_subq(self, other_id: int):
+        """A UserRelationship query possibly containing a row w/ both users."""
+
+    def coaches(self, other_id: db.Column):
+        """:return: An EXISTS subquery true if this user coaches other."""
+        return UserRelationship.query.filter(
+            and_(
+                UserRelationship.user_a_id == self.id,
+                UserRelationship.user_b_id == other_id,
+                UserRelationship.type == RelationshipType.A_COACHES_B,
+            )
         ).exists()
 
-    def friends_with(self, other: User) -> bool:
-        """:return: True if this user is friends with other."""
-        rel = self.get_relationship_with(other)
-        return rel is not None and rel.type == RelationshipType.FRIENDS
+    def friends_with(self, other_id: db.Column):
+        """:return: An EXISTS subquery true if users are friends with other."""
+        return UserRelationship.query.filter(
+            and_(
+                UserRelationship.type == RelationshipType.FRIENDS,
+                # relationship exists involving the two users
+                or_(
+                    and_(
+                        UserRelationship.user_a_id == self.id,
+                        UserRelationship.user_b_id == other_id,
+                    ),
+                    and_(
+                        UserRelationship.user_a_id == other_id,
+                        UserRelationship.user_b_id == self.id,
+                    ),
+                ),
+            )
+        ).exists()
 
     def can_view_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to view a given upload."""
-        # upload owners can always view their uploads
-        if self.id == upload.user_id:
-            return True
-        # individual sharing trumps default visibility
-        if self in upload.get_shared_with():
-            return True
-        # default visibility
-        coaches_uploader = self.coaches(upload.user)
-        friends_w_uploader = self.friends_with(upload.user)
-        if upload.visibility == VisibilityDefault.PUBLIC:
-            return True
-        elif upload.visibility == VisibilityDefault.FRIENDS_AND_COACHES:
-            return coaches_uploader or friends_w_uploader
-        elif upload.visibility == VisibilityDefault.COACHES_ONLY:
-            return coaches_uploader
-        elif upload.visibility == VisibilityDefault.FRIENDS_ONLY:
-            return friends_w_uploader
-        else:
-            return False
+        # TODO: optimize function calls by moving logic into query filters
+        # so much faster to filter in DB than application
+        return (
+            db.session.query(Upload.id)
+            .filter(and_(Upload.id == upload.id, Upload.viewable_to(self)))
+            .count()
+            > 0
+        )
 
     def can_modify_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to modify an upload's properties."""
-        return self.id == upload.user_id
+        return bool(self.id == upload.user_id)
 
     def can_comment_on_upload(self, upload: Upload) -> bool:
         """:return: True if the user is allowed to comment on a given upload."""
@@ -401,11 +413,12 @@ def visib_of_str(s: Optional[str]) -> Optional[VisibilityDefault]:
 
 
 # Visibility settings on an individual level
-class UploadAlsoSharedWith(db.Model):
-    __tablename__ = "upload_shared_with"
+also_shared_with = db.Table(
+    "upload_shared_with",
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
-    upload_id = db.Column(db.ForeignKey("upload.id"), primary_key=True)
-    user_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
+    db.Column("upload_id", db.ForeignKey("upload.id"), primary_key=True),
+    db.Column("user_id", db.ForeignKey("user.id"), primary_key=True),
+)
 
 
 # Upload Table
@@ -420,6 +433,9 @@ class Upload(db.Model):
     filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
     visibility = db.Column(db.Enum(VisibilityDefault), nullable=False)
+    also_shared_with = db.relationship(
+        "User", secondary=also_shared_with, lazy="dynamic"
+    )
     # Mediaconvert
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
@@ -448,7 +464,7 @@ class Upload(db.Model):
             "visibility": {
                 "default": visib_to_str(self.visibility),
                 "also_shared_with": [
-                    u.serialize(client) for u in self.get_shared_with()
+                    u.serialize(client) for u in self.also_shared_with
                 ],
             },
         }
@@ -458,22 +474,54 @@ class Upload(db.Model):
             )
         return response
 
-    def get_shared_with(self) -> List[User]:
-        """:return: A list of all Users with whom this upload has been individually shared"""
-        shares = UploadAlsoSharedWith.query.filter_by(upload_id=self.id)
-        return [User.query.filter_by(id=s.user_id).first() for s in shares]
-
     def share_with(self, users: List[User]) -> None:
-        """Share this upload with a list of users"""
-        for u in users:
-            s = UploadAlsoSharedWith(upload_id=self.id, user_id=u.id)
-            db.session.add(s)
+        """Share this upload with a list of users."""
+        self.also_shared_with.extend(users)
         db.session.commit()
 
     def unshare_with_all(self) -> None:
-        """Unshare this upload with all individuals"""
-        UploadAlsoSharedWith.query.filter_by(upload_id=self.id).delete()
+        """Unshare this upload with all individuals in also_shared_with."""
+        for u in self.also_shared_with:
+            self.also_shared_with.remove(u)
         db.session.commit()
+
+    @classmethod
+    def viewable_to(cls, user: User) -> BooleanClauseList:
+        """For use in queries. Does not test instances.
+
+        :return:
+            BooleanClauseList that evals to true if a user is allowed to view
+            the upload.
+        """
+        # decided to avoid making this a hybrid method because I failed to call hybrid_method.expression.
+        # https://docs.sqlalchemy.org/en/13/orm/extensions/hybrid.html#defining-expression-behavior-distinct-from-attribute-behavior
+        # upload owners can always view their uploads
+        is_owner = user.id == cls.user_id
+        # individual sharing trumps default visibility
+        shared_individually = cls.also_shared_with.any(User.id == user.id)
+        # default visibility
+        coaches_uploader = user.coaches(cls.user_id)
+        friends_w_uploader = user.friends_with(cls.user_id)
+        shared_by_default = or_(
+            # upload is public
+            cls.visibility == VisibilityDefault.PUBLIC,
+            # upload is for friends and coaches
+            and_(
+                cls.visibility == VisibilityDefault.FRIENDS_AND_COACHES,
+                or_(coaches_uploader, friends_w_uploader),
+            ),
+            # upload is for coaches
+            and_(
+                cls.visibility == VisibilityDefault.COACHES_ONLY,
+                coaches_uploader,
+            ),
+            # upload is for friends
+            and_(
+                cls.visibility == VisibilityDefault.FRIENDS_ONLY,
+                friends_w_uploader,
+            ),
+        )
+        return or_(is_owner, shared_individually, shared_by_default)
 
 
 # Comment Table
