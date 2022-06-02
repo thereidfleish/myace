@@ -15,6 +15,12 @@ from ..extensions import db
 @flask_login.login_required
 def get_all_uploads():
     me = flask_login.current_user
+
+    # TODO: possible optimization: reduce subqueries by appling filter list
+    # filters = []
+    # filters.append(User.id == me.id)
+    # result = Upload.query.filter(and_(*filters))
+
     # Get my uploads
     uploads = Upload.query.filter_by(user_id=me.id)
 
@@ -33,12 +39,13 @@ def get_all_uploads():
             return failure_response(
                 "Cannot share an upload with yourself.", 403
             )
-        uploads = filter(lambda u: sw_user.can_view_upload(u), uploads)
+        uploads = uploads.filter(Upload.viewable_to(sw_user))
 
     return success_response(
         {
             "uploads": [
-                up.serialize(me) for up in uploads if me.can_view_upload(up)
+                up.serialize(me)
+                for up in uploads.filter(Upload.viewable_to(me))
             ]
         }
     )

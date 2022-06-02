@@ -268,7 +268,6 @@ def get_all_uploads(
         params["shared-with"] = shared_with
     res = client.get(_add_params(f"{HOST}/users/me/uploads", params))
     assert res.status_code == 200, log_response(res)
-    print(res.data)
     return [parse_upload_json(u) for u in json.loads(res.data)["uploads"]]
 
 
