@@ -38,7 +38,7 @@ def test_upload():
 if __name__ == "__main__":
     token = input("Enter Google Token: ")
     with Session() as s:
-        routes.login(s, token)
+        routes.login_w_google(s, token)
         routes.create_upload(
             s,
             "./samplevids/fullcourtstock.mp4",

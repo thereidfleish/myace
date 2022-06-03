@@ -9,10 +9,10 @@ info:
 servers:
   - url: 'https://api.myace.ai'
 paths:
-  /login/:
+  /register/:
     post:
-      summary: Login
-      description: This route establishes a session and returns a user. If the user does not exist, the user is created.
+      summary: Register with email
+      description: This route creates a new user via email and password and establishes a session.
       tags:
         - User
       requestBody:
@@ -22,12 +22,77 @@ paths:
               schema:
                 type: object
                 required:
-                  - token
+                  - username
+                  - display_name
+                  - email
+                  - password
                 properties:
-                  token:
-                    type: string
-                    description: A valid Google OAuth token.
-                    example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
+                  username:
+                    $ref: "#/components/schemas/UserUsername"
+                  display_name:
+                    $ref: "#/components/schemas/UserDisplayName"
+                  biography:
+                    $ref: "#/components/schemas/UserBio"
+                  email:
+                    $ref: "#/components/schemas/UserEmail"
+                  password:
+                    $ref: "#/components/schemas/UserPassword"
+      security: [] # no authentication
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login/:
+    post:
+      summary: Login
+      description: This route establishes a session and returns a user.
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          'application/json':
+              schema:
+                oneOf:
+                  - type: object
+                    description: Login with email and password
+                    required:
+                      - method
+                      - email
+                      - password
+                    properties:
+                      method:
+                        type: string
+                        description: Login with email and password.
+                        enum: [password]
+                      email:
+                        $ref: "#/components/schemas/UserEmail"
+                      password:
+                        $ref: "#/components/schemas/UserPassword"
+                  - type: object
+                    description: Register/Login with Google. If the user does not exist, the user is created.
+                    required:
+                      - method
+                      - token
+                    properties:
+                      method:
+                        type: string
+                        description: Login with Google OAuth.
+                        enum: [google]
+                      token:
+                        type: string
+                        description: A valid Google OAuth token.
+                        example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
       security: [] # no authentication
       responses:
         '200':
@@ -56,7 +121,7 @@ paths:
       tags:
         - User
       responses:
-        '200':
+        '204':
           description: Logout successful
         default:
           description: Unexpected error
@@ -64,6 +129,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  # TODO: implement
+  # /usernames/{username}/check/:
+  #   get:
+  #     summary: Check for valid username
+  #     description: This route checks the validity and availability of a given username.
+  #     tags:
+  #       - User
+  #     parameters:
+  #       - name: username
+  #         in: path
+  #         description: The username to check
+  #         required: true
+  #         schema:
+  #           $ref: '#/components/schemas/UserUsername'
+  #     security: [] # no authentication
+  #     responses:
+  #       '200':
+  #         description: Checked username
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               required:
+  #                 - valid
+  #                 - invalid_msg
+  #                 - available
+  #               properties:
+  #                 valid:
+  #                   type: boolean
+  #                   description: Whether or not the username is valid.
+  #                   example: true
+  #                 invalid_msg:
+  #                   type: string
+  #                   nullable: true
+  #                   description: Will be `null` if `valid` is `true`. A user-friendly error message explaining why the username is invalid.
+  #                   example: null
+  #                 available:
+  #                   type: boolean
+  #                   description: Whether or not another user has reserved this username.
+  #       default:
+  #         description: Unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
 
   /users/{user_id}/:
     get:
@@ -998,10 +1109,21 @@ components:
             - email
           properties:
             email:
-              description: "The user's email address."
-              type: string
-              format: email
-              example: johnsmith@gmail.com
+              $ref: "#/components/schemas/UserEmail"
+
+    UserEmail:
+      type: string
+      description: "The user's email address."
+      format: email
+      pattern: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
+      example: johnsmith@gmail.com
+
+    UserPassword:
+      type: string
+      description: "The user's password."
+      format: password
+      pattern: ^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~])[A-Za-z0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~]{6,}$
+      example: Tnns31!
 
     UserID:
       type: integer
@@ -1020,6 +1142,7 @@ components:
     UserUsername:
       type: string
       description: "A unique, user-friendly profile identifier."
+      pattern: ^(?=.*?[a-z])[a-z0-9_.]{4,16}$
       example: tennislover9
 
     UserDisplayName:
