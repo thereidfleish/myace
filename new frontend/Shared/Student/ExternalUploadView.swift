@@ -183,7 +183,6 @@ struct ExternalUploadView: View {
                                         .scaledToFill()
                                         .frame(width: 25, height: 25)
                                 }
-                                .padding(.leading)
                             }
                         }
                         

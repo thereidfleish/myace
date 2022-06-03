@@ -149,16 +149,8 @@ struct StrokesView: View {
                     }
                     .background(Color.white)
                     , content: {
-                        if (!collapsed) {
                             ExternalUploadView(bucket: bucket, otherUser: otherUser, currentUserAs: currentUserAs)
-                        }
                     })
-                    
-                    
-                    
-                    
-                    
-                    
                 }
                 //                .overlay(
                 //                    RoundedRectangle(cornerRadius: 10)
