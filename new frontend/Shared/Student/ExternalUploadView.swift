@@ -13,6 +13,7 @@ struct ExternalUploadView: View {
     var bucket: Bucket
     //var coach: Bool
     var otherUser: SharedData
+    var currentUserAs: CurrentUserAs
     @State private var showingEditingName = false
     @State private var showingEditingNameUploadID: String = ""
     @State private var uploadName = ""
@@ -23,18 +24,24 @@ struct ExternalUploadView: View {
     @State private var awaiting = true
     @State private var showingError = false
     
-    func initialize() async {
-        do {
-            awaiting = true
-//            print("getting uploads")
-//            try await nc.getUploads(shared_with_ID: coach ? otherUser.id : nil, bucketID: nil)
-            awaiting = false
-            print("Finished init")
-            
-            
-        } catch {
-            showingError = true
-            print(error)
+    func initialize() {
+        Task {
+            do {
+                awaiting = true
+                print("getting uploads")
+                if(currentUserAs == .coach || currentUserAs == .observer) {
+                    try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
+                }
+                else if(currentUserAs == .student) {
+                    try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
+                }
+                awaiting = false
+                
+            } catch {
+                showingError = true
+                awaiting = false
+                print(error)
+            }
         }
     }
     
@@ -133,23 +140,23 @@ struct ExternalUploadView: View {
                             })
                             
                             Menu {
-                                Button {
-                                    withAnimation {
-                                        if (showingDelete) {
-                                            showingDelete = false
-                                        }
-                                        if (showingEditingNameUploadID == String(upload.id)) {
-                                            showingEditingName.toggle()
-                                        } else {
-                                            showingEditingName = true
-                                        }
-                                        showingEditingNameUploadID = String(upload.id)
-                                    }
-                                    
-                                    
-                                } label: {
-                                    Label("Rename", systemImage: "pencil")
-                                }
+//                                Button {
+//                                    withAnimation {
+//                                        if (showingDelete) {
+//                                            showingDelete = false
+//                                        }
+//                                        if (showingEditingNameUploadID == String(upload.id)) {
+//                                            showingEditingName.toggle()
+//                                        } else {
+//                                            showingEditingName = true
+//                                        }
+//                                        showingEditingNameUploadID = String(upload.id)
+//                                    }
+//                                    
+//                                    
+//                                } label: {
+//                                    Label("Rename", systemImage: "pencil")
+//                                }
                                 
                                 Button {
                                     nc.editUploadID = String(upload.id)
@@ -189,7 +196,7 @@ struct ExternalUploadView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingEditingUpload) {
+            .sheet(isPresented: $showingEditingUpload, onDismiss: {initialize()}) {
                 UploadView(url: [], bucketID: "", otherUser: otherUser, editMode: true)
             }
             

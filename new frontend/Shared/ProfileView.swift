@@ -61,7 +61,7 @@ struct ProfileView: View {
                     
                     HStack {
                         VStack {
-                            Text(String(user.n_uploads))
+                            Text(yourself ? String(nc.userData.uploads.count) : String(user.n_uploads))
                                 .videoInfoStyle()
                                 .foregroundColor(Color.green)
                             Text("Videos")
