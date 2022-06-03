@@ -303,6 +303,7 @@ struct DeleteUploadRes: Codable {
 }
 
 struct SearchRes: Codable {
+    var has_next: Bool
     var users: [SharedData]
 }
 
