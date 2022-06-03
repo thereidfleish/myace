@@ -15,6 +15,8 @@ struct UserCardView: View {
     @State var user: SharedData
     @State private var showRemoveFriendAlert = false
     
+    let reqOptions: [CourtshipType: String] = [.coach_req: "Coach", .student_req: "Student", .friend_req: "Friend"]
+    
     func updateData() async {
         do {
             awaiting = true
@@ -35,7 +37,7 @@ struct UserCardView: View {
             try await nc.createCourtshipRequest(userID: userID, type: type)
             await updateData()
             withAnimation {
-                statusMessage = userID == String(nc.userData.shared.id) ? "We're sorry that you don't have any friends, but you still can't send a courtship request to yourself :(" : "Sent \(type) request."
+                statusMessage = userID == String(nc.userData.shared.id) ? "We're sorry that you don't have any friends, but you still can't send a courtship request to yourself :(" : "Sent \(reqOptions[type] ?? "") request."
                 showingStatus = true
             }
             awaiting = false
