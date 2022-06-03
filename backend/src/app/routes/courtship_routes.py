@@ -22,6 +22,8 @@ def search_users():
     query = request.args.get("q")
     if query is None:
         return failure_response("Missing query URL parameter.", 400)
+    if request.args.get("page") is None:
+        return failure_response("Missing page URL parameter.", 400)
     # empty query returns no users
     has_next = False
     found = []
@@ -37,7 +39,7 @@ def search_users():
             )
         ).paginate(
             error_out=True
-        )  # automatically checks query for params
+        )  # Pagination class automatically checks query for params
         has_next = pagination.has_next
         items = pagination.items
         found = items if items is not None else []

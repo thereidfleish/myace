@@ -301,11 +301,22 @@ def test_update_current(test_client: FlaskClient):
 
 def test_username_taken(test_client: FlaskClient):
     """Test that two users cannot have the same username."""
-    # A cannot change username to B's username
+    # setup users
     user_b, created_b = routes.login_w_google(test_client, USER_B_TOKEN)
     user_a, created_a = routes.login_w_google(test_client, USER_A_TOKEN)
     assert created_a and created_b
     assert user_a != user_b
+    # Use the "check username" route
+    valid, available = routes.check_username(test_client, user_a.username)
+    assert valid
+    assert not available
+    valid, available = routes.check_username(test_client, user_b.username)
+    assert valid
+    assert not available
+    valid, available = routes.check_username(test_client, "asdkfjasldfs")
+    assert valid
+    assert available
+    # A cannot change username to B's username
     with pytest.raises(AssertionError) as e_info:
         routes.update_user(test_client, username=user_b.username)
     # ensure update did not persist

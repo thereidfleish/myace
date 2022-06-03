@@ -257,6 +257,14 @@ def logout(client: FlaskClient) -> None:
     assert not is_logged_in(client)
 
 
+def check_username(client: FlaskClient, username: str) -> tuple[bool, bool]:
+    """:return: (is_valid, is_available)"""
+    res = client.get(f"{HOST}/usernames/{username}/check/")
+    assert res.status_code == 200
+    j = json.loads(res.data)
+    return j["valid"], j["available"]
+
+
 def update_user(
     client: FlaskClient, username=None, display_name=None, biography=None
 ) -> None:
