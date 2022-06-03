@@ -1,16 +1,14 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "SwiftUI-MediaPicker",
-        "repositoryURL": "https://github.com/UWAppDev/SwiftUI-MediaPicker",
-        "state": {
-          "branch": null,
-          "revision": "43cf23f8eb4930aa27a7cec12bfadb6f49d33a39",
-          "version": "0.0.1"
-        }
+  "pins" : [
+    {
+      "identity" : "swiftui-mediapicker",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/UWAppDev/SwiftUI-MediaPicker",
+      "state" : {
+        "revision" : "43cf23f8eb4930aa27a7cec12bfadb6f49d33a39",
+        "version" : "0.0.1"
       }
-    ]
-  },
-  "version": 1
+    }
+  ],
+  "version" : 2
 }

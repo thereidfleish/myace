@@ -136,57 +136,51 @@ struct StudentFeedbackView: View {
                                 
                                 
                                 ForEach(nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})) { comment in
-                                    if(nc.userData.shared.username == comment.author.username) {
-                                        HStack {
-                                            
-                                            VStack(alignment: .trailing) {
-                                                Text("\(comment.author.display_name) (\(comment.author.username), you)")
-                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
-                                                Text((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0)))
-                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
-                                                
-                                                Button(action: {
-                                                    currentSeconds = returnTimestampAndText(text: comment.text).0
-                                                    player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                    
+                                    let isYou: Bool = nc.userData.shared.username == comment.author.username
+                                    
+                                    VStack(alignment: isYou ? .trailing : .leading) {
+                                        Text("\(comment.author.display_name) (\((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))))")
+                                            .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                        
+                                        Button(action: {
+                                            currentSeconds = returnTimestampAndText(text: comment.text).0
+                                            player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                        }, label: {
+                                            Text(returnTimestampAndText(text: comment.text).1)
+                                                .foregroundColor(/*returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary*/.white)
+                                                .multilineTextAlignment(.leading)
+                                        })
+                                        .padding(7)
+                                        .background(isYou ? Color.green : Color.gray)
+                                        .cornerRadius(7)
+                                        .foregroundColor(.white)
+                                        .contextMenu {
+                                            Group {
+                                                Button(role: .destructive, action: {
+                                                    Task {
+                                                        try await nc.deleteComment(commentID: String(comment.id))
+                                                        await initialize()
+                                                    }
                                                 }, label: {
-                                                    Text(returnTimestampAndText(text: comment.text).1)
-                                                        .foregroundColor(/*returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary*/.white)
+                                                    Label("Delete", systemImage: "trash")
                                                 })
-                                                //.frame(maxWidth: .infinity)
-                                                .background(Color.green)
-                                                .cornerRadius(10)
-                                                .foregroundColor(.white)
-                                                
-                                                
                                             }
                                         }
-                                    } else {
-                                        HStack {
-                                            VStack {
-                                                Text("\(comment.author.display_name) (\(comment.author.username))")
-                                                    .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0)).padding([.bottom, .top], 10)
-                                                
-                                                Button(action: {
-                                                    currentSeconds = returnTimestampAndText(text: comment.text).0
-                                                    player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
-                                                }, label: {
-                                                    Text(returnTimestampAndText(text: comment.text).1)
-                                                        .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary)
-                                                })
-                                                .padding(.vertical, 15)
-                                                .frame(maxWidth: .infinity)
-                                                .cornerRadius(10)
-                                                .foregroundColor(.white)
-                                                
-                                                
-                                            }
-                                            Text((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0)))
-                                                .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0)).padding([.leading,.trailing, .bottom, .top], 20)
-                                        }
+                                        
+                                        
                                     }
+                                    .id(returnTimestampAndText(text: comment.text).0)
+                                    .padding(.bottom)
+                                    //.padding(isYou ? .leading : .trailing, 10)
+                                    .frame(maxWidth: .greatestFiniteMagnitude, alignment: isYou ? .trailing : .leading)
+                                    
+                                    
+                                    
                                 }
                                 
                                 .onChange(of: currentSeconds) { value in
+                                    print(value)
                                     withAnimation {
                                         proxy.scrollTo(value, anchor: .top)
                                     }
@@ -194,21 +188,26 @@ struct StudentFeedbackView: View {
                             }
                         }
                     }
-//                    .onAppear(perform: {
-//                        DispatchQueue.main.async {
-//                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
-//                                // Hack to fix concurrency issue at the beginning
-//                                if (!player.currentItem!.duration.seconds.isNaN) {
-//                                    withAnimation {
-//                                        playerDuration = Int(player.currentItem!.duration.seconds)
-//                                    }
-//                                    
-//                                }
-//                                
-//                                currentSeconds = Int(player.currentTime().seconds)
-//                            })
-//                        }
-//                    })
+                    .onAppear(perform: {
+                        DispatchQueue.main.async {
+                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                // Hack to fix concurrency issue at the beginning
+                                let currentItem = player.currentItem
+                                if (currentItem != nil) {
+                                    //                                    if (!currentItem!.duration.seconds.isNaN) {
+                                    //                                        withAnimation {
+                                    //                                            playerDuration = Int(player.currentItem!.duration.seconds)
+                                    //                                        }
+                                    //
+                                    //                                    }
+                                    currentSeconds = Int(player.currentTime().seconds)
+                                }
+                                
+                                
+                                
+                            })
+                        }
+                    })
                 }
                 
                 
@@ -251,22 +250,6 @@ struct StudentFeedbackView: View {
                     
                 }
                 .padding(.bottom)
-                
-                
-//                Text(text)
-//                    .multilineTextAlignment(.leading)
-//
-//                Text("Unsaved changes")
-//                    .font(.footnote)
-//                    .foregroundColor(Color.red)
-//
-//                TextEditor(text: $text)
-//                    .padding(1)
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 5)
-//                            .stroke(Color.gray, lineWidth: 1)
-//                    )
-//                    .frame(minHeight: UIScreen.screenHeight - 200)
                 
                 
                 
