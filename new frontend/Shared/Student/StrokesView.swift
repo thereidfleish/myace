@@ -36,30 +36,32 @@ struct StrokesView: View {
     @State private var showingError = false
     @State private var awaiting = true
     
-    func initialize() async {
-        do {
-            awaiting = true
-            print("getting buckets")
-            try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .observer ? String(otherUser.id) : "me")
-            print("getting uploads")
-            if(currentUserAs == .coach || currentUserAs == .observer) {
-                try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
+    func initialize() {
+        Task {
+            do {
+                awaiting = true
+                print("getting buckets")
+                try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .observer ? String(otherUser.id) : "me")
+                print("getting uploads")
+                if(currentUserAs == .coach || currentUserAs == .observer) {
+                    try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
+                }
+                else if(currentUserAs == .student) {
+                    try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
+                }
+    //            else if (currentUserAs == .neitherStudentNorCoach) {
+    //                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
+    //            }
+                awaiting = false
+    //            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+                print("Finsihed init")
+                
+                
+            } catch {
+                showingError = true
+                awaiting = false
+                print(error)
             }
-            else if(currentUserAs == .student) {
-                try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
-            }
-//            else if (currentUserAs == .neitherStudentNorCoach) {
-//                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
-//            }
-            awaiting = false
-//            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
-            print("Finsihed init")
-            
-            
-        } catch {
-            showingError = true
-            awaiting = false
-            print(error)
         }
     }
     
@@ -170,7 +172,7 @@ struct StrokesView: View {
             }
         }.sheet(isPresented: $showsUploadAlert, onDismiss: {
             Task {
-                await initialize()
+                initialize()
             }
             
         }) {
@@ -181,13 +183,13 @@ struct StrokesView: View {
 //        }
         .sheet(isPresented: $isShowingNewStrokeView, onDismiss: {
             Task {
-                await initialize()
+                initialize()
             }
         }) {
             NewBucketView()
         }
         .task {
-            await initialize()
+            initialize()
         }
     }
 }
