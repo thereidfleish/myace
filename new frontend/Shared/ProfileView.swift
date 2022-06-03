@@ -27,10 +27,11 @@ struct ProfileView: View {
 //            try await nc.getCourtships(user_id: "me", type: nil)
 //
 //            if(!yourself) {
-//                try await nc.getBuckets(userID: String(user?.id ?? -1))
-//                try await nc.getOtherUserUploads(userID: user?.id ?? -1, bucketID: nil)
+//                try await nc.getBuckets(userID: String(user.id))
+//                try await nc.getOtherUserUploads(userID: user.id, bucketID: nil)
 //
-//            } else {
+//            }
+//            else {
 //                try await nc.getBuckets(userID: String(nc.userData.shared.id))
 //                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
 //            }

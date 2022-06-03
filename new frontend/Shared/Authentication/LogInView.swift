@@ -156,7 +156,7 @@ struct LogInView: View {
     }
     
     func tokenSignIn(idToken: String) {
-        let json: [String: Any] = ["token": idToken]
+        let json: [String: Any] = ["token": idToken, "method": "google"]
         print(idToken)
         
         //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {

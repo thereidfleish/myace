@@ -245,6 +245,7 @@ struct UploadsRes: Codable {
 // Helpers
 struct AuthReq: Codable {
     var token: String
+    var method: String
 }
 
 struct UpdateUserReq: Codable {
