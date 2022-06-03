@@ -74,7 +74,7 @@ struct ProfileView: View {
                         NavigationLink(destination: FriendsView().navigationTitle("Courtships").navigationBarTitleDisplayMode(.inline)) {
                             
                             VStack {
-                                Text(yourself ? String(nc.userData.courtships.count) : String((user.n_courtships.coaches) + (user.n_courtships.students) + (user.n_courtships.friends)))
+                                Text(String((user.n_courtships.coaches) + (user.n_courtships.students) + (user.n_courtships.friends)))
                                     .profileInfoStyle()
                                 Text("Courtships")
                                     .profileTextStyle()
