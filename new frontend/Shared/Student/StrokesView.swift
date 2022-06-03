@@ -156,7 +156,7 @@ struct StrokesView: View {
                     
                     
                     //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
-                    ExternalUploadView(bucket: bucket, otherUser: otherUser)
+                    ExternalUploadView(bucket: bucket, otherUser: otherUser, currentUserAs: currentUserAs)
                 }
             }
             
