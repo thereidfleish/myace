@@ -313,7 +313,7 @@ struct FriendReq: Codable {
 struct EditUploadReq: Codable {
     var display_title: String? = nil
     var bucket_id: Int? = nil
-    var visibility: Visibility? = nil
+    var visibility: NewVisibility? = nil
 }
 
 struct CheckUsername: Codable {

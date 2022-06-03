@@ -112,7 +112,7 @@ class NetworkController: ObservableObject {
     
     // PUT
     func editUpload(uploadID: String, displayTitle: String?, bucketID: Int?, visibility: Visibility?) async throws {
-        let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility)
+        let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility != nil ? NewVisibility(default: visibility!.default, also_shared_with: visibility!.also_shared_with.map({$0.id})) : nil)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkError.failedEncode
