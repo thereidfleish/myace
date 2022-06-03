@@ -37,18 +37,10 @@ class InvalidStr(Exception):
         super().__init__(message)
 
 
-class UnavailableUsername(Exception):
-    """Username is reserved by another user."""
-
-    def __init__(self) -> None:
-        super().__init__()
-
-
-def test_valid_unique_username(username: str) -> None:
-    """Test if a username is valid and unique.
+def test_valid_username(username: str) -> None:
+    """Test if a username is valid only. Does not check uniqueness.
 
     :raise InvalidStr: if invalid, containing a user-friendly error
-    :raise UnavailableUsername: if taken
     """
     # Check for None
     if username is None:
@@ -59,6 +51,14 @@ def test_valid_unique_username(username: str) -> None:
     # Check username regex
     if not re.fullmatch(User.USERNAME_PATTERN, username):
         raise InvalidStr("Invalid username.")
+
+
+def test_valid_unique_username(username: str) -> None:
+    """Test if a username is valid and unique.
+
+    :raise InvalidStr: if invalid, containing a user-friendly error
+    :raise UnavailableUsername: if taken
+    """
     # Check if username exists
     if not User.is_username_unique(username):
         raise UnavailableUsername
@@ -130,13 +130,13 @@ def test_valid_bio(bio: str) -> None:
 def register():
     body = json.loads(request.data)
 
-    # Check for valid username
+    # Check for valid, unique username
     username = body.get("username")
     try:
-        test_valid_unique_username(username)
+        test_valid_username(username)
     except InvalidStr as e:
         return failure_response(e.message, 400)
-    except UnavailableUsername:
+    if not User.is_username_unique(username):
         return failure_response("Username unavailable", 409)
 
     # Check for valid display name
@@ -379,6 +379,17 @@ def logout():
     return success_response(code=204)
 
 
+@routes.route("/usernames/<username>/check/")
+def check_username(username):
+    try:
+        test_valid_username(username)
+        valid = True
+    except InvalidStr:
+        valid = False
+    available = User.is_username_unique(username)
+    return success_response({"valid": valid, "available": available})
+
+
 @routes.route("/users/<user_id>/")
 @flask_login.login_required
 def get_user(user_id):
@@ -400,11 +411,11 @@ def edit_me():
     new_username = body.get("username")
     if new_username is not None and me.username != new_username:
         try:
-            test_valid_unique_username(new_username)
+            test_valid_username(new_username)
         except InvalidStr as e:
             return failure_response(e.message, 400)
-        except UnavailableUsername:
-            return failure_response("Username unavailable.", 409)
+        if not User.is_username_unique(new_username):
+            return failure_response("Username unavailable", 409)
         me.username = new_username
 
     # Update display name if it changed

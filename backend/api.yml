@@ -130,51 +130,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  # TODO: implement
-  # /usernames/{username}/check/:
-  #   get:
-  #     summary: Check for valid username
-  #     description: This route checks the validity and availability of a given username.
-  #     tags:
-  #       - User
-  #     parameters:
-  #       - name: username
-  #         in: path
-  #         description: The username to check
-  #         required: true
-  #         schema:
-  #           $ref: '#/components/schemas/UserUsername'
-  #     security: [] # no authentication
-  #     responses:
-  #       '200':
-  #         description: Checked username
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               required:
-  #                 - valid
-  #                 - invalid_msg
-  #                 - available
-  #               properties:
-  #                 valid:
-  #                   type: boolean
-  #                   description: Whether or not the username is valid.
-  #                   example: true
-  #                 invalid_msg:
-  #                   type: string
-  #                   nullable: true
-  #                   description: Will be `null` if `valid` is `true`. A user-friendly error message explaining why the username is invalid.
-  #                   example: null
-  #                 available:
-  #                   type: boolean
-  #                   description: Whether or not another user has reserved this username.
-  #       default:
-  #         description: Unexpected error
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/Error'
+  /usernames/{username}/check/:
+    get:
+      summary: Check username
+      description: This route checks the validity and availability of a given username.
+      tags:
+        - User
+      parameters:
+        - name: username
+          in: path
+          description: The username to check.
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserUsername'
+      security: [] # no authentication
+      responses:
+        '200':
+          description: Checked username
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - valid
+                  - available
+                properties:
+                  valid:
+                    type: boolean
+                    description: Whether or not the username is valid.
+                    example: true
+                  available:
+                    type: boolean
+                    description: Whether or not another user has reserved this username.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /users/{user_id}/:
     get:
@@ -1032,7 +1025,7 @@ components:
     Page:
       name: page
       in: query
-      description: The response page number. Defaults to 1 if omitted. Will error `404` if no items are found and `page` is not equal to 1.
+      description: The response page number. Will error `404` if `page` is not equal to 1 and no items are found.
       required: true
       schema:
         type: integer
