@@ -791,21 +791,25 @@ paths:
           schema:
             type: string
             example: tennislover9
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
       responses:
         '200':
           description: 'Retrieved search results.'
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - users
-                properties:
-                  users:
-                    type: array
-                    items:
-                        type: object
-                        $ref: "#/components/schemas/OtherUser"
+                allOf:
+                  - $ref: "#/components/schemas/Pageable"
+                  - type: object
+                    required:
+                      - users
+                    properties:
+                      users:
+                        type: array
+                        items:
+                            type: object
+                            $ref: "#/components/schemas/OtherUser"
         default:
           description: Unexpected error
           content:
@@ -1012,7 +1016,42 @@ paths:
 
 
 components:
+  parameters:
+
+    PerPage:
+      name: per_page
+      in: query
+      description: The number of entries per page to return. Defaults to 20 if omitted.
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+        example: 20
+
+    Page:
+      name: page
+      in: query
+      description: The response page number. Defaults to 1 if omitted. Will error `404` if no items are found and `page` is not equal to 1.
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+        example: 1
+
+
   schemas:
+
+    Pageable:
+      type: object
+      required:
+          - has_next
+      properties:
+          has_next:
+            type: boolean
+            description: Whether more entries exist on the next page. Will be `true` if the final entry is exactly the `per_page`th element on a page, **even though there are no more entries on the next page.** In other words, `has_next` is only `false` when the number of returned entries is less than `per_page`.
+
 
     UploadID:
       type: integer
