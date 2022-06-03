@@ -35,8 +35,31 @@ class NetworkController: ObservableObject {
         userData = UserData()
     }
     
+    // GET
+    func checkUsername(userName: String) async throws -> (Bool, Bool) {
+        let url = URL(string: "\(host)/usernames/\(userName)/check/")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+            let decodedResponse = try decoder.decode(CheckUsername.self, from: data)
+            print(data.prettyPrintedJSONString)
+            print(response)
+            return (decodedResponse.valid, decodedResponse.available)
+        } catch {
+            print("checkUsername failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            errorMessage = decodedResponse.error
+            throw NetworkError.failedDecode
+        }
+    }
+    
+    
     // PUT
-    func updateCurrentUser(username: String, displayName: String, biography: String) async throws {
+    func updateCurrentUser(username: String?, displayName: String?, biography: String?) async throws {
         let req: UpdateUserReq = UpdateUserReq(username: username, display_name: displayName, biography: biography)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
@@ -89,7 +112,7 @@ class NetworkController: ObservableObject {
     
     // PUT
     func editUpload(uploadID: String, displayTitle: String?, bucketID: Int?, visibility: Visibility?) async throws {
-        let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility)
+        let req: EditUploadReq = EditUploadReq(display_title: displayTitle, bucket_id: bucketID, visibility: visibility != nil ? NewVisibility(default: visibility!.default, also_shared_with: visibility!.also_shared_with.map({$0.id})) : nil)
         
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkError.failedEncode
