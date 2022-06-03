@@ -25,10 +25,10 @@ struct ExternalUploadView: View {
     @State private var showingError = false
     
     let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
-                                                                  .coaches_only: "Coaches Only",
-                                                                  .friends_only: "Friends Only",
-                                                                  .friends_and_coaches: "Friends and Coaches Only",
-                                                                  .`public`: "Public"]
+                                                   .coaches_only: "Coaches Only",
+                                                   .friends_only: "Friends Only",
+                                                   .friends_and_coaches: "Friends and Coaches Only",
+                                                   .`public`: "Public"]
     
     func initialize() {
         Task {
@@ -133,7 +133,7 @@ struct ExternalUploadView: View {
                             .foregroundColor(Color.green)
                         
                         
-//                        Text("\(upload.id)")
+                        //                        Text("\(upload.id)")
                         
                         HStack {
                             Button(action: {
@@ -146,61 +146,45 @@ struct ExternalUploadView: View {
                                         .foregroundColor(Color.green)
                                 }
                                 
-                              
+                                
                                 
                             })
                             
-                            Menu {
-//                                Button {
-//                                    withAnimation {
-//                                        if (showingDelete) {
-//                                            showingDelete = false
-//                                        }
-//                                        if (showingEditingNameUploadID == String(upload.id)) {
-//                                            showingEditingName.toggle()
-//                                        } else {
-//                                            showingEditingName = true
-//                                        }
-//                                        showingEditingNameUploadID = String(upload.id)
-//                                    }
-//                                    
-//                                    
-//                                } label: {
-//                                    Label("Rename", systemImage: "pencil")
-//                                }
+                            if (currentUserAs == .student) {
                                 
-                                Button {
-                                    nc.editUploadID = String(upload.id)
-                                    showingEditingUpload = true
-                                } label: {
-                                    Label("Edit Upload", systemImage: "pencil")
-                                }
-                                
-                                Button(role: .destructive) {
-                                    withAnimation {
-                                        if (showingEditingName) {
-                                            showingEditingName = false
+                                Menu {
+                                    Button {
+                                        nc.editUploadID = String(upload.id)
+                                        showingEditingUpload = true
+                                    } label: {
+                                        Label("Edit Upload", systemImage: "pencil")
+                                    }
+                                    
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            if (showingEditingName) {
+                                                showingEditingName = false
+                                            }
+                                            if (showingDeleteUploadID == String(upload.id)) {
+                                                showingDelete.toggle()
+                                            } else {
+                                                showingDelete = true
+                                            }
+                                            showingDeleteUploadID = String(upload.id)
                                         }
-                                        if (showingDeleteUploadID == String(upload.id)) {
-                                            showingDelete.toggle()
-                                        } else {
-                                            showingDelete = true
-                                        }
-                                        showingDeleteUploadID = String(upload.id)
+                                        
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
                                     }
                                     
                                 } label: {
-                                    Label("Delete", systemImage: "trash")
+                                    Image(systemName: "ellipsis.circle.fill")
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 25, height: 25)
                                 }
-                                
-                            } label: {
-                                Image(systemName: "ellipsis.circle.fill")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 25, height: 25)
+                                .padding(.leading)
                             }
-                            .padding(.leading)
-                            
                         }
                         
                         Spacer()

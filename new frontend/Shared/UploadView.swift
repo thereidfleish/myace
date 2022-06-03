@@ -100,7 +100,7 @@ struct UploadView: View {
                         Text("Set Video Title")
                             .bucketTextInternalStyle()
                             .onAppear {
-                                if otherUser != nil  && otherUser?.id != nc.userData.shared.id {
+                                if otherUser != nil  && otherUser?.id != nc.userData.shared.id && !editMode {
                                     visibility.also_shared_with.append(otherUser!)
                                 }
                             }
