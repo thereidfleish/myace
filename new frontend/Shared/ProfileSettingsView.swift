@@ -103,8 +103,10 @@ struct ProfileSettingsView: View {
                 Button(action: {
                     Task {
                         await updateUser()
-                        withAnimation {
-                            savedChanges = true;
+                        if(!isNewUser) {
+                            withAnimation {
+                                savedChanges = true;
+                            }
                         }
                     }
                     
