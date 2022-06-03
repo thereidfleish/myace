@@ -180,7 +180,7 @@ def delete_me():
     aws.delete_uploads([u.id for u in me.uploads])
     # Delete user.
     # It is the DB's responsibility to ensure deletion of rows containing
-    # foreign keys.
+    # foreign keys. Cascades at the DB-level are signficantly faster than ORM.
     db.session.delete(me)
     db.session.commit()
     return success_response(code=204)

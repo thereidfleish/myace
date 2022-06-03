@@ -93,8 +93,6 @@ def delete_comment(comment_id):
         return failure_response("User forbidden to modify comment.", 403)
 
     # Delete
-    # Note that deleting like this respects the cascades defined at the ORM level
-    # Comment.query.filter_by(...).delete() does not respect cascades!
     db.session.delete(comment)
     db.session.commit()
 

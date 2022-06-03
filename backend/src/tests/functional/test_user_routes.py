@@ -2,7 +2,7 @@
 import pytest
 from flask.testing import FlaskClient
 
-from . import routes, HOST, USER_A_TOKEN, USER_B_TOKEN
+from . import routes, HOST, USER_A_TOKEN, USER_B_TOKEN, USER_C_TOKEN
 from .routes import User, Courtship
 
 

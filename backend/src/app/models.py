@@ -33,9 +33,15 @@ class User(db.Model):
     display_name = db.Column(db.String, nullable=False)
     biography = db.Column(db.String, nullable=False, default="")
     email = db.Column(db.String, nullable=False, unique=True)
-    uploads = db.relationship("Upload", back_populates="user")
-    comments = db.relationship("Comment", back_populates="author")
-    buckets = db.relationship("Bucket", back_populates="user")
+    uploads = db.relationship(
+        "Upload", back_populates="user", passive_deletes=True
+    )
+    comments = db.relationship(
+        "Comment", back_populates="author", passive_deletes=True
+    )
+    buckets = db.relationship(
+        "Bucket", back_populates="user", passive_deletes=True
+    )
 
     def __init__(self, google_id, display_name, email):
         self.google_id = google_id
@@ -277,8 +283,12 @@ class UserRelationship(db.Model):
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
     # However, a duplicate relationship can still be exist if the user IDs are reversed.
     # It is an invariant that this must never happen.
-    user_a_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
-    user_b_id = db.Column(db.ForeignKey("user.id"), primary_key=True)
+    user_a_id = db.Column(
+        db.ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_b_id = db.Column(
+        db.ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
+    )
     # Stores enum variable names as strings in DB. For now I think this is OK
     # bc it provides readability while only slightly compromising disk space.
     type = db.Column(db.Enum(RelationshipType), nullable=False)
@@ -399,8 +409,16 @@ def visib_of_str(s: Optional[str]) -> Optional[VisibilityDefault]:
 also_shared_with = db.Table(
     "upload_shared_with",
     # Composite primary key ensures no identical, duplicate rows (as opposed to a surrogate key)
-    db.Column("upload_id", db.ForeignKey("upload.id"), primary_key=True),
-    db.Column("user_id", db.ForeignKey("user.id"), primary_key=True),
+    db.Column(
+        "upload_id",
+        db.ForeignKey("upload.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    db.Column(
+        "user_id",
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
 )
 
 
@@ -411,24 +429,35 @@ class Upload(db.Model):
     created = db.Column(
         db.DateTime, nullable=False, default=datetime.datetime.utcnow
     )
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     user = db.relationship("User", back_populates="uploads")
     filename = db.Column(db.String, nullable=False)
     display_title = db.Column(db.String, nullable=False)
     visibility = db.Column(db.Enum(VisibilityDefault), nullable=False)
     also_shared_with = db.relationship(
-        "User", secondary=also_shared_with, lazy="dynamic"
+        "User",
+        secondary=also_shared_with,
+        passive_deletes=True,
+        lazy="dynamic",
     )
     # Mediaconvert
     mediaconvert_job_id = db.Column(db.String, nullable=True)
     stream_ready = db.Column(db.Boolean, nullable=False, default=False)
     # Bucket (each upload has to be created in a bucket)
     bucket_id = db.Column(
-        db.Integer, db.ForeignKey("bucket.id"), nullable=False
+        db.Integer,
+        db.ForeignKey("bucket.id", ondelete="CASCADE"),
+        nullable=False,
     )
     bucket = db.relationship("Bucket", back_populates="uploads")
     # Comments
-    comments = db.relationship("Comment", back_populates="upload")
+    comments = db.relationship(
+        "Comment", back_populates="upload", passive_deletes=True
+    )
 
     def serialize(self, client: User):
         """:return: a serialized Upload from the perspective of the client"""
@@ -512,10 +541,16 @@ class Upload(db.Model):
 class Comment(db.Model):
     __tablename__ = "comment"
     id = db.Column(db.Integer, primary_key=True)
-    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    author_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     author = db.relationship("User", back_populates="comments")
     upload_id = db.Column(
-        db.Integer, db.ForeignKey("upload.id"), nullable=False
+        db.Integer,
+        db.ForeignKey("upload.id", ondelete="CASCADE"),
+        nullable=False,
     )
     upload = db.relationship("Upload", back_populates="comments")
     created = db.Column(
@@ -538,12 +573,18 @@ class Bucket(db.Model):
     __tablename__ = "bucket"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     user = db.relationship("User", back_populates="buckets")
     created = db.Column(
         db.DateTime, nullable=False, default=datetime.datetime.utcnow
     )
-    uploads = db.relationship("Upload", back_populates="bucket")
+    uploads = db.relationship(
+        "Upload", back_populates="bucket", passive_deletes=True
+    )
 
     def serialize(self, client: User):
         """:return: a serialized Bucket from the perspective of the client"""
