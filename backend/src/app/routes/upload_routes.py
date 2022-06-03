@@ -157,6 +157,11 @@ def parse_visibility_req(
     default = visib_of_str(t)
     if default is None:
         raise BadRequest("Invalid default visibility.", 400)
+    for id in visibility["also_shared_with"]:
+        if type(id) != int:
+            raise BadRequest(
+                "also_shared_with must be a list of integers.", 400
+            )
     try:
         also_shared_ids = set(visibility["also_shared_with"])
     except KeyError:
