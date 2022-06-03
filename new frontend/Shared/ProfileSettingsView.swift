@@ -26,7 +26,7 @@ struct ProfileSettingsView: View {
                 if(nc.userData.shared.username != username) {
                     let (valid, available) = try await nc.checkUsername(userName: username)
                     if(!valid || !available) {
-                        saveMessage = "\(!valid ? "Username is invalid." : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
+                        saveMessage = "\(!valid ? "Username is invalid. Must contain 4-16 characters. At least one letter. No special characters except . and _" : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
                     } else {
                         try await nc.updateCurrentUser(username: username, displayName: displayName, biography: biography)
                         saveMessage = "Changes Saved Successfully!"
