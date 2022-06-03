@@ -120,13 +120,6 @@ struct StrokesView: View {
                                 .resizable()
                                 .circularButtonStyle()
                         })
-                        Button(action: {
-                            isShowingCamera.toggle()
-                        }, label: {
-                            Image(systemName: "camera.circle.fill")
-                                .resizable()
-                                .circularButtonStyle()
-                        })
                         
                         if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                             Menu {

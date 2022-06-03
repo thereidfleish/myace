@@ -48,16 +48,6 @@ struct ContentView: View {
                 }
                 .tag(2)
             
-            CameraView(otherUser: nil)
-                .tabItem {
-                    VStack {
-                        Image(systemName: "camera.fill")
-                            .foregroundColor(.green)
-                        Text("Camera")
-                            .foregroundColor(.green)
-                    }
-                }
-                .tag(3)
             /*
              .sheet(isPresented: $showsUploadAlert) {
              NavigationView {
@@ -118,7 +108,7 @@ struct ContentView: View {
                         .foregroundColor(.green)
                 }
             }
-            .tag(4)
+            .tag(3)
             
             
             
