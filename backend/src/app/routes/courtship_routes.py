@@ -21,14 +21,18 @@ def search_users():
     query = request.args.get("q")
     if query is None:
         return failure_response("Missing query URL parameter.", 400)
-    # Search
-    query = query.lower()
-    found = User.query.filter(
-        or_(
-            func.lower(User.display_name).startswith(query),
-            User.username.startswith(query),  # username is already lowercase
+    found = []
+    if len(query.strip()) > 0:
+        # Search
+        query = query.lower()
+        found = User.query.filter(
+            or_(
+                func.lower(User.display_name).startswith(query),
+                User.username.startswith(
+                    query
+                ),  # username is already lowercase
+            )
         )
-    )
     # Exclude current user from search results
     return success_response(
         {"users": [u.serialize(me) for u in found if u != me]}
