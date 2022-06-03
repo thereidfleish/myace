@@ -26,6 +26,7 @@ struct StrokesView: View {
     @State private var currentBucketID: Int = -1
     @State private var showsUploadAlert = false
     @State var url: [URL] = []
+    @State private var collapsed = false
     
     //@State var filteredBucketsAndUploads: [Upload]
     
@@ -65,7 +66,7 @@ struct StrokesView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading) {
+        LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
             if(awaiting) {
                 ProgressView()
             }
@@ -86,6 +87,7 @@ struct StrokesView: View {
                         })
                     }
                 }
+                .padding(.bottom)
                 
                 if (nc.userData.buckets.count == 0) {
                     Text("\(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
@@ -94,19 +96,33 @@ struct StrokesView: View {
                 }
                 
                 ForEach(nc.userData.buckets) { bucket in
-                    HStack {
+                    Section(header: HStack {
+//                        Button(action: {
+//                            withAnimation {
+//                                collapsed.toggle()
+//                            }
+//
+//                        }, label: {
+//                            Image(systemName: "chevron.right")
+//                                .resizable()
+//                                .circularButtonStyle()
+//                        })
+                        
                         Text(bucket.name)
+                            .bucketTextInternalStyle()
+                            
                         Spacer()
-                        Button(action: {
-                            currentBucketID = bucket.id
-                            isShowingMediaPicker.toggle()
-                        }, label: {
-                            Image(systemName: "square.and.arrow.up.circle.fill")
-                                .resizable()
-                                .circularButtonStyle()
-                        })
                         
                         if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                            Button(action: {
+                                currentBucketID = bucket.id
+                                isShowingMediaPicker.toggle()
+                            }, label: {
+                                Image(systemName: "square.and.arrow.up.circle.fill")
+                                    .resizable()
+                                    .circularButtonStyle()
+                            })
+                            
                             Menu {
                                 Button {
                                     
@@ -131,11 +147,23 @@ struct StrokesView: View {
                         }
                         
                     }
+                    .background(Color.white)
+                    , content: {
+                        if (!collapsed) {
+                            ExternalUploadView(bucket: bucket, otherUser: otherUser, currentUserAs: currentUserAs)
+                        }
+                    })
                     
                     
-                    //ForEach(filteredBucketsAndUploads.filter { $0.bucket.id == bucket.id }) { upload in
-                    ExternalUploadView(bucket: bucket, otherUser: otherUser, currentUserAs: currentUserAs)
+                    
+                    
+                    
+                    
                 }
+                //                .overlay(
+                //                    RoundedRectangle(cornerRadius: 10)
+                //                        .stroke(Color.green, lineWidth: 3)
+                //                )
             }
             
         }
@@ -180,7 +208,7 @@ struct StrokesView: View {
             NewBucketView()
         }
         .navigationBarItems(trailing: Refresher().refreshable {
-            await initialize(showProgressView: true)
+            initialize(showProgressView: true)
         })
         .task {
             initialize(showProgressView: true)
