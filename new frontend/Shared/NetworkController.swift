@@ -434,7 +434,7 @@ class NetworkController: ObservableObject {
     
     // GET
     func searchUser(query: String, page: Int) async throws -> ([SharedData], Bool) {
-        let url = URL(string: "\(host)/users/search?q=\(query)&page=\(page)&per_page=1")!
+        let url = URL(string: "\(host)/users/search?q=\(query)&page=\(page)")!
         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
