@@ -28,11 +28,7 @@ struct StrokesView: View {
     @State var url: [URL] = []
     
     //@State var filteredBucketsAndUploads: [Upload]
-    @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
-                                                                  .coaches_only: "Coaches Only",
-                                                                  .friends_only: "Friends Only",
-                                                                  .friends_and_coaches: "Friends and Coaches Only",
-                                                                  .`public`: "Public"]
+
     @State private var showingError = false
     @State private var awaiting = true
     
@@ -134,7 +130,7 @@ struct StrokesView: View {
                                 Button(role: .destructive) {
                                     Task {
                                         try await nc.deleteBucket(bucketID: String(bucket.id))
-                                        await initialize()
+                                        initialize()
                                     }
                                 } label: {
                                     Label("Delete", systemImage: "trash")

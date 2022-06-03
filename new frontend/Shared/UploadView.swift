@@ -24,7 +24,7 @@ struct UploadView: View {
     @State var bucketID: String?
     var otherUser: SharedData?
     @State private var visibility: Visibility = Visibility()
-    @State private var visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+    let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
                                                                   .coaches_only: "Coaches Only",
                                                                   .friends_only: "Friends Only",
                                                                   .friends_and_coaches: "Friends and Coaches Only",

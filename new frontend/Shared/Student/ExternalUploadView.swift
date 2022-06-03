@@ -24,6 +24,12 @@ struct ExternalUploadView: View {
     @State private var awaiting = true
     @State private var showingError = false
     
+    let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+                                                                  .coaches_only: "Coaches Only",
+                                                                  .friends_only: "Friends Only",
+                                                                  .friends_and_coaches: "Friends and Coaches Only",
+                                                                  .`public`: "Public"]
+    
     func initialize() {
         Task {
             do {
@@ -121,6 +127,11 @@ struct ExternalUploadView: View {
                         Text(upload.created.formatted())
                             .font(.subheadline)
                             .foregroundColor(Color.green)
+                        
+                        Text(visOptions[upload.visibility.default]!)
+                            .font(.subheadline)
+                            .foregroundColor(Color.green)
+                        
                         
                         Text("\(upload.id)")
                         
