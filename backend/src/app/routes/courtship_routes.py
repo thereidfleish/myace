@@ -31,11 +31,16 @@ def search_users():
         # Search
         query = query.lower()
         pagination: Pagination = User.query.filter(
-            or_(
-                func.lower(User.display_name).startswith(query),
-                User.username.startswith(
-                    query
-                ),  # username is already lowercase
+            and_(
+                # exclude client
+                User.id != me.id,
+                # search names and usernames
+                or_(
+                    func.lower(User.display_name).startswith(query),
+                    User.username.startswith(
+                        query
+                    ),  # username is already lowercase
+                ),
             )
         ).paginate(
             error_out=True
@@ -47,7 +52,7 @@ def search_users():
     return success_response(
         {
             "has_next": has_next,
-            "users": [u.serialize(me) for u in found if u != me],
+            "users": [u.serialize(me) for u in found],
         }
     )
 
