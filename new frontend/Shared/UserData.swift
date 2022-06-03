@@ -129,6 +129,7 @@ enum CourtshipType: String, Codable {
     case friend_req = "friend-req"
     case coach_req = "coach-req"
     case student_req = "student-req"
+    case undefined = "undefined"
 }
 
 //enum CourtshipRequestType: String, Codable {

@@ -135,8 +135,8 @@ struct UserCardView: View {
                             Image(systemName: "person.text.rectangle.fill")
                                 .foregroundColor(Color.white)
                                 .frame(width: 15)
-                            Text(nc.userData.courtships.first(where :{$0.id == user.id})?.courtship?.type.rawValue.capitalized ?? reqOptions[(nc.userData.incomingCourtshipRequests.first(where :{$0.id == user.id})?.courtship?.type)!] ??
-                                 reqOptions[(nc.userData.outgoingCourtshipRequests.first(where :{$0.id == user.id})?.courtship?.type)!] ??
+                            Text(nc.userData.courtships.first(where :{$0.id == user.id})?.courtship?.type.rawValue.capitalized ?? reqOptions[(nc.userData.incomingCourtshipRequests.first(where :{$0.id == user.id})?.courtship?.type) ?? .undefined] ??
+                                 reqOptions[(nc.userData.outgoingCourtshipRequests.first(where :{$0.id == user.id})?.courtship?.type) ?? .undefined] ??
                                  "")
                                 .bucketTextExternalStyle()
                         }
