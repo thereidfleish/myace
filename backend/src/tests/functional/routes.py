@@ -201,20 +201,59 @@ def is_user_logged_in(client: FlaskClient, user: User) -> bool:
     return check is not None and check == user
 
 
-def login(client: FlaskClient, google_token: str) -> User:
-    """Create app session by logging in with google."""
+def register(
+    client: Flask,
+    email: str,
+    password: str,
+    username: str,
+    display_name: str,
+    biography: str | None = None,
+) -> User:
+    """Create an app session by registering with email/password"""
     body = {
+        "username": username,
+        "display_name": display_name,
+        "biography": biography,
+        "email": email,
+        "password": password,
+    }
+    res = client.post(f"{HOST}/register/", json=body)
+    assert res.status_code == 201, res.data
+    return parse_user_json(json.loads(res.data))
+
+
+def login_w_password(client: Flask, email: str, password: str) -> User:
+    """Create app session by logging in with email/password."""
+    body = {
+        "method": "password",
+        "email": email,
+        "password": password,
+    }
+    res = client.post(f"{HOST}/login/", json=body)
+    assert res.status_code == 200, log_response(res)
+    return parse_user_json(json.loads(res.data))
+
+
+def login_w_google(
+    client: FlaskClient, google_token: str
+) -> tuple[User, bool]:
+    """Create app session by logging in with google.
+
+    :return: (User, user_created_flag)
+    """
+    body = {
+        "method": "google",
         "token": google_token,
     }
     res = client.post(f"{HOST}/login/", json=body)
     assert res.status_code == 200 or res.status_code == 201, log_response(res)
-    return parse_user_json(json.loads(res.data))
+    return parse_user_json(json.loads(res.data)), res.status_code == 201
 
 
 def logout(client: FlaskClient) -> None:
     """Logout of session."""
     res = client.post(f"{HOST}/logout/")
-    assert res.status_code == 200, log_response(res)
+    assert res.status_code == 204, log_response(res)
     assert not is_logged_in(client)
 
 
@@ -522,16 +561,16 @@ def establish_courtship(
     :param type: friend-req | student-req | coach-req
     Effect: sender is logged in."""
     assert type in ("friend-req", "student-req", "coach-req")
-    receiver = login(client, receiver_token)
-    sender = login(client, sender_token)
+    receiver, _ = login_w_google(client, receiver_token)
+    sender, _ = login_w_google(client, sender_token)
     initial_cship = get_user_by_id(client, receiver.id).courtship
     assert initial_cship is None
     # create req
     create_courtship_req(client, receiver.id, type)
     # accept req
-    receiver = login(client, receiver_token)
+    receiver, _ = login_w_google(client, receiver_token)
     update_incoming_court_req(client, sender.id, "accept")
     # login and assert courtship exists
-    sender = login(client, sender_token)
+    sender, _ = login_w_google(client, sender_token)
     final_cship = get_user_by_id(client, receiver.id)
     assert final_cship is not None

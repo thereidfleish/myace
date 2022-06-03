@@ -16,11 +16,11 @@ from .routes import Upload, establish_courtship
 def configured_client(test_client: FlaskClient) -> FlaskClient:
     """:return: a preconfigured test client w/ dummy data for user A."""
     # register users
-    user_a = routes.login(test_client, USER_A_TOKEN)
-    user_b = routes.login(test_client, USER_B_TOKEN)
-    user_c = routes.login(test_client, USER_C_TOKEN)
+    user_a, _ = routes.login_w_google(test_client, USER_A_TOKEN)
+    user_b, _ = routes.login_w_google(test_client, USER_B_TOKEN)
+    user_c, _ = routes.login_w_google(test_client, USER_C_TOKEN)
     # login user A
-    user_a = routes.login(test_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(test_client, USER_A_TOKEN)
     bucket1 = routes.create_bucket(test_client, "bucket1")
     upload1_id, _, _ = routes.create_upload_url(
         test_client,
@@ -48,29 +48,29 @@ def configured_client(test_client: FlaskClient) -> FlaskClient:
     comment3 = routes.create_comment(test_client, "comment3", upload2_id)
 
     # user B coaches user A
-    user_b = routes.login(test_client, USER_B_TOKEN)
+    user_b, _ = routes.login_w_google(test_client, USER_B_TOKEN)
     routes.establish_courtship(
         test_client, USER_B_TOKEN, USER_A_TOKEN, "student-req"
     )
     assert routes.get_user_by_id(test_client, user_a.id).n_coaches == 1
 
     # Login user A
-    routes.login(test_client, USER_A_TOKEN)
+    routes.login_w_google(test_client, USER_A_TOKEN)
     return test_client
 
 
 def test_get_all_uploads(configured_client: FlaskClient):
     """Test the get all uploads route."""
-    user_a = routes.login(configured_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(configured_client, USER_A_TOKEN)
     a_uploads = routes.get_all_uploads(configured_client)
     assert len(a_uploads) == 3
     assert user_a.n_uploads == 3
     # test user A's n_uploads == 2 from B's perspective
-    user_b = routes.login(configured_client, USER_B_TOKEN)
+    user_b, _ = routes.login_w_google(configured_client, USER_B_TOKEN)
     user_a_from_b = routes.get_user_by_id(configured_client, user_a.id)
     assert user_a_from_b.n_uploads == 2
     # Test filter by bucket
-    user_a = routes.login(configured_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(configured_client, USER_A_TOKEN)
     buckets = routes.get_all_buckets(configured_client, user_a.id)
     for b in buckets:
         uploads_filtered = routes.get_all_uploads(
@@ -79,7 +79,7 @@ def test_get_all_uploads(configured_client: FlaskClient):
         assert len(uploads_filtered) == b.size
     # TODO test filter by shared-with
     # user B should be able to view 2 of A's uploads
-    user_a = routes.login(configured_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(configured_client, USER_A_TOKEN)
     uploads_filtered = routes.get_all_uploads(
         configured_client, shared_with=user_b.id
     )
@@ -88,8 +88,8 @@ def test_get_all_uploads(configured_client: FlaskClient):
 
 def test_get_another_users_uploads(configured_client: FlaskClient):
     """Test the get another user's uploads route."""
-    user_a = routes.login(configured_client, USER_A_TOKEN)
-    user_b = routes.login(configured_client, USER_B_TOKEN)
+    user_a, _ = routes.login_w_google(configured_client, USER_A_TOKEN)
+    user_b, _ = routes.login_w_google(configured_client, USER_B_TOKEN)
     uploads = routes.get_other_users_uploads(configured_client, user_a.id)
     assert len(uploads) == 2
     assert (
@@ -113,8 +113,8 @@ def test_get_another_users_uploads(configured_client: FlaskClient):
 def test_get_upload_by_id(configured_client: FlaskClient):
     """Test the get upload by ID route."""
     # get set of IDs that are not shared with user B
-    user_b = routes.login(configured_client, USER_B_TOKEN)
-    user_a = routes.login(configured_client, USER_A_TOKEN)
+    user_b, _ = routes.login_w_google(configured_client, USER_B_TOKEN)
+    user_a, _ = routes.login_w_google(configured_client, USER_A_TOKEN)
     a_uploads_sw_b = set(
         up.id
         for up in routes.get_all_uploads(
@@ -127,7 +127,7 @@ def test_get_upload_by_id(configured_client: FlaskClient):
     )
     assert len(a_uploads_not_sw_b) > 0
     # Test invalid IDs
-    user_b = routes.login(configured_client, USER_B_TOKEN)
+    user_b, _ = routes.login_w_google(configured_client, USER_B_TOKEN)
     invalid_ids = [-1, 10000000]
     invalid_ids.extend(a_uploads_not_sw_b)
     for id in invalid_ids:
@@ -140,11 +140,12 @@ def test_get_upload_by_id(configured_client: FlaskClient):
 
 
 def test_edit_upload(test_client):
+    """Test the edit uploads route."""
     # user B has a bucket with nothing in it
-    user_b = routes.login(test_client, USER_B_TOKEN)
+    user_b, _ = routes.login_w_google(test_client, USER_B_TOKEN)
     bucketb = routes.create_bucket(test_client, "bucketb")
     # user A has two buckets with one upload
-    user_a = routes.login(test_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(test_client, USER_A_TOKEN)
     bucket1 = routes.create_bucket(test_client, "bucket1")
     initial_id, _, _ = routes.create_upload_url(
         test_client,
@@ -188,7 +189,7 @@ def test_edit_upload(test_client):
 def test_delete_upload(test_client):
     """Ensure user can only delete their uploads and verify deletion works."""
     # setup two users with one upload each
-    user_b = routes.login(test_client, USER_B_TOKEN)
+    user_b, _ = routes.login_w_google(test_client, USER_B_TOKEN)
     bucket_b = routes.create_bucket(test_client, "bucketb")
     upload_b_id, _, _ = routes.create_upload_url(
         test_client,
@@ -197,7 +198,7 @@ def test_delete_upload(test_client):
         bucket_b.id,
         routes.VisibilitySetting("private", []),
     )
-    user_a = routes.login(test_client, USER_A_TOKEN)
+    user_a, _ = routes.login_w_google(test_client, USER_A_TOKEN)
     bucket_a = routes.create_bucket(test_client, "bucketa")
     upload_a_id, _, _ = routes.create_upload_url(
         test_client,

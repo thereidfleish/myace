@@ -6,6 +6,7 @@ setup(
     packages=["app"],
     include_package_data=True,
     install_requires=[
+        "bcrypt",
         "boto3",
         "botocore",
         "cffi",
