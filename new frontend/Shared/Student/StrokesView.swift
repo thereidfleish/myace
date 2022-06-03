@@ -10,32 +10,35 @@ import MediaPicker
 
 struct StrokesView: View {
     @EnvironmentObject private var nc: NetworkController
-//    @State private var showingFeedback = false
+    //    @State private var showingFeedback = false
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     var otherUser: SharedData
     var currentUserAs: CurrentUserAs
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
-//    @State private var showingEditingName = false
-//    @State private var showingEditingNameUploadID: String = ""
-//    @State private var uploadName = ""
-//    @State private var originalName = ""
-//    @State private var showingDeleteUploadID: String = ""
-//    @State private var showingDelete = false
+    //    @State private var showingEditingName = false
+    //    @State private var showingEditingNameUploadID: String = ""
+    //    @State private var uploadName = ""
+    //    @State private var originalName = ""
+    //    @State private var showingDeleteUploadID: String = ""
+    //    @State private var showingDelete = false
     @State private var isShowingMediaPicker = false
     @State private var currentBucketID: Int = -1
     @State private var showsUploadAlert = false
     @State var url: [URL] = []
     
     //@State var filteredBucketsAndUploads: [Upload]
-
+    
     @State private var showingError = false
     @State private var awaiting = true
     
-    func initialize() {
+    func initialize(showProgressView: Bool) {
         Task {
             do {
-                awaiting = true
+                if (showProgressView) {
+                    awaiting = true
+                }
+                
                 print("getting buckets")
                 try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .observer ? String(otherUser.id) : "me")
                 print("getting uploads")
@@ -45,11 +48,11 @@ struct StrokesView: View {
                 else if(currentUserAs == .student) {
                     try await nc.getMyUploads(shared_with_ID: otherUser.id, bucketID: nil)
                 }
-    //            else if (currentUserAs == .neitherStudentNorCoach) {
-    //                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
-    //            }
+                //            else if (currentUserAs == .neitherStudentNorCoach) {
+                //                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
+                //            }
                 awaiting = false
-    //            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
+                //            //try await nc.getMyUploads(userID: coach ? otherUser.id : nil, bucketID: nil)
                 print("Finsihed init")
                 
                 
@@ -60,22 +63,6 @@ struct StrokesView: View {
             }
         }
     }
-    
-    //    func editUpload(jj: String)  {
-    //        Task {
-    //            do {
-    //                awaiting = true
-    //                try await nc.editUpload(uploadID: jj, displayTitle: uploadName)
-    //                awaiting = false
-    //                initialize()
-    //            } catch {
-    //                print(error)
-    //                errorMessage = error.localizedDescription
-    //                showingError = true
-    //                awaiting = false
-    //            }
-    //        }
-    //    }
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -130,7 +117,7 @@ struct StrokesView: View {
                                 Button(role: .destructive) {
                                     Task {
                                         try await nc.deleteBucket(bucketID: String(bucket.id))
-                                        initialize()
+                                        initialize(showProgressView: true)
                                     }
                                 } label: {
                                     Label("Delete", systemImage: "trash")
@@ -167,25 +154,36 @@ struct StrokesView: View {
                 self.url = []
             }
         }.sheet(isPresented: $showsUploadAlert, onDismiss: {
-            Task {
-                initialize()
+            initialize(showProgressView: true)
+            var timer = Timer()
+            DispatchQueue.main.async {
+                timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
+                    Task {
+                        initialize(showProgressView: false)
+                        if (!nc.userData.uploads.contains(where: { $0.stream_ready == false })) {
+                            timer.invalidate()
+                        }
+                    }
+                })
             }
-            
         }) {
             UploadView(url: url, bucketID: String(currentBucketID), otherUser: otherUser) // place this in each bucket so that
         }
-//        .sheet(isPresented: $isShowingCamera) {
-//            CameraView(otherUser: otherUser)
-//        }
+        //        .sheet(isPresented: $isShowingCamera) {
+        //            CameraView(otherUser: otherUser)
+        //        }
         .sheet(isPresented: $isShowingNewStrokeView, onDismiss: {
             Task {
-                initialize()
+                initialize(showProgressView: true)
             }
         }) {
             NewBucketView()
         }
+        .navigationBarItems(trailing: Refresher().refreshable {
+            await initialize(showProgressView: true)
+        })
         .task {
-            initialize()
+            initialize(showProgressView: true)
         }
     }
 }

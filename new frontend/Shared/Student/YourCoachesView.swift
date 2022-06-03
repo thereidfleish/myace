@@ -110,7 +110,7 @@ struct StudentUploadView: View {
                 
             }.padding(.horizontal)
                 .navigationBarTitle("Home", displayMode: .inline)
-                .navigationBarItems(leading: Refresher().refreshable {
+                .navigationBarItems(trailing: Refresher().refreshable {
                     await initialize()
                 })
         }.task {

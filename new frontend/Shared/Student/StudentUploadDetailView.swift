@@ -64,11 +64,6 @@ struct StudentUploadDetailView: View {
 
                 
             }.padding(.horizontal)
-                .navigationBarItems(trailing: Refresher().refreshable {
-                    await initialize()
-                })
-            
-            
             
         }
         .task {
