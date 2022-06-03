@@ -14,12 +14,14 @@ struct SearchView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var searchedUsers: [SharedData] = []
+    @State private var page: Int = 1
     
     func search() async {
             do {
                 awaiting = true
                 print("searching")
-                try await searchedUsers = nc.searchUser(query: searchText.replacingOccurrences(of: " ", with: ""))
+                page = 1
+                try await searchedUsers = nc.searchUser(query: searchText.replacingOccurrences(of: " ", with: ""), page: page)
                 try await nc.getCourtships(user_id: "me", type: nil)
                 try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
                 try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
@@ -30,6 +32,24 @@ struct SearchView: View {
                 showingError = true
                 awaiting = false
             }
+    }
+    
+    func loadMoreSearch() async {
+        do {
+            awaiting = true
+            print("loading more results in")
+            page += 1
+            try await searchedUsers = searchedUsers + nc.searchUser(query: searchText.replacingOccurrences(of: " ", with: ""), page: page)
+            try await nc.getCourtships(user_id: "me", type: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
+            try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
+            print(searchedUsers)
+            awaiting = false
+        } catch {
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
+        }
     }
     
     var body: some View {
@@ -55,6 +75,7 @@ struct SearchView: View {
                         UserCardView(user: user)
                         
                     }
+                    
                 }
             }.navigationTitle("Search")
                 .padding(.horizontal)

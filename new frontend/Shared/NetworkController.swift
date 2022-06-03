@@ -433,15 +433,14 @@ class NetworkController: ObservableObject {
     }
     
     // GET
-    func searchUser(query: String) async throws -> [SharedData] {
-        let url = URL(string: "\(host)/users/search?q=\(query)&page=1&per_page=1000")!
+    func searchUser(query: String, page: Int) async throws -> [SharedData] {
+        let url = URL(string: "\(host)/users/search?q=\(query)&page=\(page)")!
         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
             let decodedResponse = try decoder.decode(SearchRes.self, from: data)
-            print("yay")
             return decodedResponse.users
             
         } catch {
