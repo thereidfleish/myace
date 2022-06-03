@@ -5,6 +5,7 @@ import json
 
 
 from flask import request
+from flask_sqlalchemy import Pagination
 from sqlalchemy import or_, and_
 from sqlalchemy.sql import func
 import flask_login
@@ -21,21 +22,31 @@ def search_users():
     query = request.args.get("q")
     if query is None:
         return failure_response("Missing query URL parameter.", 400)
+    # empty query returns no users
+    has_next = False
     found = []
     if len(query.strip()) > 0:
         # Search
         query = query.lower()
-        found = User.query.filter(
+        pagination: Pagination = User.query.filter(
             or_(
                 func.lower(User.display_name).startswith(query),
                 User.username.startswith(
                     query
                 ),  # username is already lowercase
             )
-        )
+        ).paginate(
+            error_out=True
+        )  # automatically checks query for params
+        has_next = pagination.has_next
+        items = pagination.items
+        found = items if items is not None else []
     # Exclude current user from search results
     return success_response(
-        {"users": [u.serialize(me) for u in found if u != me]}
+        {
+            "has_next": has_next,
+            "users": [u.serialize(me) for u in found if u != me],
+        }
     )
 
 
