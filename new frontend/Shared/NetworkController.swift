@@ -256,7 +256,7 @@ class NetworkController: ObservableObject {
         
         do {
             (data, response) = try await URLSession.shared.data(for: request)
-            print(data.prettyPrintedJSONString!)
+            print(data.prettyPrintedJSONString)
             print(response)
         } catch {
             print("deleteComments failed decode")
