@@ -17,14 +17,28 @@ struct ProfileSettingsView: View {
     @State private var errorMessage = ""
     @State private var showingNewBucketView = false
     var isNewUser: Bool
-    @State private var savedChanges = false
+    @State private var displaySaveMessage = false
+    @State private var saveMessage = ""
     
     func updateUser() async {
             do {
                 awaiting = true
-                try await nc.updateCurrentUser(username: username, displayName: displayName, biography: biography)
+                if(nc.userData.shared.username != username) {
+                    let (valid, available) = try await nc.checkUsername(userName: username)
+                    if(!valid || !available) {
+                        saveMessage = "\(!valid ? "Username is invalid." : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
+                    } else {
+                        try await nc.updateCurrentUser(username: username, displayName: displayName, biography: biography)
+                        saveMessage = "Changes Saved Successfully!"
+                        nc.newUser = false
+                    }
+                }
+                else {
+                    try await nc.updateCurrentUser(username: nil, displayName: displayName, biography: biography)
+                    saveMessage = "Changes Saved Successfully!"
+                    nc.newUser = false
+                }
                 awaiting = false
-                nc.newUser = false
             } catch {
                 print(error)
                 errorMessage = error.localizedDescription
@@ -85,15 +99,15 @@ struct ProfileSettingsView: View {
                 
                 Spacer()
                 
-                if (savedChanges) {
-                    Text("Changes saved successfully!")
+                if (displaySaveMessage) {
+                    Text(saveMessage)
                         .padding(.top, 20)
                         .bucketTextInternalStyle()
                         .onAppear {
                             DispatchQueue.main.async {
                                 Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
                                     withAnimation {
-                                        savedChanges = false
+                                        displaySaveMessage = false
                                     }
                                 })
                             }
@@ -103,11 +117,11 @@ struct ProfileSettingsView: View {
                 Button(action: {
                     Task {
                         await updateUser()
-                        if(!isNewUser) {
+                        //if(!isNewUser) {
                             withAnimation {
-                                savedChanges = true;
+                                displaySaveMessage = true;
                             }
-                        }
+                        //}
                     }
                     
                 }, label: {

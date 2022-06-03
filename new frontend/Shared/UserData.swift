@@ -250,9 +250,9 @@ struct AuthReq: Codable {
 }
 
 struct UpdateUserReq: Codable {
-    var username: String
-    var display_name: String
-    var biography: String
+    var username: String?
+    var display_name: String?
+    var biography: String?
 }
 
 struct VideoReq: Codable {
@@ -310,12 +310,15 @@ struct FriendReq: Codable {
     var courtships: [Courtship]
 }
 
-
-
 struct EditUploadReq: Codable {
     var display_title: String? = nil
     var bucket_id: Int? = nil
     var visibility: Visibility? = nil
+}
+
+struct CheckUsername: Codable {
+    var valid: Bool
+    var available: Bool
 }
 
 struct ErrorDecode: Codable {
