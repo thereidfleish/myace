@@ -96,10 +96,10 @@ struct ProfileView: View {
                 
                 Spacer()
                 
-                Text("User ID: \(user.id)")
-                    .font(.footnote)
-                    .foregroundColor(Color.green)
-                
+//                Text("User ID: \(user.id)")
+//                    .font(.footnote)
+//                    .foregroundColor(Color.green)
+//                
                 StrokesView(otherUser: user, currentUserAs: .observer)
                 //StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
                 //.onAppear(perform: {initialize()})

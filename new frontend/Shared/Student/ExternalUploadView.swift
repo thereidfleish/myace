@@ -55,7 +55,7 @@ struct ExternalUploadView: View {
         Task {
             do {
                 try await nc.deleteUpload(uploadID: uploadID)
-                await initialize()
+                initialize()
             } catch {
                 
                 print(error)
@@ -67,7 +67,7 @@ struct ExternalUploadView: View {
         if(awaiting) {
             ProgressView()
                 .task {
-                    await initialize()
+                    initialize()
                 }
         }
         else if (showingError) {
@@ -133,7 +133,7 @@ struct ExternalUploadView: View {
                             .foregroundColor(Color.green)
                         
                         
-                        Text("\(upload.id)")
+//                        Text("\(upload.id)")
                         
                         HStack {
                             Button(action: {

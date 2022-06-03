@@ -102,8 +102,9 @@ class NetworkController: ObservableObject {
         
         do {
             (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
-            print(data.prettyPrintedJSONString!)
             print(response)
+            print(data.prettyPrintedJSONString!)
+            
         } catch {
             print("editUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
