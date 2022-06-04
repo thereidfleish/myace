@@ -371,6 +371,7 @@ def apple_callback():
     """Print a token to the console. Helps test website authentication."""
     print("Apple website callback:")
     error = request.form.get("error")
+    raise AppleCallback(request.body)
     if error is not None:
         s = (
             f"error code received: {error}\n",
