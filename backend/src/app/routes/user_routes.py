@@ -5,7 +5,7 @@ import re
 import flask_login
 from . import routes, success_response, failure_response
 
-from .. import aws
+from .. import aws, apple
 from ..cookiesigner import CookieSigner
 from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
@@ -268,7 +268,11 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     :return: User, user_created_flag
     :raise: LoginError if login fails
     """
-    pass
+    # cause 500 error to dump token
+    decode = apple.jwt.decode(token, "", verifiy=False)
+    s = f"apple token: {token=}\n{decode=}"
+    raise Exception(s)
+    # raise LoginError(message, code)
 
 
 def login_w_google(token: str) -> tuple[User, bool]:
@@ -420,6 +424,12 @@ def login():
             if token is None:
                 return failure_response("Missing token.", 400)
             user, user_created = login_w_google(token)
+
+        elif method == "apple":
+            token = body.get("token")
+            if token is None:
+                return failure_response("Missing token.", 400)
+            user, user_created = login_w_apple(token)
 
         else:
             return failure_response("Invalid login method.", 400)
