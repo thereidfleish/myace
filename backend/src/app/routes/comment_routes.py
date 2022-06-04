@@ -5,12 +5,14 @@ import json
 from flask import request
 import flask_login
 from . import routes, success_response, failure_response
+from .. import email
 from ..models import Comment, Upload
 from ..extensions import db
 
 
 @routes.route("/comments")
 @flask_login.login_required
+@email.email_conf_required
 def get_all_comments():
     me = flask_login.current_user
     # Check for optional query params
@@ -48,6 +50,7 @@ def get_all_comments():
 
 @routes.route("/comments/", methods=["POST"])
 @flask_login.login_required
+@email.email_conf_required
 def create_comment():
     # Check for valid fields
     body = json.loads(request.data)
@@ -81,6 +84,7 @@ def create_comment():
 
 @routes.route("/comments/<int:comment_id>/", methods=["DELETE"])
 @flask_login.login_required
+@email.email_conf_required
 def delete_comment(comment_id):
     # Check for valid comment
     comment = Comment.query.filter_by(id=comment_id).first()

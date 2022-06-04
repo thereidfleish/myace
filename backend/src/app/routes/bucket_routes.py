@@ -5,13 +5,14 @@ import json
 from flask import request
 import flask_login
 from . import routes, success_response, failure_response
-from .. import aws
+from .. import aws, email
 from ..models import Bucket
 from ..extensions import db
 
 
 @routes.route("/buckets/", methods=["POST"])
 @flask_login.login_required
+@email.email_conf_required
 def create_bucket():
     me = flask_login.current_user
 
@@ -36,6 +37,7 @@ def create_bucket():
 
 @routes.route("/users/<user_id>/buckets")
 @flask_login.login_required
+@email.email_conf_required
 def get_buckets(user_id):
     me = flask_login.current_user
     user_id = me.id if user_id == "me" else user_id
@@ -52,6 +54,7 @@ def get_buckets(user_id):
 
 @routes.route("/buckets/<int:bucket_id>/", methods=["PUT"])
 @flask_login.login_required
+@email.email_conf_required
 def edit_bucket(bucket_id):
     me = flask_login.current_user
     bucket = Bucket.query.filter_by(id=bucket_id, user_id=me.id).first()
@@ -84,6 +87,7 @@ def edit_bucket(bucket_id):
 
 @routes.route("/buckets/<int:bucket_id>/", methods=["DELETE"])
 @flask_login.login_required
+@email.email_conf_required
 def delete_bucket(bucket_id):
     user = flask_login.current_user
     # Check for valid bucket
