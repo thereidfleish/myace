@@ -5,7 +5,7 @@ import re
 import flask_login
 from . import routes, success_response, failure_response
 
-from .. import aws
+from .. import aws, apple
 from ..cookiesigner import CookieSigner
 from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
@@ -351,6 +351,24 @@ def login_w_google(token: str) -> tuple[User, bool]:
             assert user_w_gid == user_w_email
             user = user_w_gid
     return user, user_created
+
+
+@routes.route("/callbacks/apple/", methods=["POST"])
+def print_apple_token():
+    """Print a token to the console. Helps test website authentication."""
+    print("Apple website callback:")
+    error = request.form.get("error")
+    if error is not None:
+        print(f"error code received: {error}")
+        print(
+            f"User cancelled authorize: {error == 'user_cancelled_authorize'}"
+        )
+    else:
+        code = request.form["code"]
+        id_token = request.form["id_token"]
+        state = request.form["state"]
+        userinfo = request.form["user"]
+        print(f"{code=}\n{id_token=}\n{state=}\n{userinfo=}")
 
 
 @routes.route("/login/", methods=["POST"])
