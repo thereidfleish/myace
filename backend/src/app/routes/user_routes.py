@@ -269,7 +269,10 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     :raise: LoginError if login fails
     """
     # cause 500 error to dump token
-    decode = apple.jwt.decode(token, "", verifiy=False)
+    decode = apple.jwt.decode(
+        token, audience="com.myace.myace1", options={"verify_signature": False}
+    )
+
     s = f"apple token: {token=}\n{decode=}"
     raise Exception(s)
     # raise LoginError(message, code)
