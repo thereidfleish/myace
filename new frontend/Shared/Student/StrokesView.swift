@@ -154,7 +154,7 @@ struct StrokesView: View {
                             }
                         }
                         
-                    }
+                    }.id("\(bucket.id)-1")
                         .background(Color.white)
                             , content: {
                         ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
@@ -239,7 +239,7 @@ struct StrokesView: View {
                                     
                                     Spacer()
                                 }
-                            }
+                            }.id("\(upload.id)-2")
                         }
                     })
                 }
@@ -251,7 +251,7 @@ struct StrokesView: View {
             
         }
         .mediaImporter(isPresented: $isShowingMediaPicker,
-                       allowedMediaTypes: .all,
+                       allowedMediaTypes: .videos,
                        allowsMultipleSelection: false) { result in
             switch result {
             case .success(let url):
