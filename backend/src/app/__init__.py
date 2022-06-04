@@ -64,7 +64,7 @@ def register_routes(app) -> None:
 
     # apple token retriever
     @app.route("/appletokenprinter")
-    def docs():
+    def appletokenprinter():
         key = request.args.get("key")
         if key != VIEW_DOCS_KEY:  # same key
             return failure_response("Invalid key!", 401)
