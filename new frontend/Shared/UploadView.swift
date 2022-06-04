@@ -171,7 +171,7 @@ struct UploadView: View {
                                 
                             }
                             
-                            TextField("Search for users...", text: $searchText)
+                            TextField("Search for courtships...", text: $searchText)
                                 .textFieldStyle()
                             
                             ForEach(nc.userData.courtships.filter { ($0.display_name.lowercased().contains(searchText.lowercased()) || $0.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0)) }, id: \.self.id) { courtship in

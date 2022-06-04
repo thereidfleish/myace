@@ -62,8 +62,6 @@
 		9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
 		9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
 		9A598D18283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
-		9A598D1A283FD082006C4B09 /* ExternalUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D19283FD082006C4B09 /* ExternalUploadView.swift */; };
-		9A598D1B283FD082006C4B09 /* ExternalUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D19283FD082006C4B09 /* ExternalUploadView.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -126,7 +124,6 @@
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		9A2C34E9279E20DA00FAC339 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
-		9A598D19283FD082006C4B09 /* ExternalUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalUploadView.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -254,7 +251,6 @@
 				258D41772773FC470030D437 /* StudentFeedbackView.swift */,
 				25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */,
 				9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */,
-				9A598D19283FD082006C4B09 /* ExternalUploadView.swift */,
 			);
 			path = Student;
 			sourceTree = "<group>";
@@ -556,7 +552,6 @@
 				2537F4E6278348BA00596AF6 /* ProfileView.swift in Sources */,
 				258D41752773C3E00030D437 /* YourCoachesView.swift in Sources */,
 				9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */,
-				9A598D1A283FD082006C4B09 /* ExternalUploadView.swift in Sources */,
 				9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */,
@@ -580,7 +575,6 @@
 				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
 				256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */,
-				9A598D1B283FD082006C4B09 /* ExternalUploadView.swift in Sources */,
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				9A2C34D22799BCC700FAC339 /* UploadView.swift in Sources */,
@@ -747,10 +741,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NLRGJ9C7H8;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MyAce;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AI Tennis Coach camera use";
 				"INFOPLIST_KEY_NSCameraUsageDescription[arch=*]" = "$(PRODUCT_NAME) camera use";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "";
@@ -766,7 +761,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reidf.AI-Tennis-Coach";
+				PRODUCT_BUNDLE_IDENTIFIER = com.myace.myace;
 				PRODUCT_NAME = "AI Tennis Coach";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -783,10 +778,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NLRGJ9C7H8;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "AI-Tennis-Coach--iOS--Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MyAce;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AI Tennis Coach camera use";
 				"INFOPLIST_KEY_NSCameraUsageDescription[arch=*]" = "$(PRODUCT_NAME) camera use";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "";
@@ -802,7 +798,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reidf.AI-Tennis-Coach";
+				PRODUCT_BUNDLE_IDENTIFIER = com.myace.myace;
 				PRODUCT_NAME = "AI Tennis Coach";
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -822,7 +818,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -834,7 +830,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reidf.AI-Tennis-Coach";
+				PRODUCT_BUNDLE_IDENTIFIER = com.myace.myace;
 				PRODUCT_NAME = "AI Tennis Coach";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -852,7 +848,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -864,7 +860,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.1;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reidf.AI-Tennis-Coach";
+				PRODUCT_BUNDLE_IDENTIFIER = com.myace.myace;
 				PRODUCT_NAME = "AI Tennis Coach";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -878,7 +874,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
@@ -898,7 +894,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 1.0;
@@ -919,7 +915,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.1;
 				MARKETING_VERSION = 1.0;
@@ -938,7 +934,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = FF95FHPLK4;
+				DEVELOPMENT_TEAM = QQGVB4TM2Z;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.1;
 				MARKETING_VERSION = 1.0;

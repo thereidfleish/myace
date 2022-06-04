@@ -39,24 +39,6 @@ struct StudentUploadDetailView: View {
     @State private var showingDeleteUploadID: String = ""
     @State private var currentBucketID: Int = -1
     
-    func initialize() async {
-        do {
-            awaiting = true
-//            print("getting buckets1")
-//            try await nc.getBuckets(userID: coach ? String(otherUser.id) : String(nc.userData.shared.id))
-//            print("getting uploads1")
-//            try await nc.getUploads(shared_with_ID: coach ? otherUser.id : nil, bucketID: nil)
-            //try await nc.getUploads(getSpecificID: true, bucketID: bucketID)
-            print("Finsihed init")
-            awaiting = false
-        } catch {
-            print(error)
-            errorMessage = error.localizedDescription
-            showingError = true
-            awaiting = false
-        }
-    }
-    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
@@ -66,13 +48,6 @@ struct StudentUploadDetailView: View {
             }.padding(.horizontal)
             
         }
-        .task {
-            await initialize()
-        }
-        
-        
-        
-        
     }
 }
 
