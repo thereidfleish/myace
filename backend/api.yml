@@ -52,6 +52,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/resend/:
+    post:
+      summary: Resend confirmation email
+      description: This route resends the account verification email necessary to set `email_confirmed`.
+      tags:
+        - User
+      responses:
+        '204':
+          description: Email sent.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /login/:
     post:
       summary: Login
@@ -172,7 +188,7 @@ paths:
   /users/{user_id}/:
     get:
       summary: Get individual user
-      description: This route retrieves the profile of a given user. Can be used to check if the client is logged in.
+      description: This route retrieves the profile of a given user. Can be used to check if the client is logged in and/or if their email is verified. This route only requires email confirmation if `user_id` does not indicate the client.
       tags:
         - User
       parameters:
@@ -1127,8 +1143,8 @@ components:
         default:
           $ref: "#/components/schemas/VisibilityDefault"
         also_shared_with:
-          description: "Exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
           type: array
+          description: "Exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
           items:
             $ref: "#/components/schemas/OtherUser"
 
@@ -1139,9 +1155,15 @@ components:
         - type: object
           required:
             - email
+            - email_confirmed
           properties:
             email:
               $ref: "#/components/schemas/UserEmail"
+            email_confirmed:
+              type: boolean
+              nullable: true
+              description: Whether the user has confirmed their email address. Will be `null` if the user's login method is not email/password.
+              example: null
 
     UserEmail:
       type: string

@@ -7,6 +7,7 @@ from . import routes, success_response, failure_response
 
 from .. import aws
 from ..cookiesigner import CookieSigner
+from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
 from ..settings import G_CLIENT_IDS
 from ..extensions import db
@@ -51,17 +52,6 @@ def test_valid_username(username: str) -> None:
     # Check username regex
     if not re.fullmatch(User.USERNAME_PATTERN, username):
         raise InvalidStr("Invalid username.")
-
-
-def test_valid_unique_username(username: str) -> None:
-    """Test if a username is valid and unique.
-
-    :raise InvalidStr: if invalid, containing a user-friendly error
-    :raise UnavailableUsername: if taken
-    """
-    # Check if username exists
-    if not User.is_username_unique(username):
-        raise UnavailableUsername
 
 
 def test_valid_display_name(display_name: str) -> None:
@@ -126,25 +116,43 @@ def test_valid_bio(bio: str) -> None:
         raise InvalidStr(f"Biography exceeds character limit: {len(bio)}/150.")
 
 
+@routes.route("/users/resend/", methods=["POST"])
+@flask_login.login_required
+def resend_email_conf():
+    me = flask_login.current_user
+    # ensure it has been at least 60 seconds before sending another
+    # TODO
+    send_conf_email(me)
+    return success_response(code=204)
+
+
+@routes.route("/users/confirm/<token>/")
+def confirm_email(token):
+    email = confirm_token(token)
+    if email is None:
+        return failure_response(
+            "This confirmation link is invalid or expired.", 400
+        )
+    print(email)
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        return failure_response(
+            "Whoops! Looks like we can't find you. Please contact support.",
+            400,
+        )
+    if user.email_confirmed:
+        return success_response("Account already confirmed. Please login.")
+    else:
+        user.email_confirmed = True
+        db.session.commit()
+        return success_response(
+            "You have confirmed your account! Please login."
+        )
+
+
 @routes.route("/register/", methods=["POST"])
 def register():
     body = json.loads(request.data)
-
-    # Check for valid, unique username
-    username = body.get("username")
-    try:
-        test_valid_username(username)
-    except InvalidStr as e:
-        return failure_response(e.message, 400)
-    if not User.is_username_unique(username):
-        return failure_response("Username unavailable", 409)
-
-    # Check for valid display name
-    display_name = body.get("display_name")
-    try:
-        test_valid_display_name(display_name)
-    except InvalidStr as e:
-        return failure_response(e.message, 400)
 
     # Check for valid email
     email = body.get("email")
@@ -174,6 +182,22 @@ def register():
     except InvalidStr as e:
         return failure_response(e.message, 400)
 
+    # Check for valid, unique username
+    username = body.get("username")
+    try:
+        test_valid_username(username)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
+    if not User.is_username_unique(username):
+        return failure_response("Username unavailable", 409)
+
+    # Check for valid display name
+    display_name = body.get("display_name")
+    try:
+        test_valid_display_name(display_name)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
+
     # Check for valid bio
     bio = body.get("biography")
     try:
@@ -190,6 +214,10 @@ def register():
         biography=bio,
         password_hash=salt_and_hash(password),
     )
+
+    # Send confirmation email
+    send_conf_email(user)
+
     db.session.add(user)
     db.session.commit()
 
@@ -395,6 +423,13 @@ def check_username(username):
 def get_user(user_id):
     me = flask_login.current_user
     user = me if user_id == "me" else User.query.filter_by(id=user_id).first()
+    # email confirmation required for any user who is not client
+    if (
+        user != me
+        and me.login_method == LoginMethods.EMAIL
+        and me.email_confirmed == False
+    ):
+        return failure_response("User must verify their email.", 401)
     if user is None:
         return failure_response("User not found.")
     return success_response(user.serialize(me))
@@ -402,6 +437,7 @@ def get_user(user_id):
 
 @routes.route("/users/me/", methods=["PUT"])
 @flask_login.login_required
+@email_conf_required
 def edit_me():
     me = flask_login.current_user
 

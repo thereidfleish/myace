@@ -25,6 +25,9 @@ S3_CF_DOMAIN = env.str("S3_CF_DOMAIN")
 S3_CF_SUBDOMAIN = env.str("S3_CF_SUBDOMAIN")
 VIEW_DOCS_KEY = env.str("VIEW_DOCS_KEY", default=os.urandom(24))
 
+# mail settings
+SES_REGION = "us-east-2"
+SES_SENDER = "My Ace <noreply@mail.myace.ai>"
 
 # Application configuration
 ENV = env.str("FLASK_ENV", default="production")
@@ -33,5 +36,6 @@ CACHE_TYPE = "simple"  # Can be "memcached", "redis", etc.
 SQLALCHEMY_DATABASE_URI = (
     f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_ENDPOINT}:5432/{DB_NAME}"
 )
-SECRET_KEY = env.str("FLASK_SECRET_KEY", default=os.urandom(24))
+SECRET_KEY = env.str("FLASK_SECRET_KEY")
+SECURITY_PASSWORD_SALT = env.str("SECURITY_PASSWORD_SALT")
 SQLALCHEMY_TRACK_MODIFICATIONS = False

@@ -6,7 +6,7 @@ from flask import make_response, request
 import flask_login
 
 from . import routes, success_response, failure_response
-from .. import aws
+from .. import aws, email
 from ..models import User, Bucket, Upload, VisibilityDefault, visib_of_str
 from ..cookiesigner import CookieSigner
 from ..extensions import db
@@ -15,6 +15,7 @@ from ..settings import CF_PUBLIC_KEY_ID, S3_CF_DOMAIN, S3_CF_SUBDOMAIN
 
 @routes.route("/users/me/uploads")
 @flask_login.login_required
+@email.email_conf_required
 def get_all_uploads():
     me = flask_login.current_user
 
@@ -51,6 +52,7 @@ def get_all_uploads():
 
 @routes.route("/users/<int:other_id>/uploads")
 @flask_login.login_required
+@email.email_conf_required
 def get_all_uploads_other_user(other_id):
     me = flask_login.current_user
 
@@ -73,6 +75,7 @@ def get_all_uploads_other_user(other_id):
 
 @routes.route("/uploads/<int:upload_id>/")
 @flask_login.login_required
+@email.email_conf_required
 def get_upload(upload_id):
     me = flask_login.current_user
     upload = Upload.query.filter_by(id=upload_id).first()
@@ -182,6 +185,7 @@ def parse_visibility_req(
 
 @routes.route("/uploads/", methods=["POST"])
 @flask_login.login_required
+@email.email_conf_required
 def create_upload_url():
     me = flask_login.current_user
 
@@ -237,6 +241,7 @@ def create_upload_url():
 
 @routes.route("/uploads/<int:upload_id>/convert/", methods=["POST"])
 @flask_login.login_required
+@email.email_conf_required
 def start_convert(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -257,6 +262,7 @@ def start_convert(upload_id):
 
 @routes.route("/uploads/<int:upload_id>/", methods=["PUT"])
 @flask_login.login_required
+@email.email_conf_required
 def edit_upload(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
 
@@ -303,6 +309,7 @@ def edit_upload(upload_id):
 
 @routes.route("/uploads/<int:upload_id>/", methods=["DELETE"])
 @flask_login.login_required
+@email.email_conf_required
 def delete_upload(upload_id):
     # Verify user and existence of upload.
     upload = Upload.query.filter_by(id=upload_id).first()
@@ -324,6 +331,7 @@ def delete_upload(upload_id):
 
 @routes.route("/uploads/<int:upload_id>/download/")
 @flask_login.login_required
+@email.email_conf_required
 def get_download_url(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
     if upload is None:

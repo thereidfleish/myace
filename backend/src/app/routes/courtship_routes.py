@@ -10,12 +10,14 @@ from sqlalchemy import or_, and_
 from sqlalchemy.sql import func
 import flask_login
 from . import routes, success_response, failure_response
+from .. import email
 from ..models import User, UserRelationship, RelationshipType, rel_req_of_str
 from ..extensions import db
 
 
 @routes.route("/users/search")
 @flask_login.login_required
+@email.email_conf_required
 def search_users():
     me = flask_login.current_user
     # Check for query params
@@ -59,6 +61,7 @@ def search_users():
 
 @routes.route("/courtships/requests/", methods=["POST"])
 @flask_login.login_required
+@email.email_conf_required
 def create_courtship_request():
     me = flask_login.current_user
 
@@ -99,6 +102,7 @@ def create_courtship_request():
 
 @routes.route("/courtships/requests")
 @flask_login.login_required
+@email.email_conf_required
 def get_courtship_requests():
     me = flask_login.current_user
     # Get all UserRelationships involving the user
@@ -142,6 +146,7 @@ def get_courtship_requests():
 
 @routes.route("/courtships/requests/<int:other_user_id>/", methods=["PUT"])
 @flask_login.login_required
+@email.email_conf_required
 def update_incoming_courtship_request(other_user_id):
     me = flask_login.current_user
 
@@ -193,6 +198,7 @@ def update_incoming_courtship_request(other_user_id):
 
 @routes.route("/courtships/requests/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
+@email.email_conf_required
 def delete_outgoing_courtship_request(other_user_id):
     user = flask_login.current_user
 
@@ -214,6 +220,7 @@ def delete_outgoing_courtship_request(other_user_id):
 
 @routes.route("/users/<user_id>/courtships")
 @flask_login.login_required
+@email.email_conf_required
 def get_all_courtships(user_id):
     me = flask_login.current_user
     user_id = me.id if user_id == "me" else user_id
@@ -254,6 +261,7 @@ def get_all_courtships(user_id):
 
 @routes.route("/courtships/<int:other_user_id>/", methods=["DELETE"])
 @flask_login.login_required
+@email.email_conf_required
 def remove_courtship(other_user_id):
     user = flask_login.current_user
 

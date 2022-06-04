@@ -46,8 +46,10 @@ class User(db.Model):
     biography = db.Column(db.String, nullable=False, default="")
 
     login_method = db.Column(db.Enum(LoginMethods), nullable=False)
-    password_hash = db.Column(db.String, nullable=True)
     google_id = db.Column(db.String, nullable=True, unique=True)
+    password_hash = db.Column(db.String, nullable=True)
+    # email_confirmed is only null if login_method is EMAIL
+    email_confirmed = db.Column(db.Boolean, nullable=True)
 
     uploads = db.relationship(
         "Upload", back_populates="user", passive_deletes=True
@@ -80,6 +82,7 @@ class User(db.Model):
         if password_hash is not None:
             self.password_hash = password_hash
             self.login_method = LoginMethods.EMAIL
+            self.email_confirmed = False
         elif google_id is not None:
             self.google_id = google_id
             self.login_method = LoginMethods.GOOGLE
@@ -109,6 +112,7 @@ class User(db.Model):
         # private profile information
         if self.id == client.id:
             response["email"] = self.email
+            response["email_confirmed"] = self.email_confirmed
         return response
 
     def n_uploads_visible_to(self, client: User) -> int:
