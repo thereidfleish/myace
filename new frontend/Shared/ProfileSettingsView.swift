@@ -48,6 +48,7 @@ struct ProfileSettingsView: View {
     }
     
     var body: some View {
+        ScrollView {
             VStack {
                 Text(isNewUser ? "Welcome to AI Tennis Coach!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
                     .bucketTextInternalStyle()
@@ -136,7 +137,7 @@ struct ProfileSettingsView: View {
                     NewBucketView()
                     
                 }
-        
+        }
         
         
     }
