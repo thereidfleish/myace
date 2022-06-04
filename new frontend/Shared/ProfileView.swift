@@ -51,7 +51,7 @@ struct ProfileView: View {
                 
                 HStack {
                     AsyncImage(url: nc.userData.profilePic) { image in
-                        image.resizable()
+                        yourself ? image.resizable() : Image(systemName: "person.crop.circle").resizable()
                     } placeholder: {
                         ProgressView()
                     }
