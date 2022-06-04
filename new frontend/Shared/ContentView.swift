@@ -17,7 +17,7 @@ struct ContentView: View {
             StudentUploadView(currentUserAs: .student)
                     .tabItem {
                         VStack {
-                            Image(systemName: "square.and.arrow.up.circle.fill")
+                            Image(systemName: "rectangle.inset.filled.and.person.filled")
                                 .foregroundColor(.green)
                             Text("Your Coaches")
                                 .foregroundColor(.green)
@@ -28,7 +28,7 @@ struct ContentView: View {
             StudentUploadView(currentUserAs: .coach)
                     .tabItem {
                         VStack {
-                            Image(systemName: "square.and.arrow.up.circle.fill")
+                            Image(systemName: "graduationcap.fill")
                                 .foregroundColor(.green)
                             Text("Your Students")
                                 .foregroundColor(.green)

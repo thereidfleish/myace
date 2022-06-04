@@ -118,7 +118,7 @@ struct StrokesView: View {
                                 currentBucketID = bucket.id
                                 isShowingMediaPicker.toggle()
                             }, label: {
-                                Image(systemName: "square.and.arrow.up.circle.fill")
+                                Image(systemName: "video.circle.fill")
                                     .resizable()
                                     .circularButtonStyle()
                             })
