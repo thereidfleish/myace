@@ -362,22 +362,27 @@ def login_w_google(token: str) -> tuple[User, bool]:
     return user, user_created
 
 
+class AppleCallback(Exception):
+    """The only way to log it to the console is by raising."""
+
+
 @routes.route("/callbacks/apple/", methods=["POST"])
-def print_apple_token():
+def apple_callback():
     """Print a token to the console. Helps test website authentication."""
     print("Apple website callback:")
     error = request.form.get("error")
     if error is not None:
-        print(f"error code received: {error}")
-        print(
-            f"User cancelled authorize: {error == 'user_cancelled_authorize'}"
+        s = (
+            f"error code received: {error}\n",
+            f"User cancelled authorize: {error == 'user_cancelled_authorize'}",
         )
+        raise AppleCallback(s)
     else:
         code = request.form["code"]
         id_token = request.form["id_token"]
         state = request.form["state"]
         userinfo = request.form["user"]
-        print(f"{code=}\n{id_token=}\n{state=}\n{userinfo=}")
+        raise AppleCallback(f"{code=}\n{id_token=}\n{state=}\n{userinfo=}")
 
 
 @routes.route("/login/", methods=["POST"])
