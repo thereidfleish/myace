@@ -5,7 +5,7 @@ import re
 import flask_login
 from . import routes, success_response, failure_response
 
-from .. import aws
+from .. import aws, apple
 from ..cookiesigner import CookieSigner
 from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
@@ -262,6 +262,22 @@ def login_w_password(email: str, plaintext: str) -> User:
     return user
 
 
+def login_w_apple(token: str) -> tuple[User, bool]:
+    """Retrieve or create a user who has signed in with Apple.
+
+    :return: User, user_created_flag
+    :raise: LoginError if login fails
+    """
+    # cause 500 error to dump token
+    decode = apple.jwt.decode(
+        token, audience="com.myace.myace1", options={"verify_signature": False}
+    )
+
+    s = f"apple token: {token=}\n{decode=}"
+    raise Exception(s)
+    # raise LoginError(message, code)
+
+
 def login_w_google(token: str) -> tuple[User, bool]:
     """Retrieve or create a user who has signed in with Google.
 
@@ -353,6 +369,30 @@ def login_w_google(token: str) -> tuple[User, bool]:
     return user, user_created
 
 
+class AppleCallback(Exception):
+    """The only way to log it to the console is by raising."""
+
+
+@routes.route("/callbacks/apple/", methods=["POST"])
+def apple_callback():
+    """Print a token to the console. Helps test website authentication."""
+    print("Apple website callback:")
+    error = request.form.get("error")
+    raise AppleCallback(request.body)
+    if error is not None:
+        s = (
+            f"error code received: {error}\n",
+            f"User cancelled authorize: {error == 'user_cancelled_authorize'}",
+        )
+        raise AppleCallback(s)
+    else:
+        code = request.form["code"]
+        id_token = request.form["id_token"]
+        state = request.form["state"]
+        userinfo = request.form["user"]
+        raise AppleCallback(f"{code=}\n{id_token=}\n{state=}\n{userinfo=}")
+
+
 @routes.route("/login/", methods=["POST"])
 def login():
     """
@@ -387,6 +427,12 @@ def login():
             if token is None:
                 return failure_response("Missing token.", 400)
             user, user_created = login_w_google(token)
+
+        elif method == "apple":
+            token = body.get("token")
+            if token is None:
+                return failure_response("Missing token.", 400)
+            user, user_created = login_w_apple(token)
 
         else:
             return failure_response("Invalid login method.", 400)

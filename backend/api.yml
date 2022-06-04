@@ -109,6 +109,20 @@ paths:
                         type: string
                         description: A valid Google OAuth token.
                         example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
+                  - type: object
+                    description: Register/Login with Apple. If the user does not exist, the user is created.
+                    required:
+                      - method
+                      - token
+                    properties:
+                      method:
+                        type: string
+                        description: Login with Apple.
+                        enum: [apple]
+                      token:
+                        type: string
+                        description: A valid Apple token.
+                        example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
       security: [] # no authentication
       responses:
         '200':

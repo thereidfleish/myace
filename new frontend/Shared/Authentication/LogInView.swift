@@ -37,115 +37,91 @@ struct LogInView: View {
     //@AppStorage("type") private var typeSelection = -1
     
     var body: some View {
-        ZStack {
-            GoogleAuthRepresentable()
-            VStack {
-                Text("MyAce")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color.green)
-                    .padding(.top, 20)
-                    .onAppear(perform: {
-                        checkPreviousSignIn()
-                    })
-                
-                Spacer()
-                
-                if (awaiting) {
-                    ProgressView().padding()
-                } else if (showingError) {
-                    Text(nc.errorMessage).padding()
-                } else {
+        NavigationView {
+            ZStack {
+                GoogleAuthRepresentable()
+                VStack {
+                    Text("AI Tennis Coach")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color.green)
+                        .padding(.top, 20)
+                        .onAppear(perform: {
+                            checkPreviousSignIn()
+                        })
                     
-                    Button(action: {
-                        //                Task {
-                        //                    do {
-                        //                        nc.awaiting = true
-                        //                        try await nc.authenticate(token: "test", type: 0)
-                        //                    } catch {
-                        //                        print(error)
-                        //                        errorMessage = error.localizedDescription
-                        //                        showingError = true
-                        //                    }
-                        //                    nc.awaiting = false
-                        //                    print(nc.userData.shared)
-                        //                }
-                        awaiting = true
-                        signIn(withVC: googleAuth)
-                    }, label: {
-                        Text("Sign In With Google")
-                            .buttonStyle()
-                    })
+                    Spacer()
                     
-                    Button(action: {
-                        awaiting = true
-                        // TODO: Open email signin page
-                    }, label: {
-                        Text("Sign In With Email")
-                            .buttonStyle()
-                    })
-                    
-                    SignInWithAppleButton(.signIn) { request in
-                        request.requestedScopes = [.fullName, .email]
-                    } onCompletion: { result in
-                        switch result {
-                            case .success(let authResults):
-                            switch authResults.credential {
-                            case let credential as ASAuthorizationAppleIDCredential:
-                                let userID = credential.user
-                                let token1 = credential.authorizationCode
-                                let token2 = credential.identityToken
-                                
-                                let email = credential.email
-                                let name = credential.fullName
-                                
-                                print(userID)
-                                print(token1)
-                                print(token2)
-                                print(email)
-                                print(name)
-                                
-                                //print("calling TokenSignIn with token1...")
-                                //self.tokenSignIn(idToken: String(decoding: token1!, as: UTF8.self), method: "apple")
-                                print("calling TokenSignIn with token2...")
-                                self.tokenSignIn(idToken: String(decoding: token2!, as: UTF8.self), method: "apple")
-                                print("finished calling TokenSignIns")
-                            default: break
-                            }
-                            case .failure(let error):
-                                print("Authorisation failed: \(error.localizedDescription)")
+                    if (awaiting) {
+                        ProgressView().padding()
+                    } else if (showingError) {
+                        Text(nc.errorMessage).padding()
+                    } else {
+                        
+                        Button(action: {
+                            //                Task {
+                            //                    do {
+                            //                        nc.awaiting = true
+                            //                        try await nc.authenticate(token: "test", type: 0)
+                            //                    } catch {
+                            //                        print(error)
+                            //                        errorMessage = error.localizedDescription
+                            //                        showingError = true
+                            //                    }
+                            //                    nc.awaiting = false
+                            //                    print(nc.userData.shared)
+                            //                }
+                            awaiting = true
+                            signIn(withVC: googleAuth)
+                        }, label: {
+                            Text("Sign In With Google")
+                                .buttonStyle()
+                        })
+                        
+                        NavigationLink(destination: LogInEmailView()) {
+                            Text("Sign In With Email")
+                                .buttonStyle()
                         }
-                    }.frame(height: 52.5)
-                        .cornerRadius(10)
-                }
+                        
+                        NavigationLink(destination: RegisterEmailView()) {
+                            Text("Register With Email")
+                                .buttonStyle()
+                        }
+
+                        
+                        SignInWithAppleButton(.signIn) { request in
+                            request.requestedScopes = [.fullName, .email]
+                        } onCompletion: { result in
+                            switch result {
+                                case .success(let authResults):
+                                switch authResults.credential {
+                                case let credential as ASAuthorizationAppleIDCredential:
+                                    let userID = credential.user
+                                    let token1 = credential.authorizationCode
+                                    let token2 = credential.identityToken
+                                    
+                                    let email = credential.email
+                                    let name = credential.fullName
+                                    
+                                    print(userID)
+                                    print(token1)
+                                    print(token2)
+                                    print(email)
+                                    print(name)
+                                default: break
+                                }
+                                case .failure(let error):
+                                    print("Authorization failed: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    
+                }.padding(.horizontal)
                 
-                Spacer()
-                
-                //                Button(action: {
-                //                    nc.userData.shared.type = 0
-                //                }, label: {
-                //                    Text("fake a student view for now lol")
-                //                        .padding(.vertical, 15)
-                //                        .frame(maxWidth: .infinity)
-                //                        .background(Color.green)
-                //                        .cornerRadius(10)
-                //                        .foregroundColor(.white)
-                //                })
-                //
-                //                Button(action: {
-                //                    nc.userData.shared.type = 1
-                //                }, label: {
-                //                    Text("fake a coach view for now lol")
-                //                        .padding(.vertical, 15)
-                //                        .frame(maxWidth: .infinity)
-                //                        .background(Color.green)
-                //                        .cornerRadius(10)
-                //                        .foregroundColor(.white)
-                //                })
-                
-                
-            }.padding(.horizontal)
-            
+            }
         }
     }
     
@@ -189,7 +165,7 @@ struct LogInView: View {
             guard let authentication = authentication else { return }
             let idToken = authentication.idToken
             if let uIdToken = idToken {
-                self.tokenSignIn(idToken: uIdToken, method: "google")
+                self.tokenSignIn(idToken: uIdToken)
             } else {
                 print("Authentication Failed")
             }
@@ -197,8 +173,8 @@ struct LogInView: View {
         }
     }
     
-    func tokenSignIn(idToken: String, method: String) {
-        let json: [String: Any] = ["token": idToken, "method": method]
+    func tokenSignIn(idToken: String) {
+        let json: [String: Any] = ["token": idToken, "method": "google"]
         print(idToken)
         
         //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {

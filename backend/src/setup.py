@@ -18,6 +18,7 @@ setup(
         "google-auth",
         "gunicorn",
         "psycopg2-binary",
+        "pyjwt",
         "requests",
     ],
 )
