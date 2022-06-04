@@ -77,6 +77,14 @@ struct LogInView: View {
                             .buttonStyle()
                     })
                     
+                    Button(action: {
+                        awaiting = true
+                        // TODO: Open email signin page
+                    }, label: {
+                        Text("Sign In With Email")
+                            .buttonStyle()
+                    })
+                    
                     SignInWithAppleButton(.signIn) { request in
                         request.requestedScopes = [.fullName, .email]
                     } onCompletion: { result in
