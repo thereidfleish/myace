@@ -48,54 +48,6 @@ struct ContentView: View {
                 }
                 .tag(2)
             
-            /*
-             .sheet(isPresented: $showsUploadAlert) {
-             NavigationView {
-             VStack {
-             TextField("My Video", text: $uploadName)
-             .textFieldStyle(RoundedBorderTextFieldStyle())
-             //.padding([.top, .leading, .trailing])
-             Text("Choose a bucket")
-             .bucketTextInternalStyle()
-             Picker("None Selected", selection: $uploadBucketName) {
-             ForEach(nc.userData.buckets, id: \.id) {
-             Text($0.name)
-             }
-             }
-             //.pickerStyle(.)
-             
-             Spacer()
-             if url.count > 0 {
-             VideoPlayer(player: AVPlayer(url: url[0]))
-             .frame(height: 300)
-             }
-             Spacer()
-             
-             Button(action: {
-             showsUploadAlert = false
-             uploadInit(fileURL: url[0], uploadName: uploadName)
-             
-             }, label: {
-             Text("Upload")
-             .buttonStyle()
-             //.padding([.top, .leading, .trailing])
-             })
-             
-             }.padding()
-             .navigationTitle("Set Video Title")
-             .navigationBarItems(leading: Button(action: {
-             showsUploadAlert = false
-             }, label: {
-             Text("Cancel")
-             .foregroundColor(Color.green)
-             .fontWeight(.bold)
-             }))
-             
-             }
-             
-             }
-             */
-            
             NavigationView {
                 ProfileView(yourself: true, user: networkController.userData.shared)
             }
