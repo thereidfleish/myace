@@ -46,14 +46,10 @@ struct StudentFeedbackView: View {
             try await upload = nc.getUpload(uploadID: uploadID)
             await getComments()
             player = AVPlayer(url:  URL(string: upload.url!)!)
-            //player.play()
-            //player.currentItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
             print(upload.url!)
-            print("DONE!")
             awaiting = false
         } catch {
             print(error)
-            print("JSUJUS")
             showingError = true
             awaiting = false
         }

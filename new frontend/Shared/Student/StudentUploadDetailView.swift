@@ -43,10 +43,7 @@ struct StudentUploadDetailView: View {
         ScrollView {
             VStack(alignment: .leading) {
                 StrokesView(otherUser: otherUser, currentUserAs: currentUserAs)
-
-                
             }.padding(.horizontal)
-            
         }
     }
 }

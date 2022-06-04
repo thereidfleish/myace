@@ -9,55 +9,21 @@ import SwiftUI
 
 struct StudentUploadView: View {
     @EnvironmentObject private var nc: NetworkController
+    
+    // Passed-in properties
+    var currentUserAs: CurrentUserAs
+    
+    // Private properties
     @State private var showingNewBucketView = false
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
-    @State var didAppear = false
-    var currentUserAs: CurrentUserAs
-    
-    //@State private var coaches: [Courtship] = []
-    
-    //    lazy var load: () -> Void = {
-    //        do {
-    //            awaiting = true
-    //            try await nc.getCourtships(type: nil, users: nil)
-    //            awaiting = false
-    //            print("DONE!")
-    //        } catch {
-    //            print(error)
-    //            errorMessage = error.localizedDescription
-    //            showingError = true
-    //            awaiting = false
-    //        }
-    //    }()
-    
-    //    func initialize() {
-    //        if (!didAppear) {
-    //            didAppear = true
-    //            Task {
-    //                do {
-    //                    awaiting = true
-    //                    try await nc.getCourtships(type: nil, users: nil)
-    //                    awaiting = false
-    //                    print("DONE!")
-    //                } catch {
-    //                    print(error)
-    //                    errorMessage = error.localizedDescription
-    //                    showingError = true
-    //                    awaiting = false
-    //                }
-    //            }
-    //        }
-    //
-    //    }
     
     func initialize() async {
         do {
             awaiting = true
             try await nc.getCourtships(user_id: "me", type: currentUserAs == .student ? CourtshipType.coach : CourtshipType.student)
             awaiting = false
-            print("DONE!")
         } catch {
             print(error)
             errorMessage = error.localizedDescription

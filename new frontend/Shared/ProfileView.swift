@@ -36,7 +36,6 @@ struct ProfileView: View {
 //                try await nc.getMyUploads(shared_with_ID: nil, bucketID: nil)
 //            }
             awaiting = false
-            print("DONE!")
         } catch {
             print(error)
             errorMessage = error.localizedDescription

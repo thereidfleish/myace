@@ -160,7 +160,6 @@ struct StrokesView: View {
                         ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
                             HStack {
                                 if (showingDelete && String(upload.id) == showingDeleteUploadID) {
-                                    //HStack {
                                     Text("Are you sure you want to delete this video?  This cannot be undone!")
                                         .foregroundColor(.red)
                                     Button(action: {
@@ -175,7 +174,6 @@ struct StrokesView: View {
                                             .foregroundColor(.red)
                                             .fontWeight(.bold)
                                     })
-                                    //}.padding(.horizontal)
                                 }
                                 
                             }
@@ -199,7 +197,7 @@ struct StrokesView: View {
                                         .foregroundColor(Color.green)
                                     
                                     
-                                    //                        Text("\(upload.id)")
+                                    //Text("\(upload.id)")
                                     
                                     if (!upload.stream_ready) {
                                         Text("Processing video, please wait...")

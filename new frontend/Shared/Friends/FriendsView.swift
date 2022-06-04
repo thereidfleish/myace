@@ -22,7 +22,6 @@ struct FriendsView: View {
             try await nc.getCourtshipRequests(type: nil, dir: "in", users: nil)
             try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
             awaiting = false
-            print("DONE!")
         } catch {
             print(error)
             errorMessage = error.localizedDescription

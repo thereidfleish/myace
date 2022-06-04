@@ -7,6 +7,7 @@
 
 import SwiftUI
 import GoogleSignIn
+import AuthenticationServices
 
 struct GoogleAuthRepresentable: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> some UIViewController {
@@ -75,6 +76,32 @@ struct LogInView: View {
                         Text("Sign In With Google")
                             .buttonStyle()
                     })
+                    
+                    SignInWithAppleButton(.signIn) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        switch result {
+                            case .success(let authResults):
+                            switch authResults.credential {
+                            case let credential as ASAuthorizationAppleIDCredential:
+                                let userID = credential.user
+                                let token1 = credential.authorizationCode
+                                let token2 = credential.identityToken
+                                
+                                let email = credential.email
+                                let name = credential.fullName
+                                
+                                print(userID)
+                                print(token1)
+                                print(token2)
+                                print(email)
+                                print(name)
+                            default: break
+                            }
+                            case .failure(let error):
+                                print("Authorisation failed: \(error.localizedDescription)")
+                        }
+                    }
                 }
                 
                 Spacer()
@@ -174,7 +201,6 @@ struct LogInView: View {
             print(response.debugDescription)
             
             print(data!.prettyPrintedJSONString)
-            print("NO \(error.debugDescription)")
             
             
             guard let data = data else {
@@ -190,7 +216,7 @@ struct LogInView: View {
                 nc.userData.loggedIn = true
                 
                 // Handle the new user
-                if (response.debugDescription.contains("Status Code: 201")) {
+                if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
                     nc.newUser = true
                 }
                 
