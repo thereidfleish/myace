@@ -3,6 +3,7 @@
 Tutorial followed:
 https://realpython.com/handling-email-confirmation-in-flask/
 """
+from __future__ import annotations
 import json
 from typing import Callable
 from functools import wraps
@@ -77,7 +78,7 @@ class EmailFailed(Exception):
     """An email was unable to send."""
 
 
-def send_email(to, subject, html, text):
+def send_email(to, subject, html, text) -> None:
     """Send a transactional (non-marketing) email.
 
     Fails with print statement if DEBUG is true.
@@ -130,7 +131,7 @@ def send_email(to, subject, html, text):
         message_id = response["MessageId"]
 
 
-def send_conf_email(to: User):
+def send_conf_email(to: User) -> None:
     """Send an account confirmation email to a user.
 
     :param to: The recipient
