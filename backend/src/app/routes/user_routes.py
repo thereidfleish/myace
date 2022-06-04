@@ -5,7 +5,7 @@ import re
 import flask_login
 from . import routes, success_response, failure_response
 
-from .. import aws, apple
+from .. import aws
 from ..cookiesigner import CookieSigner
 from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
@@ -260,6 +260,15 @@ def login_w_password(email: str, plaintext: str) -> User:
     if not verify_password(plaintext, user.password_hash):
         raise LoginError("Incorrect password.", 401)
     return user
+
+
+def login_w_apple(token: str) -> tuple[User, bool]:
+    """Retrieve or create a user who has signed in with Apple.
+
+    :return: User, user_created_flag
+    :raise: LoginError if login fails
+    """
+    pass
 
 
 def login_w_google(token: str) -> tuple[User, bool]:
