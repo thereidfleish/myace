@@ -40,7 +40,7 @@ struct LogInView: View {
         ZStack {
             GoogleAuthRepresentable()
             VStack {
-                Text("AI Tennis Coach")
+                Text("MyAce")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color.green)
@@ -104,12 +104,19 @@ struct LogInView: View {
                                 print(token2)
                                 print(email)
                                 print(name)
+                                
+                                //print("calling TokenSignIn with token1...")
+                                //self.tokenSignIn(idToken: String(decoding: token1!, as: UTF8.self), method: "apple")
+                                print("calling TokenSignIn with token2...")
+                                self.tokenSignIn(idToken: String(decoding: token2!, as: UTF8.self), method: "apple")
+                                print("finished calling TokenSignIns")
                             default: break
                             }
                             case .failure(let error):
                                 print("Authorisation failed: \(error.localizedDescription)")
                         }
-                    }
+                    }.frame(height: 52.5)
+                        .cornerRadius(10)
                 }
                 
                 Spacer()
@@ -182,7 +189,7 @@ struct LogInView: View {
             guard let authentication = authentication else { return }
             let idToken = authentication.idToken
             if let uIdToken = idToken {
-                self.tokenSignIn(idToken: uIdToken)
+                self.tokenSignIn(idToken: uIdToken, method: "google")
             } else {
                 print("Authentication Failed")
             }
@@ -190,8 +197,8 @@ struct LogInView: View {
         }
     }
     
-    func tokenSignIn(idToken: String) {
-        let json: [String: Any] = ["token": idToken, "method": "google"]
+    func tokenSignIn(idToken: String, method: String) {
+        let json: [String: Any] = ["token": idToken, "method": method]
         print(idToken)
         
         //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
