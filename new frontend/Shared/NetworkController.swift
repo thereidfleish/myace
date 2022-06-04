@@ -144,8 +144,9 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString)
-            
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let formatter = DateFormatter.iso8601Full
+            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
+            decoder.dateDecodingStrategy = .formatted(formatter)
             if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
                 (data, response) = try await URLSession.shared.data(from: URL(string: decodedResponse.url!)!)
                 print(data.prettyPrintedJSONString)
@@ -383,7 +384,9 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString!)
             
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let formatter = DateFormatter.iso8601Full
+            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
+            decoder.dateDecodingStrategy = .formatted(formatter)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
                 //userData.bucketContents = decodedResponse
@@ -415,7 +418,9 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString!)
             
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let formatter = DateFormatter.iso8601Full
+            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
+            decoder.dateDecodingStrategy = .formatted(formatter)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
                 //userData.bucketContents = decodedResponse

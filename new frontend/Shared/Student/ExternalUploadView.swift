@@ -150,8 +150,8 @@ struct ExternalUploadView: View {
                                 
                             })
                             
-                            if (currentUserAs == .student) {
-                                
+                            if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                                // If you're a student or viewing your own profile you can edit the uploads.
                                 Menu {
                                     Button {
                                         nc.editUploadID = String(upload.id)

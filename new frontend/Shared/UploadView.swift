@@ -135,10 +135,6 @@ struct UploadView: View {
                                 .padding(.top)
                                 .bucketTextInternalStyle()
                             
-                            Text("Global:")
-                                .padding(.top, 5.0)
-                                .smallestSubsectionStyle()
-                            
                             HStack {
                                 Text(visOptions[visibility.default]!)
                                 
@@ -155,7 +151,7 @@ struct UploadView: View {
                                 }.disabled(uploading)
                             }
                             
-                            Text("Overrides:")
+                            Text("Also shared with:")
                                 .padding(.top, 5.0)
                                 .smallestSubsectionStyle()
                             

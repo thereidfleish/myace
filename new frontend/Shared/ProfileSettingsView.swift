@@ -81,13 +81,13 @@ struct ProfileSettingsView: View {
                     .textFieldStyle()
                 
                 if(isNewUser) {
-                    Text("Before getting started, you must create at least one bucket. Buckets are where you store videos.")
+                    Text("Before getting started, you must create at least one folder. Folders are where you store videos.")
                         .padding(.top, 20)
                         .bucketTextInternalStyle()
                     Button(action: {
                         showingNewBucketView.toggle()
                     }, label: {
-                        Text("Create New Bucket")
+                        Text("Create New Folder")
                             .buttonStyle()
                     })
                     ForEach(nc.userData.buckets) { bucket in

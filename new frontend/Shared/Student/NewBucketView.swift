@@ -86,7 +86,8 @@ struct NewBucketView: View {
                             .foregroundColor(Color.green)
                             .fontWeight(.bold)
                     }
-                }))
+                }).disabled(name == "").opacity(name == "" ? 0.5 : 1)
+                )
         }
     }
 }

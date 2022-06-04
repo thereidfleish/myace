@@ -178,12 +178,12 @@ struct StrokesView: View {
             var timer = Timer()
             DispatchQueue.main.async {
                 timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
-                    Task {
+                    //Task {
                         initialize(showProgressView: false)
                         if (!nc.userData.uploads.contains(where: { $0.stream_ready == false })) {
                             timer.invalidate()
                         }
-                    }
+                    //}
                 })
             }
         }) {

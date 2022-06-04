@@ -86,7 +86,8 @@ struct StudentFeedbackView: View {
     
     
     func secondsToHoursMinutesSeconds(seconds: Int) -> String {
-        return "\(seconds / 3600):\((seconds % 3600) / 60):\((seconds % 3600) % 60)"
+        //return "\(seconds / 3600):\((seconds % 3600) / 60):\((seconds % 3600) % 60)"
+        return "\(seconds / 3600):\((seconds % 3600) / 60)\((seconds % 3600) % 60)"
     }
     
     func returnTimestampAndText(text: String) -> (Int, String) {
