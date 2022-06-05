@@ -19,33 +19,35 @@ struct LogInEmailView: View {
     @State private var loginMessage = ""
     
     func loginWithEmail() async {
-            do {
-                awaiting = true
-                //try await nc.updateCurrentUser(username: nil, displayName: displayName, biography: biography)
-                loginMessage = "Username or password is incorrect."
-                loginMessage = "Your email has not been verified. Please check your inbox for a verification email. Would you like to resend it?"
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
-            }
+        do {
+            awaiting = true
+            //try await nc.updateCurrentUser(username: nil, displayName: displayName, biography: biography)
+            loginMessage = "Username or password is incorrect."
+            loginMessage = "Your email has not been verified. Please check your inbox for a verification email. Would you like to resend it?"
+        } catch {
+            print(error)
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
+        }
     }
     
     var body: some View {
         ScrollView {
-            VStack {
+            VStack(alignment: .leading) {
                 Text("Email")
-                    .padding(.top, 20)
                     .bucketTextInternalStyle()
+                
                 TextField("john@example.com", text: $email)
                     .textFieldStyle()
+                
                 Text("Password")
-                    .padding(.top, 20)
+                    .padding(.top)
                     .bucketTextInternalStyle()
+                
                 SecureField("Password", text: $password)
                     .textFieldStyle()
-                Spacer()
+                                
                 if (displayLoginMessage) {
                     Text(loginMessage)
                         .padding(.top, 20)
@@ -60,22 +62,35 @@ struct LogInEmailView: View {
                             }
                         }
                 }
+                
                 Button(action: {
                     Task {
                         await loginWithEmail()
-                            withAnimation {
-                                displayLoginMessage = true;
-                            }
+                        withAnimation {
+                            displayLoginMessage = true;
+                        }
                     }
                     
                 }, label: {
                     Text("Log In")
                         .buttonStyle()
-                }).disabled(email == "" || password == "")
+                })
+                .padding(.top)
+                .disabled(email == "" || password == "")
                     .opacity(email == "" || password == "" ? 0.5 : 1)
                 
+                Text("Don't have an account yet?")
+                    .bucketTextInternalStyle()
+                    .padding(.top)
                 
-                    .navigationTitle("Log In")
+                NavigationLink(destination: RegisterEmailView()) {
+
+                    Text("Register with Email")
+                        .buttonStyle()
+                }
+                
+                
+                .navigationTitle("Log In")
             }.padding(.horizontal)
         }
     }

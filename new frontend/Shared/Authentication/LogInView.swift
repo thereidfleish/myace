@@ -57,36 +57,13 @@ struct LogInView: View {
                     } else if (showingError) {
                         Text(nc.errorMessage).padding()
                     } else {
-                        
                         Button(action: {
-                            //                Task {
-                            //                    do {
-                            //                        nc.awaiting = true
-                            //                        try await nc.authenticate(token: "test", type: 0)
-                            //                    } catch {
-                            //                        print(error)
-                            //                        errorMessage = error.localizedDescription
-                            //                        showingError = true
-                            //                    }
-                            //                    nc.awaiting = false
-                            //                    print(nc.userData.shared)
-                            //                }
                             awaiting = true
                             signIn(withVC: googleAuth)
                         }, label: {
-                            Text("Sign In With Google")
+                            Text("Sign in with Google")
                                 .buttonStyle()
                         })
-                        
-                        NavigationLink(destination: LogInEmailView()) {
-                            Text("Sign In With Email")
-                                .buttonStyle()
-                        }
-                        
-                        NavigationLink(destination: RegisterEmailView()) {
-                            Text("Register With Email")
-                                .buttonStyle()
-                        }
                         
                         SignInWithAppleButton(.signIn) { request in
                             request.requestedScopes = [.email, .fullName]
@@ -111,7 +88,12 @@ struct LogInView: View {
                                     //print("calling TokenSignIn with token1...")
                                     //self.tokenSignIn(idToken: String(decoding: token1!, as: UTF8.self), method: "apple")
                                     print("calling TokenSignIn with token2...")
-                                    self.tokenSignIn(idToken: String(decoding: token2!, as: UTF8.self), method: "apple")
+                                    if let token2 = token2 {
+                                        Task {
+                                            try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: token2, as: UTF8.self))
+                                        }
+                                    }
+                                    
                                     print("finished calling TokenSignIns")
                                 default: break
                                 }
@@ -121,6 +103,18 @@ struct LogInView: View {
                         }
                         .frame(height: 52.5)
                         .cornerRadius(10)
+
+                        Text("Or")
+                            .padding(.vertical)
+                            .bucketTextInternalStyle()
+                        
+                        NavigationLink(destination: LogInEmailView()) {
+                            Text("Sign in with Email")
+                                .buttonStyle()
+                        }
+                        
+
+                        
                     }
                     
                     Spacer()
@@ -172,7 +166,9 @@ struct LogInView: View {
             guard let authentication = authentication else { return }
             let idToken = authentication.idToken
             if let uIdToken = idToken {
-                self.tokenSignIn(idToken: uIdToken, method: "google")
+                Task {
+                    try await nc.login(method: "google", email: nil, password: nil, token: uIdToken)
+                }
             } else {
                 print("Authentication Failed")
             }
@@ -180,61 +176,18 @@ struct LogInView: View {
         }
     }
     
-    func tokenSignIn(idToken: String, method: String) {
-        let json: [String: Any] = ["token": idToken, "method": method]
-        print(idToken)
-        
-        //        guard let authData = try? JSONEncoder().encode(["token": idToken, "type": 0]) else {
-        //            return
-        //        }
-        guard let authData = try? JSONSerialization.data(withJSONObject: json) else {
-            return
-        }
-        let url = URL(string: "\(host)/login/")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let task = URLSession.shared.uploadTask(with: request, from: authData) { data, response, error in
-            print(response.debugDescription)
-            
-            print(data!.prettyPrintedJSONString)
-            
-            
-            guard let data = data else {
-                print("URLSession dataTask error:", error ?? "nil")
-                return
-            }
-            
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            do {
-                let decodedResponse = try decoder.decode(SharedData.self, from: data)
-                nc.userData.shared = decodedResponse
-                nc.userData.loggedIn = true
-                
-                // Handle the new user
-                if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
-                    nc.newUser = true
-                }
-                
-            } catch {
-                print("Error")
-                awaiting = false
-            }
-        }
-        task.resume()
-    }
-    
     func checkPreviousSignIn() {
+        print("checking previous sign in...")
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
             if let error = error {
                 self.errorMessage = "error: \(error.localizedDescription)"
             }
             
             if let user = user {
+                print("found a previous sign in!")
                 authenticate(user: user)
             } else {
+                print("did not find a previous sign in :(")
                 awaiting = false
             }
             

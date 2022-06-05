@@ -244,9 +244,11 @@ struct UploadsRes: Codable {
 //}
 
 // Helpers
-struct AuthReq: Codable {
-    var token: String
+struct LoginReq: Codable {
     var method: String
+    var email: String?
+    var password: String?
+    var token: String?
 }
 
 struct RegisterEmailReq: Codable {

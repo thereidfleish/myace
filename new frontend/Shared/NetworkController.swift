@@ -34,6 +34,44 @@ class NetworkController: ObservableObject {
     func clearUserData() {
         userData = UserData()
     }
+    
+    // POST
+    func login(method: String, email: String?, password: String?, token: String?) async throws {
+        let req: LoginReq = LoginReq(method: method, email: email, password: password, token: token)
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/login/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        
+        do {
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(response)
+            print(data.prettyPrintedJSONString)
+            
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
+            userData.shared = decodedResponse
+            userData.loggedIn = true
+            
+            // Handle the new user
+            if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
+                newUser = true
+            }
+            // Handle the error case
+            else if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
+        } catch {
+            print(error)
+            print("login failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            throw decodedResponse.error + " (error code: \(error))"
+        }
+    }
 
     // POST
     func registerWithEmail(username: String, display_name: String, biography: String, email: String, password: String) async throws {
@@ -50,18 +88,17 @@ class NetworkController: ObservableObject {
         do {
             (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(response)
-//            if((response as? HTTPURLResponse)?.statusCode ?? -1 == 404) {
-//                print("404 return early")
-//                return
-//            }
             print(data.prettyPrintedJSONString)
-            //let decodedResponse = try decoder.decode(SearchRes.self, from: data)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 201) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             
         } catch {
+            print(error)
             print("registerWithEmail failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
+            //throw "Unknown error.  Please submit a bug report so we can figure out what went wrong :)"
         }
     }
     
@@ -82,7 +119,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("checkUsername failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
+            throw decodedResponse.error
             throw NetworkError.failedDecode
         }
     }
@@ -650,6 +687,7 @@ class NetworkController: ObservableObject {
     }
     
     enum NetworkError: Error {
+        case knownError(error: String)
         case failedEncode
         case failedDecode
         case noReturn
@@ -687,6 +725,10 @@ extension Data {
         
         return prettyPrintedString
     }
+}
+
+extension String: LocalizedError {
+    public var errorDescription: String? { return self }
 }
 
 //private extension NetworkController {

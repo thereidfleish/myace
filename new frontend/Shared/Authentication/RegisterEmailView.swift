@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RegisterEmailView: View {
     @EnvironmentObject private var nc: NetworkController
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     
     @State private var email = ""
     @State private var username = ""
@@ -31,7 +31,7 @@ struct RegisterEmailView: View {
     
     func checkValidAndAvailable() async {
         do {
-            let (valid, available) = try await nc.checkUsername(userName: username)
+            let (valid, available) = try await nc.checkUsername(userName: username.replacingOccurrences(of: " ", with: "").lowercased())
             if(!valid || !available) {
                 userNameMessage = "\(!valid ? "Username is invalid. Must contain 4-16 characters. At least one letter. No special characters except . and _" : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
                 userNameValidAndAvailable = false
@@ -49,108 +49,120 @@ struct RegisterEmailView: View {
     }
     
     func registerWithEmail() async {
-            do {
-                awaiting = true
-                try await nc.registerWithEmail(username: username, display_name: displayName, biography: biography, email: email, password: password)
-                registerMessage = "Registration successful! A confirmation email has been sent to \(email)."
-                registrationSuccessful = true
-//                registerMessage = "Your email has not been verified. Please check your inbox for a verification email. Would you like to resend it?"
-                awaiting = false
-            } catch {
-                print(error)
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
-            }
+        do {
+            awaiting = true
+            try await nc.registerWithEmail(username: username, display_name: displayName, biography: biography, email: email, password: password)
+            registrationSuccessful = true
+            awaiting = false
+        } catch {
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
+        }
     }
     
     var body: some View {
-        ScrollView {
-            VStack {
-                Group {
-                    Text("Email")
-                        .bucketTextInternalStyle()
-                    TextField("john@example.com", text: $email)
-                        .textFieldStyle()
-                    Text("Username")
-                        .bucketTextInternalStyle()
-                    TextField("Create Username", text: $username)
-                        .textFieldStyle()
-                        .onChange(of: username) { newValue in
-                        Task {
-                            await checkValidAndAvailable()
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading) {
+                    Group {
+                        Text("Email")
+                            .bucketTextInternalStyle()
+                        
+                        TextField("john@example.com", text: $email)
+                            .textFieldStyle()
+                        
+                        Text("Password")
+                            .padding(.top)
+                            .bucketTextInternalStyle()
+                        
+                        SecureField("Create Password", text: $password)
+                            .textFieldStyle()
+                        
+                        Text("Confirm Password")
+                            .padding(.top)
+                            .bucketTextInternalStyle()
+                        
+                        SecureField("Confirm Password", text: $confirmPassword)
+                            .textFieldStyle()
+                        
+                        if (password != "") {
+                            Text(password == "" ? "" : (password == confirmPassword ? "Passwords match!" : "Passwords don't match."))
+                                .smallestSubsectionStyle()
                         }
+                        
+                        Text("Username")
+                            .padding(.top)
+                            .bucketTextInternalStyle()
+                        
+                        TextField("Create Username", text: $username)
+                            .textFieldStyle()
+                            .onChange(of: username) { newValue in
+                                Task {
+                                    await checkValidAndAvailable()
+                                }
+                            }
+                        
+                        if (userNameMessage != "") {
+                            Text(userNameMessage)
+                                .smallestSubsectionStyle()
+                        }
+                        
+                        
+                        
                     }
                     
-                    Text(userNameMessage)
+                    
+                    Text("Display Name")
+                        .padding(.top)
                         .bucketTextInternalStyle()
                     
-                    Text("Password")
-                        .bucketTextInternalStyle()
-                    SecureField("Create Password", text: $password)
+                    TextField("What would you like to be called?", text: $displayName)
                         .textFieldStyle()
                     
-                    Text(password == confirmPassword ? (password == "" ? "Please enter a password" : "Passwords match!") : "Passwords don't match")
-                        .padding(.top, 20)
+                    
+                    Text("Bio")
+                        .padding(.top)
                         .bucketTextInternalStyle()
                     
-                    Text("Confirm Password")
-                        .bucketTextInternalStyle()
-                    SecureField("Confirm Password", text: $confirmPassword)
+                    TextField("Type something about yourself", text: $biography)
                         .textFieldStyle()
-                }
-                
-                
-                
-                Text("Display Name")
-                    .padding(.top, 20)
-                    .bucketTextInternalStyle()
-                
-                TextField("Create Display Name", text: $displayName)
-                    .textFieldStyle()
-                
-                
-                Text("Bio")
-                    .padding(.top, 20)
-                    .bucketTextInternalStyle()
-                
-                TextField("Create Bio", text: $biography)
-                    .textFieldStyle()
-                
-                if (displayRegisterMessage) {
-                    Text(registerMessage)
-                        .padding(.top, 20)
-                        .bucketTextInternalStyle()
-                        .onAppear {
-                            DispatchQueue.main.async {
-                                Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
-                                    withAnimation {
-                                        displayRegisterMessage = false
-                                    }
-                                    if(registrationSuccessful) {
-                                        dismiss()
-                                    }
-                                })
-                            }
-                        }
-                }
-                
-                Button(action: {
-                    Task {
-                        await registerWithEmail()
+                    
+                    if (displayRegisterMessage) {
+                        Text(registerMessage)
+                            .smallestSubsectionStyle()
+                    }
+                    
+                    Button(action: {
+                        Task {
+                            await registerWithEmail()
                             withAnimation {
                                 displayRegisterMessage = true;
                             }
-                    }
-                    
-                }, label: {
-                    Text("Register")
-                        .buttonStyle()
-                }).disabled(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "")
+                        }
+                        
+                    }, label: {
+                        Text("Register")
+                            .buttonStyle()
+                    })
+                    .padding(.top)
+                    .disabled(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "")
                     .opacity(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "" ? 0.5 : 1)
-                
+                    
                     .navigationTitle("Register")
-            }.padding(.horizontal)
+                }.padding(.horizontal)
+            }
+            
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
+            
+            if registrationSuccessful {
+                Message(title: "Account Created", message: "Registration successful! A confirmation email has been sent to \(email).", style: .success, isPresented: $registrationSuccessful, view:
+                            AnyView(Button(action: {mode.wrappedValue.dismiss()}, label: {Text("Continue").messageButtonStyle()}))
+                )
+            }
         }
     }
 }
