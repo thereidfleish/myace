@@ -11,6 +11,7 @@ env.read_env()
 # Misc environment variables
 AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY")
+APPLE_CLIENT_ID = env.str("APPLE_CLIENT_ID")
 # replace line delimeter characters '\n' with newlines and convert to bytes
 CF_PRIVATE_KEY = env.str("CF_PRIVATE_KEY").replace("\\n", "\n").encode("utf-8")
 CF_PUBLIC_KEY_ID = env.str("CF_PUBLIC_KEY_ID")
