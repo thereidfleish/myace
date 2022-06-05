@@ -249,6 +249,14 @@ struct AuthReq: Codable {
     var method: String
 }
 
+struct RegisterEmailReq: Codable {
+    var username: String
+    var display_name: String
+    var biography: String
+    var email: String
+    var password: String
+}
+
 struct UpdateUserReq: Codable {
     var username: String?
     var display_name: String?
