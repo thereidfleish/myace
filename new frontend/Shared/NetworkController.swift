@@ -34,6 +34,36 @@ class NetworkController: ObservableObject {
     func clearUserData() {
         userData = UserData()
     }
+
+    // POST
+    func registerWithEmail(username: String, display_name: String, biography: String, email: String, password: String) async throws {
+        let req: RegisterEmailReq = RegisterEmailReq(username: username, display_name: display_name, biography: biography, email: email, password: password)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/register/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        do {
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(response)
+//            if((response as? HTTPURLResponse)?.statusCode ?? -1 == 404) {
+//                print("404 return early")
+//                return
+//            }
+            print(data.prettyPrintedJSONString)
+            //let decodedResponse = try decoder.decode(SearchRes.self, from: data)
+            
+        } catch {
+            print("registerWithEmail failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            errorMessage = decodedResponse.error
+            throw NetworkError.failedDecode
+        }
+    }
     
     // GET
     func checkUsername(userName: String) async throws -> (Bool, Bool) {
@@ -458,7 +488,6 @@ class NetworkController: ObservableObject {
             errorMessage = decodedResponse.error
             throw NetworkError.failedDecode
         }
-        //throw NetworkError.noReturn
     }
     
     // POST
