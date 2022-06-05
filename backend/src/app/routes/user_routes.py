@@ -1,15 +1,16 @@
 import bcrypt
 import json
 import re
+import jwt
 
 import flask_login
 from . import routes, success_response, failure_response
 
-from .. import aws, apple
+from .. import aws
 from ..cookiesigner import CookieSigner
 from ..email import EmailFailed, email_conf_required, send_conf_email
 from ..models import User, LoginMethods
-from ..settings import G_CLIENT_IDS
+from ..settings import G_CLIENT_IDS, APPLE_CLIENT_ID
 from ..extensions import db
 
 from flask import request
@@ -169,6 +170,11 @@ def register():
                 "An account with this email already exists and is using Google sign-on.",
                 400,
             )
+        elif user_w_email.login_method == LoginMethods.APPLE:
+            return failure_response(
+                "An account with this email already exists and is using Apple sign-on.",
+                400,
+            )
         else:
             # Generic failure
             return failure_response(
@@ -268,14 +274,66 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     :return: User, user_created_flag
     :raise: LoginError if login fails
     """
-    # cause 500 error to dump token
-    decode = apple.jwt.decode(
-        token, audience="com.myace.myace1", options={"verify_signature": False}
-    )
+    # See https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple#3383773
+    try:
+        # TODO: Does verify_signature work?
+        # Must verify the JWS E256 signature using the server’s public key??
+        decoded = jwt.decode(
+            token,
+            algorithms=["HS256"],
+            audience=APPLE_CLIENT_ID,
+            options={"verify_signature": True, "verify_exp": True},
+        )
+        iss = decoded["iss"]
+        aud = decoded["aud"]
+        exp = decoded[
+            "exp"
+        ]  # time after which the token expires, in seconds since Epoch, UTC
+        apple_uuid = decoded["sub"]  # unique identifier of user
+        email = decoded.get(
+            "email"
+        )  # email not included in ID token after initial sign in
+        # As of 6/5/2022, Apple does not include name in the ID token
+        # REST callback can retrieve it, however, but I'm just gonna default
+        # to empty name
+        display_name = decoded.get("name") or ""
+        if decoded["nonce_supported"]:
+            pass  # TODO: prevent replay attacks by verifying nonce
+            # assert decoded["nonce"] ==
+        assert iss == "https://appleid.apple.com"
+        assert aud == APPLE_CLIENT_ID
+    except (jwt.exceptions.InvalidTokenError, KeyError, AssertionError):
+        raise LoginError("Failed to verify Apple token.", 400)
+    except jwt.exceptions.ExpiredSignatureError:
+        raise LoginError("Apple token signature has expired.", 400)
 
-    s = f"apple token: {token=}\n{decode=}"
-    raise Exception(s)
-    # raise LoginError(message, code)
+    # Check if user exists
+    user_created = False
+
+    if email is not None:
+        user_w_email = User.query.filter_by(email=email).first()
+        if (
+            user_w_email is not None
+            and user_w_email.login_method != LoginMethods.APPLE
+        ):
+            raise LoginError(
+                "This email address is registered to an account using another login method.",
+                400,
+            )
+    user_w_auuid = User.query.filter_by(apple_uuid=apple_uuid).first()
+    if user_w_auuid is not None:
+        user = user_w_auuid
+    else:
+        # User does not exist, add them.
+        assert email is not None  # first time sign-in JWT must include email
+        user = User(
+            display_name=display_name, email=email, apple_uuid=apple_uuid
+        )
+        db.session.add(user)
+        db.session.commit()
+        user_created = True
+
+    return user, user_created
 
 
 def login_w_google(token: str) -> tuple[User, bool]:
@@ -346,12 +404,14 @@ def login_w_google(token: str) -> tuple[User, bool]:
             # Give login method specific error messages
             if user_w_email.login_method == LoginMethods.EMAIL:
                 raise LoginError(
-                    f"This account was created via email/password.", 400
+                    f"This account uses email/password sign-on.", 400
                 )
+            elif user_w_email.login_method == LoginMethods.APPLE:
+                raise LoginError(f"This account uses Apple sign-on.", 400)
             else:
                 # Generic response
                 raise LoginError(
-                    "This account was created with another sign-on method.",
+                    "This email was registered with another sign-on method.",
                     400,
                 )
     else:

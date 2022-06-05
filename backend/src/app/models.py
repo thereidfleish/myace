@@ -29,6 +29,7 @@ class LoginMethods(enum.Enum):
     # The values are never stored in the DB.
     EMAIL = enum.auto()
     GOOGLE = enum.auto()
+    APPLE = enum.auto()
 
 
 # User Table
@@ -46,6 +47,7 @@ class User(db.Model):
     biography = db.Column(db.String, nullable=False, default="")
 
     login_method = db.Column(db.Enum(LoginMethods), nullable=False)
+    apple_uuid = db.Column(db.String, nullable=True, unique=True)
     google_id = db.Column(db.String, nullable=True, unique=True)
     password_hash = db.Column(db.String, nullable=True)
     # email_confirmed is only null if login_method is EMAIL
@@ -68,6 +70,7 @@ class User(db.Model):
         username=None,
         biography=None,
         password_hash=None,
+        apple_uuid=None,
         google_id=None,
     ):
         self.display_name = display_name
@@ -86,6 +89,9 @@ class User(db.Model):
         elif google_id is not None:
             self.google_id = google_id
             self.login_method = LoginMethods.GOOGLE
+        elif apple_uuid is not None:
+            self.apple_uuid = apple_uuid
+            self.login_method = LoginMethods.APPLE
         else:
             raise Exception(
                 "Cannot construct user because login method cannot be determined."
