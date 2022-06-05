@@ -16,8 +16,9 @@ struct StrokesView: View {
     var currentUserAs: CurrentUserAs
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
-    //    @State private var showingEditingName = false
-    //    @State private var showingEditingNameUploadID: String = ""
+        @State private var showingEditingBucketName = false
+        @State private var editingBucketName: String = ""
+    @State private var editingBucketNameBucketID: String = ""
     //    @State private var uploadName = ""
     //    @State private var originalName = ""
     //    @State private var showingDeleteUploadID: String = ""
@@ -94,7 +95,6 @@ struct StrokesView: View {
                         })
                     }
                 }
-                .padding(.bottom)
                 
                 if (nc.userData.buckets.count == 0) {
                     Text("\(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
@@ -103,6 +103,28 @@ struct StrokesView: View {
                 }
                 
                 ForEach(nc.userData.buckets) { bucket in
+                                            HStack {
+                                                if (showingEditingBucketName && String(bucket.id) == editingBucketNameBucketID) {
+                                                    TextField("Edit name", text: $editingBucketName)
+                                                        .textFieldStyle()
+                    
+                                                    Button(action: {
+                                                        Task {
+                                                            awaiting = true
+                                                            try await nc.editBucket(bucketID: editingBucketNameBucketID, newName: editingBucketName)
+                                                            await initialize(showProgressView: true)
+                                                            showingEditingBucketName = false
+                                                        }
+
+                                                    }, label: {
+                                                        Text("Save")
+                                                            .foregroundColor(.green)
+                                                            .fontWeight(.bold)
+                                                    })
+                                                }
+                    
+                                            }
+                    
                     Section(header: HStack {
                         //                        Button(action: {
                         //                            withAnimation {
@@ -117,6 +139,7 @@ struct StrokesView: View {
                         
                         Text(bucket.name)
                             .bucketTextInternalStyle()
+                            .padding(.top)
                         
                         Spacer()
                         
@@ -132,7 +155,14 @@ struct StrokesView: View {
                             
                             Menu {
                                 Button {
-                                    
+                                    withAnimation {
+                                        if (editingBucketNameBucketID == String(bucket.id)) {
+                                            showingEditingBucketName.toggle()
+                                        } else {
+                                            showingEditingBucketName = true
+                                        }
+                                        editingBucketNameBucketID = String(bucket.id)
+                                    }
                                 } label: {
                                     Label("Rename", systemImage: "pencil")
                                 }
@@ -154,7 +184,7 @@ struct StrokesView: View {
                             }
                         }
                         
-                    }
+                    }.id("\(bucket.id)-1")
                         .background(Color.white)
                             , content: {
                         ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
@@ -239,7 +269,7 @@ struct StrokesView: View {
                                     
                                     Spacer()
                                 }
-                            }
+                            }.id("\(upload.id)-2")
                         }
                     })
                 }
@@ -251,7 +281,7 @@ struct StrokesView: View {
             
         }
         .mediaImporter(isPresented: $isShowingMediaPicker,
-                       allowedMediaTypes: .all,
+                       allowedMediaTypes: .videos,
                        allowsMultipleSelection: false) { result in
             switch result {
             case .success(let url):
