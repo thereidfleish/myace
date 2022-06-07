@@ -142,7 +142,6 @@ def confirm_email(token):
         return failure_response(
             "This confirmation link is invalid or expired.", 400
         )
-    print(email)
     user = User.query.filter_by(email=email).first()
     if user is None:
         return failure_response(
@@ -281,7 +280,12 @@ APPLE_KEY_CACHE_EXP = 60 * 60 * 24  # expire after 1 day
 APPLE_LAST_KEY_FETCH = 0
 
 
-def _fetch_apple_public_key():
+def _fetch_apple_public_key(unverified_kid):
+    """Fetch a specific public RSA key posted by Apple.
+
+    :param unverified_kid: the unverified key ID specified in a JWT header
+    :raise IndexError: if the unverified_kid does not match any public keys
+    """
     # from https://gist.github.com/davidhariri/b053787aabc9a8a9cc0893244e1549fe
     # Check to see if the public key is unset or is stale before returning
     global APPLE_LAST_KEY_FETCH
@@ -293,9 +297,13 @@ def _fetch_apple_public_key():
         key_payload = requests.get(
             "https://appleid.apple.com/auth/keys"
         ).json()
-        APPLE_PUBLIC_KEY = RSAAlgorithm.from_jwk(
-            json.dumps(key_payload["keys"][0])
-        )
+        try:
+            matching_key = next(
+                k for k in key_payload["keys"] if k["kid"] == unverified_kid
+            )
+        except StopIteration:
+            raise IndexError("Cannot find Key ID in Apple's public keys.")
+        APPLE_PUBLIC_KEY = RSAAlgorithm.from_jwk(json.dumps(matching_key))
         APPLE_LAST_KEY_FETCH = int(time.time())
 
     return APPLE_PUBLIC_KEY
@@ -309,7 +317,7 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     """
     # See https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple#3383773
     try:
-        kid_from_header = jwt.get_unverified_header(access_token)["kid"]
+        kid_from_header = jwt.get_unverified_header(token)["kid"]
         decoded = jwt.decode(
             token,
             _fetch_apple_public_key(kid_from_header),
@@ -317,29 +325,26 @@ def login_w_apple(token: str) -> tuple[User, bool]:
             algorithms=["RS256"],
             options={"verify_signature": True},
         )
-        iss = decoded["iss"]
-        aud = decoded["aud"]
-        exp = decoded[
-            "exp"
-        ]  # time after which the token expires, in seconds since Epoch, UTC
         apple_uuid = decoded["sub"]  # unique identifier of user
         email = decoded.get(
             "email"
         )  # email not included in ID token after initial sign in
-        # As of 6/5/2022, Apple does not include name in the ID token
-        # REST callback can retrieve it, however, but I'm just gonna default
-        # to empty name
+        # As of now, 6/5/2022, Apple does not include name in the ID token
+        # Although another request can retrieve it, I'm just gonna default to
+        # empty display name
         display_name = decoded.get("name") or ""
         if decoded["nonce_supported"]:
             pass  # TODO: prevent replay attacks by verifying nonce
             # assert decoded["nonce"] ==
-        assert iss == "https://appleid.apple.com"
-        assert aud == APPLE_CLIENT_ID
-    except (jwt.exceptions.InvalidTokenError, KeyError, AssertionError) as e:
+    except jwt.exceptions.ExpiredSignatureError:
+        raise LoginError("Apple token has expired.", 400)
+    except (
+        jwt.exceptions.InvalidTokenError,
+        IndexError,
+        KeyError,
+    ) as e:
         raise e
         raise LoginError("Failed to verify Apple token.", 400)
-    except jwt.exceptions.ExpiredSignatureError:
-        raise LoginError("Apple token signature has expired.", 400)
 
     # Check if user exists
     user_created = False
@@ -463,28 +468,17 @@ def login_w_google(token: str) -> tuple[User, bool]:
     return user, user_created
 
 
-class AppleCallback(Exception):
-    """The only way to log it to the console is by raising."""
-
-
 @routes.route("/callbacks/apple/", methods=["POST"])
 def apple_callback():
-    """Print a token to the console. Helps test website authentication."""
-    print("Apple website callback:")
+    """The callback route for the REST 'Sign in with Apple' button.
+
+    Dumps all forwarded information to the page.
+    """
     error = request.form.get("error")
-    raise AppleCallback(request.data)
     if error is not None:
-        s = (
-            f"error code received: {error}\n",
-            f"User cancelled authorize: {error == 'user_cancelled_authorize'}",
-        )
-        raise AppleCallback(s)
+        return failure_response(error)
     else:
-        code = request.form["code"]
-        id_token = request.form["id_token"]
-        state = request.form["state"]
-        userinfo = request.form["user"]
-        raise AppleCallback(f"{code=}\n{id_token=}\n{state=}\n{userinfo=}")
+        return success_response(request.form)
 
 
 @routes.route("/login/", methods=["POST"])
