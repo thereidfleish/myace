@@ -1446,7 +1446,7 @@ components:
               example: 5
             last_modified:
               type: string
-              description: "If the bucket is empty, the bucket's creation datetime."
+              description: "If the bucket is empty, the bucket's creation datetime. Otherwise the creation datetime of the most recent viewable upload inside it."
               format: date-time
         - $ref: '#/components/schemas/BucketRequest'
 

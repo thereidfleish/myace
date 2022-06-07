@@ -642,26 +642,30 @@ class Bucket(db.Model):
 
     def serialize(self, client: User):
         """:return: a serialized Bucket from the perspective of the client"""
-        response = {"id": self.id, "name": self.name, "size": self._size()}
-        last_modified = self._get_last_modified()
-        response["last_modified"] = (
-            self.created.isoformat()
-            if last_modified is None
-            else last_modified
-        )
-        return response
+        return {
+            "id": self.id,
+            "name": self.name,
+            "size": self._size(),
+            "last_modified": self._get_last_modified(client),
+        }
 
     def _size(self) -> int:
         """:return: A nonnegative count of all associated uploads"""
         return Upload.query.filter_by(bucket_id=self.id).count()
 
-    def _get_last_modified(self) -> Optional[datetime.datetime]:
-        """:return: the most recent upload's creation date in ISO format or None if there are no uploads"""
+    def _get_last_modified(self, client) -> str:
+        """:return: The ISO formatted timestamp of this bucket's last update.
+
+        An update occurs when a bucket is created or an upload visible to the
+        client has been created inside a bucket.
+        """
         most_recent = (
-            Upload.query.filter_by(bucket_id=self.id)
+            Upload.query.filter(
+                and_(Upload.bucket_id == self.id, Upload.viewable_to(client))
+            )
             .order_by(Upload.created.desc())
             .first()
         )
         if most_recent is None:
-            return None
+            return self.created.isoformat()
         return most_recent.created.isoformat()
