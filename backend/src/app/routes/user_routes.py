@@ -309,13 +309,13 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     """
     # See https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple#3383773
     try:
-        # Must verify the JWS E256 signature using the server’s public key
+        kid_from_header = jwt.get_unverified_header(access_token)["kid"]
         decoded = jwt.decode(
             token,
-            _fetch_apple_public_key(),
-            algorithms=["RS256"],
+            _fetch_apple_public_key(kid_from_header),
             audience=APPLE_CLIENT_ID,
-            options={"verify_signature": True, "verify_exp": True},
+            algorithms=["RS256"],
+            options={"verify_signature": True},
         )
         iss = decoded["iss"]
         aud = decoded["aud"]
@@ -335,7 +335,8 @@ def login_w_apple(token: str) -> tuple[User, bool]:
             # assert decoded["nonce"] ==
         assert iss == "https://appleid.apple.com"
         assert aud == APPLE_CLIENT_ID
-    except (jwt.exceptions.InvalidTokenError, KeyError, AssertionError):
+    except (jwt.exceptions.InvalidTokenError, KeyError, AssertionError) as e:
+        raise e
         raise LoginError("Failed to verify Apple token.", 400)
     except jwt.exceptions.ExpiredSignatureError:
         raise LoginError("Apple token signature has expired.", 400)
@@ -471,7 +472,7 @@ def apple_callback():
     """Print a token to the console. Helps test website authentication."""
     print("Apple website callback:")
     error = request.form.get("error")
-    raise AppleCallback(request.body)
+    raise AppleCallback(request.data)
     if error is not None:
         s = (
             f"error code received: {error}\n",
