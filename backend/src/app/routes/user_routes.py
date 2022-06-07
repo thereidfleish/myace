@@ -2,6 +2,9 @@ import bcrypt
 import json
 import re
 import jwt
+from jwt.algorithms import RSAAlgorithm
+import requests
+import time
 
 import flask_login
 from . import routes, success_response, failure_response
@@ -21,7 +24,7 @@ from ..extensions import db
 from flask import request
 
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as g_requests
 from google.auth.exceptions import GoogleAuthError
 
 
@@ -273,6 +276,31 @@ def login_w_password(email: str, plaintext: str) -> User:
     return user
 
 
+APPLE_PUBLIC_KEY = None
+APPLE_KEY_CACHE_EXP = 60 * 60 * 24  # expire after 1 day
+APPLE_LAST_KEY_FETCH = 0
+
+
+def _fetch_apple_public_key():
+    # from https://gist.github.com/davidhariri/b053787aabc9a8a9cc0893244e1549fe
+    # Check to see if the public key is unset or is stale before returning
+    global APPLE_LAST_KEY_FETCH
+    global APPLE_PUBLIC_KEY
+
+    if (APPLE_LAST_KEY_FETCH + APPLE_KEY_CACHE_EXP) < int(
+        time.time()
+    ) or APPLE_PUBLIC_KEY is None:
+        key_payload = requests.get(
+            "https://appleid.apple.com/auth/keys"
+        ).json()
+        APPLE_PUBLIC_KEY = RSAAlgorithm.from_jwk(
+            json.dumps(key_payload["keys"][0])
+        )
+        APPLE_LAST_KEY_FETCH = int(time.time())
+
+    return APPLE_PUBLIC_KEY
+
+
 def login_w_apple(token: str) -> tuple[User, bool]:
     """Retrieve or create a user who has signed in with Apple.
 
@@ -281,11 +309,11 @@ def login_w_apple(token: str) -> tuple[User, bool]:
     """
     # See https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api/authenticating_users_with_sign_in_with_apple#3383773
     try:
-        # TODO: Does verify_signature work?
-        # Must verify the JWS E256 signature using the server’s public key??
+        # Must verify the JWS E256 signature using the server’s public key
         decoded = jwt.decode(
             token,
-            algorithms=["HS256"],
+            _fetch_apple_public_key(),
+            algorithms=["RS256"],
             audience=APPLE_CLIENT_ID,
             options={"verify_signature": True, "verify_exp": True},
         )
@@ -375,7 +403,7 @@ def login_w_google(token: str) -> tuple[User, bool]:
         # Verify token with specified OAuth client IDs
         try:
             idinfo = id_token.verify_oauth2_token(
-                token, requests.Request(), G_CLIENT_IDS
+                token, g_requests.Request(), G_CLIENT_IDS
             )
         except ValueError:
             raise LoginError("Token verification failed. Unauthorized.", 401)

@@ -34,7 +34,7 @@ def email_conf_required(route: Callable) -> Callable:
         # Only require verification if the user registered via email/password.
         if (
             user.login_method == LoginMethods.EMAIL
-            and user.email_confirmed == False
+            and not user.email_confirmed
         ):
             return json.dumps({"error": "User must confirm their email."}), 401
         # Call the route normally, forwarding all arguments
