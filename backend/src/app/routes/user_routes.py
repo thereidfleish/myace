@@ -338,6 +338,8 @@ def login_w_apple(token: str) -> tuple[User, bool]:
             # assert decoded["nonce"] ==
     except jwt.exceptions.ExpiredSignatureError:
         raise LoginError("Apple token has expired.", 400)
+    except jwt.exceptions.InvalidAudienceError:
+        raise LoginError("Apple token has invalid audience (client ID).", 400)
     except (
         jwt.exceptions.InvalidTokenError,
         IndexError,
