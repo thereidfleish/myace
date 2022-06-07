@@ -275,7 +275,7 @@ def login_w_password(email: str, plaintext: str) -> User:
     return user
 
 
-APPLE_PUBLIC_KEY = None
+APPLE_PUBLIC_KEYS = None  # cache
 APPLE_KEY_CACHE_EXP = 60 * 60 * 24  # expire after 1 day
 APPLE_LAST_KEY_FETCH = 0
 
@@ -289,24 +289,25 @@ def _fetch_apple_public_key(unverified_kid):
     # from https://gist.github.com/davidhariri/b053787aabc9a8a9cc0893244e1549fe
     # Check to see if the public key is unset or is stale before returning
     global APPLE_LAST_KEY_FETCH
-    global APPLE_PUBLIC_KEY
+    global APPLE_PUBLIC_KEYS
 
     if (APPLE_LAST_KEY_FETCH + APPLE_KEY_CACHE_EXP) < int(
         time.time()
-    ) or APPLE_PUBLIC_KEY is None:
+    ) or APPLE_PUBLIC_KEYS is None:
         key_payload = requests.get(
             "https://appleid.apple.com/auth/keys"
         ).json()
-        try:
-            matching_key = next(
-                k for k in key_payload["keys"] if k["kid"] == unverified_kid
-            )
-        except StopIteration:
-            raise IndexError("Cannot find Key ID in Apple's public keys.")
-        APPLE_PUBLIC_KEY = RSAAlgorithm.from_jwk(json.dumps(matching_key))
+        APPLE_PUBLIC_KEYS = key_payload["keys"]
         APPLE_LAST_KEY_FETCH = int(time.time())
 
-    return APPLE_PUBLIC_KEY
+    try:
+        matching_key = next(
+            k for k in APPLE_PUBLIC_KEYS if k["kid"] == unverified_kid
+        )
+    except StopIteration:
+        raise IndexError("Cannot find Key ID in Apple's public keys.")
+    matching_key = RSAAlgorithm.from_jwk(json.dumps(matching_key))
+    return matching_key
 
 
 def login_w_apple(token: str) -> tuple[User, bool]:
@@ -331,8 +332,12 @@ def login_w_apple(token: str) -> tuple[User, bool]:
         )  # email not included in ID token after initial sign in
         # As of now, 6/5/2022, Apple does not include name in the ID token
         # Although another request can retrieve it, I'm just gonna default to
-        # empty display name
-        display_name = decoded.get("name") or ""
+        # email prefix or empty display name
+        display_name = (
+            decoded.get("name")
+            or (None if email is None else email[: email.find("@")])
+            or ""
+        )
         if decoded["nonce_supported"]:
             pass  # TODO: prevent replay attacks by verifying nonce
             # assert decoded["nonce"] ==
@@ -345,7 +350,7 @@ def login_w_apple(token: str) -> tuple[User, bool]:
         IndexError,
         KeyError,
     ) as e:
-        raise e
+        print(e)  # TODO remove me
         raise LoginError("Failed to verify Apple token.", 400)
 
     # Check if user exists
