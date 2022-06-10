@@ -199,7 +199,7 @@ def forgot_password():
     return success_response(code=204)
 
 
-@routes.route("/callbacks/forgot/")
+@routes.route("/callbacks/forgot/", methods=["POST"])
 def forgot_pwd_callback():
     """Callback for forgot password form submission."""
     body = json.loads(request.data)
