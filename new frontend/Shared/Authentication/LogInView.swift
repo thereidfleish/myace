@@ -93,6 +93,7 @@ struct LogInView: View {
                 Task {
                     do {
                         try await nc.login(method: "google", email: nil, password: nil, token: uIdToken)
+                        awaiting = false
                     }
                     catch {
                         print("Showing error: \(error)")
