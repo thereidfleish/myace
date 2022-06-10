@@ -127,6 +127,32 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // GET
+    func getIndividualUser(userID: String) async throws -> SharedData {
+        
+        let url = URL(string: "\(host)/users/\(userID)/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
+            print(data.prettyPrintedJSONString)
+            print(response)
+            
+            if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
+            return decodedResponse
+        } catch {
+            print("getIndividualUser failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            throw decodedResponse.error + " (error code: \(error))"
+        }
+    }
+    
     
     // PUT
     func updateCurrentUser(username: String?, displayName: String?, biography: String?) async throws {
