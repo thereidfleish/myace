@@ -97,7 +97,7 @@ def secs_before_sending(user: User) -> int:
         return 0
     allowed_to_send = user.email_last_sent + datetime.timedelta(seconds=90)
     now = datetime.datetime.utcnow()
-    n_secs_left = int((allowed_to_send - now).total_seconds())
+    return int((allowed_to_send - now).total_seconds())
 
 
 def send_email(to, subject, html, text) -> None:

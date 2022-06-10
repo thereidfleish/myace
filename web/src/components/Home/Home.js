@@ -1,6 +1,10 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button'
 import './Home.scss'
+import Timeline from './Timeline/Timeline'
+import About from './About/About'
+import Fund from './Fund/Fund'
+import Alpha from './Alpha/Alpha'
 
 export default function Home() {
   return (
@@ -14,7 +18,10 @@ export default function Home() {
                 </Button></a>
             </div>
         </div>
+      <Timeline />
+      <About />
+      <Fund />
+      <Alpha />
     </div>
-    
   );
 }
