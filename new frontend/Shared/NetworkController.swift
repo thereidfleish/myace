@@ -169,8 +169,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -195,8 +194,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("editUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -218,9 +216,9 @@ class NetworkController: ObservableObject {
                 return decodedResponse
             }
         } catch {
+            print("getUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
         let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
         errorMessage = decodedResponse.error
@@ -243,8 +241,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -275,8 +272,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -306,8 +302,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("createComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -326,8 +321,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -358,8 +352,7 @@ class NetworkController: ObservableObject {
             
         } catch {
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -380,8 +373,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getBuckets failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -405,8 +397,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("editBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -425,8 +416,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -462,9 +452,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getMyUploads failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            print("ERROR: \(errorMessage)")
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -496,8 +484,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getOtherUserUploads failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -519,8 +506,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("searchUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -547,8 +533,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("createCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -582,8 +567,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getCourtshipRequests failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -609,8 +593,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("updateIncomingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -630,8 +613,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteOutgoingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -658,8 +640,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("getCourtships failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -678,8 +659,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("removeCourtship failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
