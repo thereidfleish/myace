@@ -19,8 +19,7 @@ class NetworkController: ObservableObject {
     let host = "https://api.myace.ai"
     let decoder = JSONDecoder()
     var (data, response): (Data, URLResponse) = (Data(), URLResponse())
-    
-    
+        
     //    enum State {
     //        case idle
     //        case loading
@@ -33,6 +32,7 @@ class NetworkController: ObservableObject {
     
     func clearUserData() {
         userData = UserData()
+        //UserDefaults.standard.set(Data(), forKey: "appletoken")
     }
     
     // POST
@@ -41,7 +41,7 @@ class NetworkController: ObservableObject {
         guard let encoded = try? JSONEncoder().encode(req) else {
             throw NetworkError.failedEncode
         }
-        
+        print(token)
         let url = URL(string: "\(host)/login/")!
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -98,7 +98,6 @@ class NetworkController: ObservableObject {
             print("registerWithEmail failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             throw decodedResponse.error + " (error code: \(error))"
-            //throw "Unknown error.  Please submit a bug report so we can figure out what went wrong :)"
         }
     }
     
@@ -119,8 +118,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("checkUsername failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -152,8 +150,7 @@ class NetworkController: ObservableObject {
         } catch {
             print("updateCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            errorMessage = decodedResponse.error
-            throw NetworkError.failedDecode
+            throw decodedResponse.error + " (error code: \(error))"
         }
     }
     
@@ -699,6 +696,13 @@ enum CurrentUserAs {
     case student
     case coach
     case observer
+}
+
+enum signedInWith {
+    case none
+    case google
+    case apple
+    case email
 }
 
 extension DateFormatter {

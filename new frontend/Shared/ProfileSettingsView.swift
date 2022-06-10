@@ -49,8 +49,8 @@ struct ProfileSettingsView: View {
     
     var body: some View {
         ScrollView {
-            VStack {
-                Text(isNewUser ? "Welcome to AI Tennis Coach!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
+            VStack(alignment: .leading) {
+                Text(isNewUser ? "Welcome to MyAce!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
                     .bucketTextInternalStyle()
                     .onAppear(perform: {
                         username = nc.userData.shared.username
@@ -82,7 +82,7 @@ struct ProfileSettingsView: View {
                     .textFieldStyle()
                 
                 if(isNewUser) {
-                    Text("Before getting started, you must create at least one folder. Folders are where you store videos.")
+                    Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
                         .padding(.top, 20)
                         .bucketTextInternalStyle()
                     Button(action: {

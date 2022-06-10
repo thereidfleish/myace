@@ -17,11 +17,11 @@ struct LogInEmailView: View {
     @State private var errorMessage = ""
     @State private var displayLoginMessage = false
     @State private var loginMessage = ""
-    
+        
     func loginWithEmail() async {
         do {
             awaiting = true
-            //try await nc.updateCurrentUser(username: nil, displayName: displayName, biography: biography)
+            try await nc.login(method: "password", email: email, password: password, token: nil)
             loginMessage = "Username or password is incorrect."
             loginMessage = "Your email has not been verified. Please check your inbox for a verification email. Would you like to resend it?"
         } catch {

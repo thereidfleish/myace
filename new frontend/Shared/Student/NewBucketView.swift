@@ -31,7 +31,7 @@ struct NewBucketView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text("Choose from a default stroke or add a custom stroke")
+                    Text("Choose from a default folder or add a custom folder")
                         .bucketTextInternalStyle()
                     
                     Menu {
@@ -41,7 +41,7 @@ struct NewBucketView: View {
                             }
                         }
                     } label: {
-                        Text("Choose from a default stroke")
+                        Text("Choose from a default folder")
                             .buttonStyle()
                     }
                     
@@ -66,7 +66,7 @@ struct NewBucketView: View {
                     
                     
                 }.padding(.horizontal)
-            }.navigationTitle("New Stroke")
+            }.navigationTitle("New Folder")
                 .navigationBarItems(leading: Button(action: {
                     self.mode.wrappedValue.dismiss()
                 }, label: {

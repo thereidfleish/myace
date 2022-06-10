@@ -52,7 +52,13 @@ struct ProfileView: View {
                     AsyncImage(url: nc.userData.profilePic) { image in
                         yourself ? image.resizable() : Image(systemName: "person.crop.circle").resizable()
                     } placeholder: {
-                        ProgressView()
+                        ZStack {
+                            Circle()
+                                .foregroundColor(Color.green)
+                            Text(user.display_name.prefix(1))
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                        }
                     }
                     .frame(width: 128, height: 128)
                     .clipShape(Circle())
