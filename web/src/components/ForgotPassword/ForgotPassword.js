@@ -34,7 +34,7 @@ export default function ForgotPassword() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
             {
-              pwd: pwd,
+              password: pwd,
               token: token
             })
       };
