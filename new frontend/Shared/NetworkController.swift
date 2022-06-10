@@ -52,9 +52,7 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString)
             
-            let decodedResponse = try decoder.decode(SharedData.self, from: data)
-            userData.shared = decodedResponse
-            userData.loggedIn = true
+
             
             // Handle the new user
             if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
@@ -64,6 +62,10 @@ class NetworkController: ObservableObject {
             else if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
+            
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
+            userData.shared = decodedResponse
+            userData.loggedIn = true
             
         } catch {
             print(error)
@@ -111,9 +113,12 @@ class NetworkController: ObservableObject {
         
         do {
             (data, response) = try await URLSession.shared.data(for: request)
-            let decodedResponse = try decoder.decode(CheckUsername.self, from: data)
             print(data.prettyPrintedJSONString)
             print(response)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            let decodedResponse = try decoder.decode(CheckUsername.self, from: data)
             return (decodedResponse.valid, decodedResponse.available)
         } catch {
             print("checkUsername failed decode")
@@ -171,6 +176,9 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("deleteCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -196,6 +204,10 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString!)
             
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
         } catch {
             print("editUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -211,24 +223,29 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
             let formatter = DateFormatter.iso8601Full
             formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
             decoder.dateDecodingStrategy = .formatted(formatter)
-            if let decodedResponse = try? decoder.decode(Upload.self, from: data) {
-                (data, response) = try await URLSession.shared.data(from: URL(string: decodedResponse.url!)!)
-                print(data.prettyPrintedJSONString)
-                print(response)
-                return decodedResponse
-            }
+            
+            
+            let decodedResponse = try decoder.decode(Upload.self, from: data)
+//            (data, response) = try await URLSession.shared.data(from: URL(string: decodedResponse.url!)!)
+//            print(data.prettyPrintedJSONString)
+//            print(response)
+            
+            return decodedResponse
+            
         } catch {
             print("getUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             throw decodedResponse.error + " (error code: \(error))"
         }
-        let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-        errorMessage = decodedResponse.error
-        throw NetworkError.noReturn
-        //        return Upload(id: -1, created: "?", display_title: "?", stream_ready: false, bucket_id: -1, comments: [], url: "?")
+
     }
     
     // DELETE
@@ -243,6 +260,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("deleteUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -266,6 +287,9 @@ class NetworkController: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             //print("JSON Data: \(data.prettyPrintedJSONString)")
             
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
@@ -300,6 +324,10 @@ class NetworkController: ObservableObject {
             let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 201) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Comment.self, from: data)
             
@@ -323,6 +351,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("deleteComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -349,6 +381,11 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString)
             print(response)
+        
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 201) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(Bucket.self, from: data)
             DispatchQueue.main.sync {
@@ -368,6 +405,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print("JSON Data: \(data.prettyPrintedJSONString)")
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             
             decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
             let decodedResponse = try decoder.decode(BucketRes.self, from: data)
@@ -399,6 +440,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             print(response)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("editBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -418,6 +463,9 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(for: request)
             print(data.prettyPrintedJSONString)
             print(response)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("deleteBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -442,6 +490,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             
             let formatter = DateFormatter.iso8601Full
             formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
@@ -475,6 +527,10 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString!)
             
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
             let formatter = DateFormatter.iso8601Full
             formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
             decoder.dateDecodingStrategy = .formatted(formatter)
@@ -500,10 +556,15 @@ class NetworkController: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
             print(response)
-            if((response as? HTTPURLResponse)?.statusCode ?? -1 == 404) {
-                print("404 return early")
-                return ([], false)
+//            if((response as? HTTPURLResponse)?.statusCode ?? -1 == 404) {
+//                print("404 return early")
+//                return ([], false)
+//            }
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
+            
             print(data.prettyPrintedJSONString)
             let decodedResponse = try decoder.decode(SearchRes.self, from: data)
             return (decodedResponse.users, decodedResponse.has_next)
@@ -535,6 +596,10 @@ class NetworkController: ObservableObject {
             print(response)
             print(data.prettyPrintedJSONString)
             
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 201) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
         } catch {
             print("createCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -557,8 +622,10 @@ class NetworkController: ObservableObject {
         let url = URL(string: stringBuilder)!
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            
+            let (data, response) = try await URLSession.shared.data(from: url)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             let decodedResponse = try decoder.decode(CourtshipRequestRes.self, from: data)
             DispatchQueue.main.sync {
                 if dir == "in" {
@@ -595,6 +662,10 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data)
             print(response)
+            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("updateIncomingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -614,7 +685,9 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(for: request)
             print(data)
             print(response)
-            
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
         } catch {
             print("deleteOutgoingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
@@ -636,6 +709,9 @@ class NetworkController: ObservableObject {
             (data, response) = try await URLSession.shared.data(from: url)
             print(response)
             print(data.prettyPrintedJSONString!)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             
             let decodedResponse = try decoder.decode(GetCourtshipsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -658,8 +734,10 @@ class NetworkController: ObservableObject {
         request.httpMethod = "DELETE"
         
         do {
-            let (_, _) = try await URLSession.shared.data(for: request)
-           
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
             
         } catch {
             print("removeCourtship failed decode")

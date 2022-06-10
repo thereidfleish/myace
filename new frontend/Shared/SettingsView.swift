@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var showDeleteAccount: Bool = false
     
     @State private var showingError = false
+    @State private var showingSuccess = false
     @State private var errorMessage = ""
     @State private var awaiting = true
     
@@ -22,6 +23,7 @@ struct SettingsView: View {
         Task {
             do {
                 try await nc.deleteCurrentUser()
+                showingSuccess = true
                 GIDSignIn.sharedInstance.signOut()
                 print("logged out")
                 nc.clearUserData()
@@ -103,6 +105,9 @@ struct SettingsView: View {
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
+            if showingSuccess {
+                Message(title: "Successfully deleted user!", message: "", style: .success, isPresented: $showingSuccess, view: nil)
             }
         }
         
