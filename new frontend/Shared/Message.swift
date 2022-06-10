@@ -72,6 +72,13 @@ struct Message: View {
                     
                     if (view != nil) {
                         view
+                            .padding(.top)
+                    }
+                    
+                    if (style == .error) {
+                        Link("Report Bug", destination: URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSf9aY2-RUsSVp3pIBqvP6dmdqVJcC9Z6LOygBFlWmEY_f213Q/viewform?usp=sf_link")!)
+                            .messageButtonStyle()
+                            .padding(.top)
                     }
                 }
                 .padding()
