@@ -15,6 +15,7 @@ setup(
         "flask",
         "flask-login",
         "flask-sqlalchemy",
+        "flask-cors",
         "google-auth",
         "gunicorn",
         "psycopg2-binary",

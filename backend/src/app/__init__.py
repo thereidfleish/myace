@@ -12,7 +12,7 @@ from .settings import (
     CF_PRIVATE_KEY,
     VIEW_DOCS_KEY,
 )
-from .extensions import db, login_manager
+from .extensions import db, login_manager, cors
 
 
 def create_app(test_config=None):
@@ -31,6 +31,9 @@ def register_extensions(app) -> None:
     db.init_app(app)
     with app.app_context():
         db.create_all()
+
+    # CORS
+    cors.init_app(app)
 
     # Flask-Login config and callbacks
     login_manager.init_app(app)
