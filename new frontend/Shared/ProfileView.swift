@@ -116,10 +116,13 @@ struct ProfileView: View {
             }.navigationBarTitle(user.username, displayMode: .inline)
                 .navigationBarItems(leading: Button(action: {
                     if (yourself) {
-                        GIDSignIn.sharedInstance.signOut()
+                        //GIDSignIn.sharedInstance.signOut()
+                        print(HTTPCookieStorage.shared)
+                        let components = DateComponents(calendar: Calendar.current, year: 2000, month: 1, day: 1)
+                        HTTPCookieStorage.shared.removeCookies(since: Calendar.current.date(from: components)!)
                         print("logged out")
+                        print(HTTPCookieStorage.shared)
                         nc.clearUserData()
-                        //typeSelection = -1
                     }
                 }, label: {
                     if (yourself) {

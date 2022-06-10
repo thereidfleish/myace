@@ -35,8 +35,21 @@ struct LogInView: View {
     //@EnvironmentObject var delegate: AppDelegate
     @State private var awaiting = true
     
-    @State private var prevSignIn: [Any] = UserDefaults.standard.array(forKey: "appletoken") ?? [signedInWith.none, Data()]
-    
+    func checkPreviousSignIn() {
+        print("checking previous sign in...")
+        
+        Task {
+            do {
+                nc.userData.shared = try await nc.getIndividualUser(userID: "me")
+                nc.userData.loggedIn = true
+            }
+            catch {
+                awaiting = false
+            }
+            
+        }
+    }
+        
     func signIn(withVC vc: UIViewController) {
         GIDSignIn.sharedInstance.signIn(with: signInConfig, presenting: vc) { user, error in
             guard error == nil else {
@@ -93,48 +106,6 @@ struct LogInView: View {
             }
             
         }
-    }
-    
-    func checkPreviousSignIn() {
-        print("checking previous sign in...")
-        
-        switch prevSignIn[0] as! signedInWith {
-        case .none:
-            awaiting = false
-        case .google:
-            GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
-                if let error = error {
-                    self.errorMessage = "error: \(error.localizedDescription)"
-                }
-                
-                if let user = user {
-                    print("found a previous sign in!")
-                    authenticate(user: user)
-                } else {
-                    print("did not find a previous sign in :(")
-                    awaiting = false
-                }
-            }
-        case .apple:
-            Task { 
-                do {
-                    try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: prevSignIn[1] as! Data, as: UTF8.self))
-                }
-                catch {
-                    print("Showing error: \(error)")
-                    errorMessage = error.localizedDescription
-                    showingError = true
-                    awaiting = false
-                }
-            }
-        case .email:
-            Task {
-                //try await nc.login(method: "password", email: email, password: password, token: nil)
-            }
-        }
-        
-        
-        //awaiting = false
     }
 
     var body: some View {
@@ -214,15 +185,13 @@ struct LogInView: View {
                             Text("Sign in with Email")
                                 .buttonStyle()
                         }
-                        
-
-                        
                     }
                     
                     Spacer()
                     
                     
                 }.padding(.horizontal)
+                
                 if showingError {
                     Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
                 }
