@@ -23,7 +23,7 @@ struct FriendsView: View {
             try await nc.getCourtshipRequests(type: nil, dir: "out", users: nil)
             awaiting = false
         } catch {
-            print(error)
+            print("Showing error: \(error)")
             errorMessage = error.localizedDescription
             showingError = true
             awaiting = false
@@ -31,70 +31,68 @@ struct FriendsView: View {
     }
     
     var body: some View {
-        VStack {
-            if (awaiting) {
-                ProgressView()
-            } else if (showingError) {
-                Text(nc.errorMessage).padding()
-            } else {
-                VStack {
-                    Picker("", selection: $tabIndex) {
-                        Text("Courtships").tag(0)
-                        Text("Courtship Requests").tag(1)
-                    } .pickerStyle(.segmented)
-                    
-                }.padding(.horizontal)
-                
-                ScrollView {
-                    if tabIndex == 0 {
-                        if nc.userData.courtships.count == 0 {
-                            Text("Click the + icon to search for and add your courtships!")
-                                .bucketTextInternalStyle()
-                        }
-                        ForEach(nc.userData.courtships, id: \.self.id) { courtship in
-                            UserCardView(user: courtship)
-                        }
+        ZStack {
+            VStack {
+                if (awaiting) {
+                    ProgressView()
+                } else if (showingError) {
+                    Text(nc.errorMessage).padding()
+                } else {
+                    VStack {
+                        Picker("", selection: $tabIndex) {
+                            Text("Courtships").tag(0)
+                            Text("Courtship Requests").tag(1)
+                        } .pickerStyle(.segmented)
                         
-                    }
-                    else  {
-                        VStack(alignment: .leading) {
-                            Text(nc.userData.incomingCourtshipRequests.count > 0 ? "Incoming Courtship Requests" : "No Incoming Courtship Requests")
-                                .bucketTextInternalStyle()
-                            
-                            ForEach(nc.userData.incomingCourtshipRequests, id: \.self.id) { courtship in
+                    }.padding(.horizontal)
+                    
+                    ScrollView {
+                        if tabIndex == 0 {
+                            if nc.userData.courtships.count == 0 {
+                                Text("Click the + icon to search for and add your courtships!")
+                                    .bucketTextInternalStyle()
+                            }
+                            ForEach(nc.userData.courtships, id: \.self.id) { courtship in
                                 UserCardView(user: courtship)
                             }
                             
-                            Text(nc.userData.outgoingCourtshipRequests.count > 0 ? "Outgoing Courtship Requests" : "No Outgoing Courtship Requests")
-                                .padding(.top)
-                                .bucketTextInternalStyle()
-                            
-                            ForEach(nc.userData.outgoingCourtshipRequests, id: \.self.id) { courtship in
-                                UserCardView(user: courtship)
+                        }
+                        else  {
+                            VStack(alignment: .leading) {
+                                Text(nc.userData.incomingCourtshipRequests.count > 0 ? "Incoming Courtship Requests" : "No Incoming Courtship Requests")
+                                    .bucketTextInternalStyle()
+                                
+                                ForEach(nc.userData.incomingCourtshipRequests, id: \.self.id) { courtship in
+                                    UserCardView(user: courtship)
+                                }
+                                
+                                Text(nc.userData.outgoingCourtshipRequests.count > 0 ? "Outgoing Courtship Requests" : "No Outgoing Courtship Requests")
+                                    .padding(.top)
+                                    .bucketTextInternalStyle()
+                                
+                                ForEach(nc.userData.outgoingCourtshipRequests, id: \.self.id) { courtship in
+                                    UserCardView(user: courtship)
+                                }
                             }
+                            
                         }
                         
-                    }
-                    
-                }.padding(.horizontal)
-                    .navigationBarItems(trailing:
-                                            NavigationLink(destination: SearchView().onAppear(perform: {didAppear = false})) {
-                        Image(systemName: "plus")
-                            .foregroundColor(Color.green)
-                            .padding()
-                    }
-                                        
-                                        
-                                        
+                    }.padding(.horizontal)
+                        .navigationBarItems(trailing:
+                                                NavigationLink(destination: SearchView().onAppear(perform: {didAppear = false})) {
+                            Image(systemName: "plus")
+                                .foregroundColor(Color.green)
+                                .padding()
+                        }
                     )
+                }
+            }.task {
+                await initialize()
             }
-        }.task {
-            await initialize()
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }
-        
-        
-        
-        
     }
 }
 

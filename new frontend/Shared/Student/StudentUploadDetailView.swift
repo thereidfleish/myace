@@ -47,9 +47,3 @@ struct StudentUploadDetailView: View {
         }
     }
 }
-
-//struct StudentUploadDetailView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        StudentUploadDetailView()
-//    }
-//}

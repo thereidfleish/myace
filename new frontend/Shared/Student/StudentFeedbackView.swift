@@ -15,7 +15,8 @@ struct StudentFeedbackView: View {
     var student: Bool
     var uploadID: String
     @State private var showingError = false
-    @State private var awaiting = true
+    @State private var errorMessage = ""
+    @State private var awaiting = false
     @State private var upload: Upload = Upload(id: -1, created: Date(), display_title: "", stream_ready: false, bucket: Bucket(id: -1, last_modified: Date(), name: ""), url: "")
     @State private var didAppear = false
     //    @State private var player = AVPlayer(url:  URL(string: "http://devimages.apple.com/iphone/samples/bipbop/bipbopall.m3u8")!)
@@ -49,7 +50,8 @@ struct StudentFeedbackView: View {
             print(upload.url!)
             awaiting = false
         } catch {
-            print(error)
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
             showingError = true
             awaiting = false
         }
@@ -61,9 +63,10 @@ struct StudentFeedbackView: View {
             try await nc.getComments(uploadID: uploadID, courtshipType: nil)
             commentsAwaiting = false
         } catch {
-            print(error)
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
             showingError = true
-            commentsAwaiting = false
+            awaiting = false
         }
     }
     
@@ -75,8 +78,10 @@ struct StudentFeedbackView: View {
                 showingCommentEditor = false
             }
         } catch {
-            print(error)
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
             showingError = true
+            awaiting = false
         }
     }
     
@@ -256,7 +261,9 @@ struct StudentFeedbackView: View {
                 
                 
             }.padding(.horizontal)
-            
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }.task {
             await initialize()
         }
@@ -271,9 +278,3 @@ extension UIScreen{
     static let screenHeight = UIScreen.main.bounds.size.height
     static let screenSize = UIScreen.main.bounds.size
 }
-
-//struct StudentFeedbackView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        StudentFeedbackView()
-//    }
-//}

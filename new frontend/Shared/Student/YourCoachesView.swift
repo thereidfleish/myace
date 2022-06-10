@@ -25,7 +25,7 @@ struct StudentUploadView: View {
             try await nc.getCourtships(user_id: "me", type: currentUserAs == .student ? CourtshipType.coach : CourtshipType.student)
             awaiting = false
         } catch {
-            print(error)
+            print("Showing error: \(error)")
             errorMessage = error.localizedDescription
             showingError = true
             awaiting = false
@@ -33,54 +33,59 @@ struct StudentUploadView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack {
-                VStack(alignment: .leading) {
-                    Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
-                        .bucketNameStyle()
-                        .foregroundColor(Color.green)
-                    
-                    Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
-                        .sectionHeadlineStyle()
-                        .foregroundColor(Color.green)
-                    
-                    if nc.userData.courtships.isEmpty {
-                        Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
-                            .multilineTextAlignment(.center)
-                            .padding(.top)
-                    }
-                    
-                    
-                    ScrollView {
-                        if(awaiting) {
-                            ProgressView()
+        ZStack {
+            NavigationView {
+                VStack {
+                    VStack(alignment: .leading) {
+                        Text("\(Helper.computeWelcome()) \(Helper.firstName(name: nc.userData.shared.display_name))!")
+                            .bucketNameStyle()
+                            .foregroundColor(Color.green)
+                        
+                        Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
+                            .sectionHeadlineStyle()
+                            .foregroundColor(Color.green)
+                        
+                        if nc.userData.courtships.isEmpty {
+                            Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                                .multilineTextAlignment(.center)
+                                .padding(.top)
                         }
-                        else if(showingError) {
-                            Text(nc.errorMessage).padding()
-                        }
-                        else {
-                            ForEach(nc.userData.courtships, id: \.self.id) { user in
-                                UserCardHomeView(user: user, currentUserAs: currentUserAs)
+                        
+                        
+                        ScrollView {
+                            if(awaiting) {
+                                ProgressView()
+                            }
+                            else if(showingError) {
+                                Text(nc.errorMessage).padding()
+                            }
+                            else {
+                                ForEach(nc.userData.courtships, id: \.self.id) { user in
+                                    UserCardHomeView(user: user, currentUserAs: currentUserAs)
+                                }
                             }
                         }
+                        
+                        
+                    }.sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
+                        
                     }
                     
                     
-                }.sheet(isPresented: $showingNewBucketView) {
-                    NewBucketView()
                     
-                }
-                
-                
-                
-                
-            }.padding(.horizontal)
-                .navigationBarTitle("Home", displayMode: .inline)
-                .navigationBarItems(trailing: Refresher().refreshable {
-                    await initialize()
-                })
-        }.task {
-            await initialize()
+                    
+                }.padding(.horizontal)
+                    .navigationBarTitle("Home", displayMode: .inline)
+                    .navigationBarItems(trailing: Refresher().refreshable {
+                        await initialize()
+                    })
+            }.task {
+                await initialize()
+            }
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }
     }
 }

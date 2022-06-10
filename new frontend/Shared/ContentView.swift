@@ -9,8 +9,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection = 0
-    //@StateObject var studentInfo = StudentInfo()
-    //@StateObject var coachInfo = CoachInfo()
     @EnvironmentObject private var networkController: NetworkController
     var body: some View {
         TabView(selection: $selection) {

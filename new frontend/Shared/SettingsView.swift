@@ -14,6 +14,10 @@ struct SettingsView: View {
     @EnvironmentObject private var nc: NetworkController
     @State private var showDeleteAccount: Bool = false
     
+    @State private var showingError = false
+    @State private var errorMessage = ""
+    @State private var awaiting = true
+    
     func deleteCurrentUser()  {
         Task {
             do {
@@ -23,78 +27,84 @@ struct SettingsView: View {
                 nc.clearUserData()
                 self.mode.wrappedValue.dismiss()
             } catch {
-                print(error)
+                print("Showing error: \(error)")
+                errorMessage = error.localizedDescription
+                showingError = true
+                awaiting = false
             }
         }
     }
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    Text("General")
-                        .bucketNameStyle()
-                        .foregroundColor(Color.green)
-                        .padding(.horizontal)
-                    NavigationLink(destination: ProfileSettingsView(isNewUser: false)) {
-                        HStack {
-                            Text("Edit Profile Info")
-                                .bucketNameStyle()
-                                .foregroundColor(Color.white)
-                            Spacer()
-                            Image(systemName: "chevron.right.square.fill")
-                                .resizable()
-                                .scaledToFill()
-                                .foregroundColor(Color.white)
-                                .frame(width: 20, height: 20)
+        ZStack {
+            NavigationView {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        Text("General")
+                            .bucketNameStyle()
+                            .foregroundColor(Color.green)
+                            .padding(.horizontal)
+                        NavigationLink(destination: ProfileSettingsView(isNewUser: false)) {
+                            HStack {
+                                Text("Edit Profile Info")
+                                    .bucketNameStyle()
+                                    .foregroundColor(Color.white)
+                                Spacer()
+                                Image(systemName: "chevron.right.square.fill")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 20, height: 20)
+                            }
+                            .navigationLinkStyle()
                         }
-                        .navigationLinkStyle()
-                    }
-                    if (showDeleteAccount) {
-                        HStack {
-                            Text("Are you sure you want to delete your account?  This cannot be undone!")
-                                .foregroundColor(.red)
-                            Button(action: {
-                                deleteCurrentUser()
-                            }, label: {
-                                Text("Permanently Delete Account")
+                        if (showDeleteAccount) {
+                            HStack {
+                                Text("Are you sure you want to delete your account?  This cannot be undone!")
                                     .foregroundColor(.red)
-                                    .fontWeight(.bold)
-                            })
-                        }.padding(.horizontal)
-                    }
-                    Button(action: {withAnimation {showDeleteAccount = true}}) {
-                        HStack {
-                            Text("Delete Account")
-                                .bucketNameStyle()
-                                .foregroundColor(Color.white)
-                            Spacer()
-                            Image(systemName: "trash.fill")
-                                .resizable()
-                                .scaledToFill()
-                                .foregroundColor(Color.white)
-                                .frame(width: 20, height: 20)
+                                Button(action: {
+                                    deleteCurrentUser()
+                                }, label: {
+                                    Text("Permanently Delete Account")
+                                        .foregroundColor(.red)
+                                        .fontWeight(.bold)
+                                })
+                            }.padding(.horizontal)
                         }
-                            .padding()
-                            .background(.red)
-                            .cornerRadius(10)
-                            .shadow(radius: 5)
+                        Button(action: {withAnimation {showDeleteAccount = true}}) {
+                            HStack {
+                                Text("Delete Account")
+                                    .bucketNameStyle()
+                                    .foregroundColor(Color.white)
+                                Spacer()
+                                Image(systemName: "trash.fill")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 20, height: 20)
+                            }
+                                .padding()
+                                .background(.red)
+                                .cornerRadius(10)
+                                .shadow(radius: 5)
+                        }
                     }
                 }
+                .navigationTitle("Settings")
+                .navigationBarItems(trailing:
+                                        Button(action: {
+                    self.mode.wrappedValue.dismiss()
+                }, label: {
+                    Text("Done")
+                        .foregroundColor(.green)
+                })
+                                    
+                )
             }
-            .navigationTitle("Settings")
-            .navigationBarItems(trailing:
-                                    Button(action: {
-                self.mode.wrappedValue.dismiss()
-            }, label: {
-                Text("Done")
-                    .foregroundColor(.green)
-            })
-                                
-            )
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }
-        
-        
         
     }
 }

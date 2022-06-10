@@ -68,9 +68,3 @@ struct UserCardHomeView: View {
         
     }
 }
-
-//struct UserCardView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        UserCardView()
-//    }
-//}

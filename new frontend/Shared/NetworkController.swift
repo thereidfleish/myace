@@ -141,12 +141,17 @@ class NetworkController: ObservableObject {
             print(data.prettyPrintedJSONString!)
             print(response)
             
-            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
-            if let decodedResponse = try? decoder.decode(SharedData.self, from: data) {
-                print(data.prettyPrintedJSONString!)
-                print(response)
-                userData.shared = decodedResponse
+            if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
+            
+            decoder.dateDecodingStrategy = .formatted(DateFormatter.iso8601Full)
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
+            print(data.prettyPrintedJSONString!)
+            
+            
+            
+            userData.shared = decodedResponse
         } catch {
             print("updateCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)

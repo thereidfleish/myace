@@ -34,6 +34,7 @@ struct SearchView: View {
                 print(searchedUsers)
                 awaiting = false
             } catch {
+                print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
                 showingError = true
                 awaiting = false
@@ -51,6 +52,7 @@ struct SearchView: View {
                 //print("next loaded---\(nextLoadedUsers) lastPageLoaded\(lastPageLoaded)")
                 awaiting = false
             } catch {
+                print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
                 showingError = true
                 awaiting = false
@@ -59,38 +61,42 @@ struct SearchView: View {
     }
     
     var body: some View {
-        NavigationView {
-            
-            VStack(alignment: .leading) {
-                Text("Type a Username")
-                    .bucketTextInternalStyle()
-                    .padding(.top)
-                
-                TextField("Name", text: $searchText)
-                    .autocapitalization(.none)
-                    .textFieldStyle()
-                    .onChange(of: searchText) { newValue in
-                        Task {
-                            await search()
+        ZStack {
+            NavigationView {
+                VStack(alignment: .leading) {
+                    Text("Type a Username")
+                        .bucketTextInternalStyle()
+                        .padding(.top)
+                    
+                    TextField("Name", text: $searchText)
+                        .autocapitalization(.none)
+                        .textFieldStyle()
+                        .onChange(of: searchText) { newValue in
+                            Task {
+                                await search()
+                            }
+                        }
+                    
+                    ScrollView {
+                        ForEach(searchedUsers) { user in
+                            
+                            UserCardView(user: user)
+                            
+                        }
+                        if(hasNext) {
+                            Button(action: loadMoreSearch) {
+                                Text("Load More...")
+                                    .bucketTextInternalStyle()
+                                    .padding()
+                            }
                         }
                     }
-                
-                ScrollView {
-                    ForEach(searchedUsers) { user in
-                        
-                        UserCardView(user: user)
-                        
-                    }
-                    if(hasNext) {
-                        Button(action: loadMoreSearch) {
-                            Text("Load More...")
-                                .bucketTextInternalStyle()
-                                .padding()
-                        }
-                    }
-                }
-            }.navigationTitle("Search")
-                .padding(.horizontal)
+                }.navigationTitle("Search")
+                    .padding(.horizontal)
+            }
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }
     }
 }

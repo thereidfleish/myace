@@ -40,103 +40,109 @@ struct ProfileSettingsView: View {
                 }
                 awaiting = false
             } catch {
-                print(error)
+                print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
+                saveMessage = "Changes unsuccessful. See error message."
                 showingError = true
                 awaiting = false
             }
     }
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                Text(isNewUser ? "Welcome to MyAce!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
-                    .bucketTextInternalStyle()
-                    .onAppear(perform: {
-                        username = nc.userData.shared.username
-                        displayName = nc.userData.shared.display_name
-                        biography = nc.userData.shared.biography
-                        if(isNewUser) {
-                            nc.userData.buckets = []
-                        }
-                    })
-                TextField("Edit Username", text: $username)
-                    .textFieldStyle()
-                
-                Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
-                    .padding(.top, 20)
-                    .bucketTextInternalStyle()
-//                    .onAppear(perform: {
-//                        //username = nc.userData.shared.username
-//                    })
-                
-                TextField("Edit Display Name", text: $displayName)
-                    .textFieldStyle()
-                
-                
-                Text(isNewUser ? "Tell us a little about yourself in your profile bio.": "Bio")
-                    .padding(.top, 20)
-                    .bucketTextInternalStyle()
-                
-                TextField("Edit Bio", text: $biography)
-                    .textFieldStyle()
-                
-                if(isNewUser) {
-                    Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading) {
+                    Text(isNewUser ? "Welcome to MyAce!  We've created a username for you below.  Since your username is how friends will find you, feel free to change it below." : "Username")
+                        .bucketTextInternalStyle()
+                        .onAppear(perform: {
+                            username = nc.userData.shared.username
+                            displayName = nc.userData.shared.display_name
+                            biography = nc.userData.shared.biography
+                            if(isNewUser) {
+                                nc.userData.buckets = []
+                            }
+                        })
+                    TextField("Edit Username", text: $username)
+                        .textFieldStyle()
+                    
+                    Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
                         .padding(.top, 20)
                         .bucketTextInternalStyle()
+    //                    .onAppear(perform: {
+    //                        //username = nc.userData.shared.username
+    //                    })
+                    
+                    TextField("Edit Display Name", text: $displayName)
+                        .textFieldStyle()
+                    
+                    
+                    Text(isNewUser ? "Tell us a little about yourself in your profile bio.": "Bio")
+                        .padding(.top, 20)
+                        .bucketTextInternalStyle()
+                    
+                    TextField("Edit Bio", text: $biography)
+                        .textFieldStyle()
+                    
+                    if(isNewUser) {
+                        Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
+                            .padding(.top, 20)
+                            .bucketTextInternalStyle()
+                        Button(action: {
+                            showingNewBucketView.toggle()
+                        }, label: {
+                            Text("Create New Folder")
+                                .buttonStyle()
+                        })
+                        ForEach(nc.userData.buckets) { bucket in
+                            VStack(alignment: .leading) {
+                                Text(bucket.name)
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    if (displaySaveMessage) {
+                        Text(saveMessage)
+                            .padding(.top, 20)
+                            .bucketTextInternalStyle()
+                            .onAppear {
+                                DispatchQueue.main.async {
+                                    Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+                                        withAnimation {
+                                            displaySaveMessage = false
+                                        }
+                                    })
+                                }
+                            }
+                    }
+                    
                     Button(action: {
-                        showingNewBucketView.toggle()
+                        Task {
+                            await updateUser()
+                            //if(!isNewUser) {
+                                withAnimation {
+                                    displaySaveMessage = true;
+                                }
+                            //}
+                        }
+                        
                     }, label: {
-                        Text("Create New Folder")
+                        Text(isNewUser ? "Continue" : "Save")
                             .buttonStyle()
-                    })
-                    ForEach(nc.userData.buckets) { bucket in
-                        VStack(alignment: .leading) {
-                            Text(bucket.name)
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                if (displaySaveMessage) {
-                    Text(saveMessage)
-                        .padding(.top, 20)
-                        .bucketTextInternalStyle()
-                        .onAppear {
-                            DispatchQueue.main.async {
-                                Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
-                                    withAnimation {
-                                        displaySaveMessage = false
-                                    }
-                                })
-                            }
-                        }
-                }
-                
-                Button(action: {
-                    Task {
-                        await updateUser()
-                        //if(!isNewUser) {
-                            withAnimation {
-                                displaySaveMessage = true;
-                            }
-                        //}
-                    }
+                    }).disabled(isNewUser && nc.userData.buckets.count == 0)
+                        .opacity(isNewUser && nc.userData.buckets.count == 0 ? 0.5 : 1)
                     
-                }, label: {
-                    Text(isNewUser ? "Continue" : "Save")
-                        .buttonStyle()
-                }).disabled(isNewUser && nc.userData.buckets.count == 0)
-                    .opacity(isNewUser && nc.userData.buckets.count == 0 ? 0.5 : 1)
-                
-                
-            }.padding(.horizontal)
-                .sheet(isPresented: $showingNewBucketView) {
-                    NewBucketView()
                     
-                }
+                }.padding(.horizontal)
+                    .sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
+                        
+                    }
+            }
+            if showingError {
+                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
         }
         
         

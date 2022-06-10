@@ -44,15 +44,6 @@ struct Message: View {
     
     private let cornerRadius: CGFloat = 8
     
-//    init(title: String, message: String, borderColor: Color = .black, borderWidth: CGFloat = 0, style: MessageStyle = .message, isPresented: Bool) {
-//        self.title = title
-//        self.message = message
-//        self.borderColor = borderColor
-//        self.borderWidth = borderWidth
-//        self.style = style
-//        self.isPresented = isPresented
-//    }
-    
     var body: some View {
         VStack {
             ZStack(alignment: .leading) {

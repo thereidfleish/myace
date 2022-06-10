@@ -41,7 +41,7 @@ struct RegisterEmailView: View {
             }
         }
         catch {
-            print(error)
+            print("Showing error: \(error)")
             errorMessage = error.localizedDescription
             showingError = true
             awaiting = false

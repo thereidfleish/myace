@@ -78,7 +78,15 @@ struct LogInView: View {
             let idToken = authentication.idToken
             if let uIdToken = idToken {
                 Task {
-                    try await nc.login(method: "google", email: nil, password: nil, token: uIdToken)
+                    do {
+                        try await nc.login(method: "google", email: nil, password: nil, token: uIdToken)
+                    }
+                    catch {
+                        print("Showing error: \(error)")
+                        errorMessage = error.localizedDescription
+                        showingError = true
+                        awaiting = false
+                    }
                 }
             } else {
                 print("Authentication Failed")
@@ -108,8 +116,16 @@ struct LogInView: View {
                 }
             }
         case .apple:
-            Task {
-                try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: prevSignIn[1] as! Data, as: UTF8.self))
+            Task { 
+                do {
+                    try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: prevSignIn[1] as! Data, as: UTF8.self))
+                }
+                catch {
+                    print("Showing error: \(error)")
+                    errorMessage = error.localizedDescription
+                    showingError = true
+                    awaiting = false
+                }
             }
         case .email:
             Task {
@@ -207,7 +223,9 @@ struct LogInView: View {
                     
                     
                 }.padding(.horizontal)
-                
+                if showingError {
+                    Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+                }
             }
         }
     }
@@ -216,9 +234,3 @@ struct LogInView: View {
     
     
 }
-
-//struct LogInView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        LogInView()
-//    }
-//}
