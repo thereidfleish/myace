@@ -68,6 +68,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/forgot/:
+    post:
+      summary: Forgot password
+      description: This route sends a password recovery link to a specified email if the email belongs to a user. If the provided email is invalid, no email will be sent, but the response will still indicate success in order to mitigate abuse.
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          'application/json':
+              schema:
+                type: object
+                required:
+                  - email
+                properties:
+                  email:
+                    $ref: "#/components/schemas/UserEmail"
+      security: [] # no authentication
+      responses:
+        '204':
+          description: Email possibly sent.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /login/:
     post:
       summary: Login

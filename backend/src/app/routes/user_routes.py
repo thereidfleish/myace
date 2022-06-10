@@ -13,9 +13,11 @@ from .. import aws
 from ..cookiesigner import CookieSigner
 from ..email import (
     EmailFailed,
+    EmailRateLimit,
     email_conf_required,
     send_conf_email,
-    confirm_token,
+    send_forgot_pwd_email,
+    confirm_user_token,
 )
 from ..models import User, LoginMethods
 from ..settings import G_CLIENT_IDS, APPLE_CLIENT_ID
@@ -128,21 +130,34 @@ def test_valid_bio(bio: str) -> None:
 @routes.route("/users/resend/", methods=["POST"])
 @flask_login.login_required
 def resend_email_conf():
-    me = flask_login.current_user
-    # ensure it has been at least 60 seconds before sending another
-    # TODO
-    send_conf_email(me)
+    me: User = flask_login.current_user
+    if me.login_method != LoginMethods.EMAIL:
+        return failure_response(
+            "Your account uses a different login method.", 400
+        )
+    if me.email_confirmed:
+        return failure_response("Your email has already been confirmed.", 400)
+
+    try:
+        send_conf_email(me)
+    except EmailRateLimit as e:
+        return failure_response(
+            f"Sending emails too fast! Please wait {e.n_seconds_left} seconds.",
+            429,
+        )
+
     return success_response(code=204)
 
 
-@routes.route("/users/confirm/<token>/")
+@routes.route("/callbacks/confirm/<token>/")
 def confirm_email(token):
-    email = confirm_token(token)
-    if email is None:
+    """Callback for confirm email link."""
+    uid = confirm_user_token(token)
+    if uid is None:
         return failure_response(
             "This confirmation link is invalid or expired.", 400
         )
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(id=uid).first()
     if user is None:
         return failure_response(
             "Whoops! Looks like we can't find you. Please contact support.",
@@ -156,6 +171,61 @@ def confirm_email(token):
         return success_response(
             "You have confirmed your account! Please login."
         )
+
+
+@routes.route("/users/forgot/", methods=["POST"])
+def forgot_password():
+    body = json.loads(request.data)
+    email = body.get("email")
+    if email is None:
+        return failure_response("Missing email.", 400)
+    user: User = User.query.filter_by(email=email).first()
+
+    # silently fail if user not found to protect user privacy
+    if user is not None:
+        if user.login_method != LoginMethods.EMAIL:
+            return failure_response(
+                "Cannot reset password because this user uses another login method."
+            )
+        # send email
+        try:
+            send_forgot_pwd_email(user)
+        except EmailRateLimit as e:
+            return failure_response(
+                f"Sending emails too fast! Please wait {e.n_seconds_left} seconds.",
+                429,
+            )
+
+    return success_response(code=204)
+
+
+@routes.route("/callbacks/forgot/")
+def forgot_pwd_callback():
+    """Callback for forgot password form submission."""
+    body = json.loads(request.data)
+    # Check for valid forgot password token
+    token = body.get("token")
+    if token is None:
+        return failure_response("Missing token.", 400)
+    uid = confirm_user_token(token, 60 * 30)
+    if uid is None:
+        return failure_response("Token is invalid or expired.", 400)
+    user: User = User.query.filter_by(id=uid).first()
+    if user is None:
+        return failure_response(
+            "Whoops! Looks like we can't find you. Please contact support.",
+            400,
+        )
+    # Check for valid password
+    password = body.get("password")
+    try:
+        test_valid_password(password)
+    except InvalidStr as e:
+        return failure_response(e.message, 400)
+    # Change password
+    user.password_hash = salt_and_hash(password)
+    db.session.commit()
+    return success_response("Your password has been changed.")
 
 
 @routes.route("/register/", methods=["POST"])

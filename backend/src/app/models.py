@@ -52,6 +52,7 @@ class User(db.Model):
     password_hash = db.Column(db.String, nullable=True)
     # email_confirmed is only null if login_method is EMAIL
     email_confirmed = db.Column(db.Boolean, nullable=True)
+    email_last_sent = db.Column(db.DateTime, nullable=True)
 
     uploads = db.relationship(
         "Upload", back_populates="user", passive_deletes=True

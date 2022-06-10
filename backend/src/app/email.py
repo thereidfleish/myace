@@ -5,6 +5,7 @@ https://realpython.com/handling-email-confirmation-in-flask/
 """
 from __future__ import annotations
 import json
+import datetime
 from typing import Callable
 from functools import wraps
 
@@ -17,6 +18,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from . import settings
+from .extensions import db
 from .models import LoginMethods, User
 
 
@@ -43,27 +45,27 @@ def email_conf_required(route: Callable) -> Callable:
     return verify
 
 
-def generate_confirmation_token(email: str) -> str | bytes:
+def generate_user_token(id: int) -> str | bytes:
     """Generate a confirmation token containing an email."""
     serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
-    return serializer.dumps(email, salt=settings.SECURITY_PASSWORD_SALT)
+    return serializer.dumps(id, salt=settings.SECURITY_PASSWORD_SALT)
 
 
-def confirm_token(token: str | bytes, secs_valid_for=3600) -> str | None:
-    """Get the email from a token or None if expired/invalid.
+def confirm_user_token(token: str | bytes, secs_valid_for=3600) -> int | None:
+    """Get the user ID from a token or None if expired/invalid.
 
     :param secs_valid_for: The number of seconds for which the token is valid.
     """
     serializer = URLSafeTimedSerializer(settings.SECRET_KEY)
     try:
-        email = serializer.loads(
+        id = serializer.loads(
             token,
             salt=settings.SECURITY_PASSWORD_SALT,
             max_age=secs_valid_for,
         )
+        return id
     except BadSignature:
         return None
-    return email
 
 
 _ses = boto3.client(
@@ -76,6 +78,26 @@ _ses = boto3.client(
 
 class EmailFailed(Exception):
     """An email was unable to send."""
+
+
+class EmailRateLimit(Exception):
+    """A user has been sent too many emails. Please wait."""
+
+    def __init__(self, n_seconds_left: int) -> None:
+        self.n_seconds_left = n_seconds_left
+        super().__init__("User reached email request limit.")
+
+
+def secs_before_sending(user: User) -> int:
+    """:return: the seconds till the user is allowed to send another email.
+
+    A user is only permitted to send an email every 90 sec.
+    """
+    if user.email_last_sent is None:
+        return 0
+    allowed_to_send = user.email_last_sent + datetime.timedelta(seconds=90)
+    now = datetime.datetime.utcnow()
+    n_secs_left = int((allowed_to_send - now).total_seconds())
 
 
 def send_email(to, subject, html, text) -> None:
@@ -136,8 +158,16 @@ def send_conf_email(to: User) -> None:
 
     :param to: The recipient
     :raise EmailFailed: if email could not send, containing error message.
+    :raise EmailRateLimit:
+        if this user has seen too many emails, containing the number of seconds
+        before they are allowed to send another
     """
-    token = generate_confirmation_token(to.email)
+    # check last sent
+    secs_left = secs_before_sending(to)
+    if secs_left > 0:
+        raise EmailRateLimit(secs_left)
+    # generate email body
+    token = generate_user_token(to.id)
     link = url_for("routes.confirm_email", token=token, _external=True)
     html_body = render_template(
         "confirm_email.html", name=to.display_name, confirm_url=link
@@ -151,4 +181,41 @@ Please activate your email:
 Have a great day!
     """
     subject = "Activate your account! 🎾"
-    send_email(to.email, subject, html_body, f"")
+    # send email and update last sent
+    send_email(to.email, subject, html_body, text_body)
+    to.email_last_sent = datetime.datetime.utcnow()
+    db.session.commit()
+
+
+def send_forgot_pwd_email(to: User) -> None:
+    """Send a "forgot password" email to a user.
+
+    :param to: The recipient
+    :raise EmailFailed: if email could not send, containing error message.
+    :raise EmailRateLimit:
+        if this user has seen too many emails, containing the number of seconds
+        before they are allowed to send another
+    """
+    # check last sent
+    secs_left = secs_before_sending(to)
+    if secs_left > 0:
+        raise EmailRateLimit(secs_left)
+    # generate email body
+    token = generate_user_token(to.id)
+    link = f"https://myace.ai/forgotpassword?token={token}"
+    html_body = render_template(
+        "forgot_pwd_email.html", name=to.display_name, reset_url=link
+    )
+    text_body = f"""
+Hey, {to.display_name}!
+
+Please click here to reset your password:
+{link}
+
+Have a great day!
+    """
+    subject = "Password reset 🔒"
+    # send email and update last sent
+    send_email(to.email, subject, html_body, text_body)
+    to.email_last_sent = datetime.datetime.utcnow()
+    db.session.commit()
