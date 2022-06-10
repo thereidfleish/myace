@@ -24,10 +24,18 @@ struct SettingsView: View {
             do {
                 try await nc.deleteCurrentUser()
                 showingSuccess = true
-                GIDSignIn.sharedInstance.signOut()
-                print("logged out")
-                nc.clearUserData()
-                self.mode.wrappedValue.dismiss()
+                
+                DispatchQueue.main.async {
+                    Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+                        print(HTTPCookieStorage.shared)
+                        let components = DateComponents(calendar: Calendar.current, year: 2000, month: 1, day: 1)
+                        HTTPCookieStorage.shared.removeCookies(since: Calendar.current.date(from: components)!)
+                        print("logged out")
+                        print(HTTPCookieStorage.shared)
+                        nc.clearUserData()
+                        self.mode.wrappedValue.dismiss()
+                    })
+                }  
             } catch {
                 print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
