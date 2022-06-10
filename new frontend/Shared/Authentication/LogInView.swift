@@ -161,17 +161,29 @@ struct LogInView: View {
                                     //self.tokenSignIn(idToken: String(decoding: token1!, as: UTF8.self), method: "apple")
                                     print("calling TokenSignIn with token2...")
                                     if let token2 = token2 {
+                                        awaiting = true
                                         Task {
-                                            try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: token2, as: UTF8.self))
-                                            UserDefaults.standard.set(token2, forKey: "appletoken")
+                                            do {
+                                                try await nc.login(method: "apple", email: nil, password: nil, token: String(decoding: token2, as: UTF8.self))
+                                                awaiting = false
+                                            } catch {
+                                                print("Showing error: \(error)")
+                                                errorMessage = error.localizedDescription
+                                                showingError = true
+                                                awaiting = false
+                                            }
+                                            
                                         }
+                                        
                                     }
                                     
                                     print("finished calling TokenSignIns")
                                 default: break
                                 }
                                 case .failure(let error):
-                                    print("Authorization failed: \(error.localizedDescription)")
+                                    print("Showing error: \(error)")
+                                    errorMessage = error.localizedDescription
+                                    showingError = true
                             }
                         }
                         .frame(height: 52.5)

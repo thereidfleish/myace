@@ -64,21 +64,23 @@ struct LogInEmailView: View {
 //                            }
 //                    }
                     
-                    Button(action: {
-                        Task {
-                            await loginWithEmail()
-                            withAnimation {
-                                displayLoginMessage = true;
+                    if (!awaiting) {
+                        Button(action: {
+                            Task {
+                                await loginWithEmail()
+                                withAnimation {
+                                    displayLoginMessage = true;
+                                }
                             }
-                        }
-                        
-                    }, label: {
-                        Text("Log In")
-                            .buttonStyle()
-                    })
-                    .padding(.top)
-                    .disabled(email == "" || password == "")
-                        .opacity(email == "" || password == "" ? 0.5 : 1)
+                            
+                        }, label: {
+                            Text("Log In")
+                                .buttonStyle()
+                        })
+                        .padding(.top)
+                        .disabled(email == "" || password == "")
+                            .opacity(email == "" || password == "" ? 0.5 : 1)
+                    }
                     
                     Text("Don't have an account yet?")
                         .bucketTextInternalStyle()
