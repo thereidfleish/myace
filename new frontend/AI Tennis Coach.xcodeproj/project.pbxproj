@@ -39,6 +39,8 @@
 		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
 		256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
+		25890D0128553EDD001368E8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25890D0028553EDD001368E8 /* OnboardingView.swift */; };
+		25890D0228553EDD001368E8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25890D0028553EDD001368E8 /* OnboardingView.swift */; };
 		258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41752773C3E00030D437 /* YourCoachesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* YourCoachesView.swift */; };
@@ -121,6 +123,7 @@
 		256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserCardHomeView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
 		25734AA9277FBEFB00D2B8BE /* AI-Tennis-Coach--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--macOS--Info.plist"; sourceTree = "<group>"; };
+		25890D0028553EDD001368E8 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentUploadDetailView.swift; sourceTree = "<group>"; };
 		258D41742773C3E00030D437 /* YourCoachesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourCoachesView.swift; sourceTree = "<group>"; };
 		258D41772773FC470030D437 /* StudentFeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentFeedbackView.swift; sourceTree = "<group>"; };
@@ -281,6 +284,7 @@
 				256516F1284C0179004B8062 /* RegisterEmailView.swift */,
 				25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */,
 				256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */,
+				25890D0028553EDD001368E8 /* OnboardingView.swift */,
 			);
 			path = Authentication;
 			sourceTree = "<group>";
@@ -573,6 +577,7 @@
 				256516F2284C0179004B8062 /* RegisterEmailView.swift in Sources */,
 				2519DB322798C9C600A91759 /* SearchView.swift in Sources */,
 				258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
+				25890D0128553EDD001368E8 /* OnboardingView.swift in Sources */,
 				258D41782773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				258E80EB283C4D4200AD1657 /* StrokesView.swift in Sources */,
 				2537F4E6278348BA00596AF6 /* ProfileView.swift in Sources */,
@@ -603,6 +608,7 @@
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */,
+				25890D0228553EDD001368E8 /* OnboardingView.swift in Sources */,
 				256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */,
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
