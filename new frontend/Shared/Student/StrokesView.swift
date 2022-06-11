@@ -97,7 +97,7 @@ struct StrokesView: View {
                     }
                     
                     ForEach(nc.userData.buckets) { bucket in
-                        Section(header: HStack {
+                        Section(header: HStack(alignment: .center) {
                             //                        Button(action: {
                             //                            withAnimation {
                             //                                collapsed.toggle()

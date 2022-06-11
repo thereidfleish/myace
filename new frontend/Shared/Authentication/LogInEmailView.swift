@@ -20,10 +20,8 @@ struct LogInEmailView: View {
         
     func loginWithEmail() async {
         do {
-            awaiting = true
             try await nc.login(method: "password", email: email, password: password, token: nil)
-//            loginMessage = "Username or password is incorrect."
-//            loginMessage = "Your email has not been verified. Please check your inbox for a verification email. Would you like to resend it?"
+            awaiting = false
         } catch {
             print("Showing error: \(error)")
             errorMessage = error.localizedDescription
@@ -48,29 +46,19 @@ struct LogInEmailView: View {
                     
                     SecureField("Password", text: $password)
                         .textFieldStyle()
-//
-//                    if (displayLoginMessage) {
-//                        Text(loginMessage)
-//                            .padding(.top, 20)
-//                            .bucketTextInternalStyle()
-//                            .onAppear {
-//                                DispatchQueue.main.async {
-//                                    Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
-//                                        withAnimation {
-//                                            displayLoginMessage = false
-//                                        }
-//                                    })
-//                                }
-//                            }
-//                    }
+                    
+                    NavigationLink(destination: ForgotPasswordView()) {
+                        Text("Forgot Password?")
+                            .bold()
+                            .foregroundColor(.green)
+                    }
+                    
                     
                     if (!awaiting) {
                         Button(action: {
                             Task {
+                                awaiting = true
                                 await loginWithEmail()
-                                withAnimation {
-                                    displayLoginMessage = true;
-                                }
                             }
                             
                         }, label: {
@@ -82,6 +70,10 @@ struct LogInEmailView: View {
                             .opacity(email == "" || password == "" ? 0.5 : 1)
                     }
                     
+                    if (awaiting) {
+                        ProgressView()
+                    }
+                    
                     Text("Don't have an account yet?")
                         .bucketTextInternalStyle()
                         .padding(.top)
@@ -91,14 +83,9 @@ struct LogInEmailView: View {
                             .buttonStyle()
                     }
                     
-                    Text("Forget Password?")
-                        .bucketTextInternalStyle()
-                        .padding(.top)
                     
-                    NavigationLink(destination: ForgotPasswordView()) {
-                        Text("Reset Password")
-                            .buttonStyle()
-                    }
+                    
+                    
                     
                     
                     .navigationTitle("Log In")
