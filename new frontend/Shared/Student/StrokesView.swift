@@ -95,7 +95,6 @@ struct StrokesView: View {
                     if (nc.userData.buckets.count == 0) {
                         Text("\(currentUserAs == .student ? "Create a folder to store your videos." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
                             .multilineTextAlignment(.center)
-                            .bucketTextInternalStyle()
                     }
                     
                     ForEach(nc.userData.buckets) { bucket in
@@ -224,88 +223,95 @@ struct StrokesView: View {
                                 
                                 
                                 , content: {
-                            ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
-                                
-                                //Spacer() // For some reason, app does not compile without this spacer!
-                                
-                                HStack(alignment: .top) {
-                                    VideoThumbnailView(upload: upload)
+                            VStack {
+                                let filteredUploads = nc.userData.uploads.filter{ $0.bucket.id == bucket.id }
+                                if (filteredUploads.isEmpty) {
+                                    Text("Tap the Camera icon to upload your first video into \"\(bucket.name)\"")
+                                }
+                                ForEach(filteredUploads) { upload in
                                     
-                                    VStack(alignment: .leading) {
-                                        Text(upload.display_title == "" ? "Untitled" : upload.display_title)
-                                            .smallestSubsectionStyle()
+                                    
+                                    //Spacer() // For some reason, app does not compile without this spacer!
+                                    
+                                    HStack(alignment: .top) {
+                                        VideoThumbnailView(upload: upload)
                                         
-                                        Text(upload.created.formatted())
-                                            .font(.subheadline)
-                                            .foregroundColor(Color.green)
-                                        
-                                        Text(visOptions[upload.visibility.default]!)
-                                            .font(.subheadline)
-                                            .foregroundColor(Color.green)
-                                        
-                                        
-                                        //Text("\(upload.id)")
-                                        
-                                        if (!upload.stream_ready) {
-                                            Text("Processing video, please wait...")
-                                                .font(.footnote)
+                                        VStack(alignment: .leading) {
+                                            Text(upload.display_title == "" ? "Untitled" : upload.display_title)
+                                                .smallestSubsectionStyle()
+                                            
+                                            Text(upload.created.formatted())
+                                                .font(.subheadline)
                                                 .foregroundColor(Color.green)
-                                        }
-                                        else if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                                            // If you're a student or viewing your own profile you can edit the uploads.
-                                            Menu {
-                                                Button {
-                                                    nc.editUploadID = String(upload.id)
-                                                    showingEditingUpload = true
-                                                } label: {
-                                                    Label("Edit Upload", systemImage: "pencil")
-                                                }
-                                                
-                                                Button(role: .destructive) {
-                                                    nc.showingMessage = true
-                                                    nc.messageView = AnyView(
-                                                        Message(title: "Delete Upload", message: "Are you sure you want to delete the video, \"\(upload.display_title)\", and its comments?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
-                                                                Button(action: {
-                                                                    Task {
-                                                                        nc.showingMessage = false
-                                                                        awaiting = true
-                                                                        do {
-                                                                            try await nc.deleteUpload(uploadID: String(upload.id))
-                                                                            await initialize(showProgressView: true)
-                                                                            awaiting = false
-                                                                        } catch {
-                                                                            errorMessage = error.localizedDescription
-                                                                            showingError = true
-                                                                            awaiting = false
+                                            
+                                            Text(visOptions[upload.visibility.default]!)
+                                                .font(.subheadline)
+                                                .foregroundColor(Color.green)
+                                            
+                                            
+                                            //Text("\(upload.id)")
+                                            
+                                            if (!upload.stream_ready) {
+                                                Text("Processing video, please wait...")
+                                                    .font(.footnote)
+                                                    .foregroundColor(Color.green)
+                                            }
+                                            else if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                                                // If you're a student or viewing your own profile you can edit the uploads.
+                                                Menu {
+                                                    Button {
+                                                        nc.editUploadID = String(upload.id)
+                                                        showingEditingUpload = true
+                                                    } label: {
+                                                        Label("Edit Upload", systemImage: "pencil")
+                                                    }
+                                                    
+                                                    Button(role: .destructive) {
+                                                        nc.showingMessage = true
+                                                        nc.messageView = AnyView(
+                                                            Message(title: "Delete Upload", message: "Are you sure you want to delete the video, \"\(upload.display_title)\", and its comments?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
+                                                                    Button(action: {
+                                                                        Task {
+                                                                            nc.showingMessage = false
+                                                                            awaiting = true
+                                                                            do {
+                                                                                try await nc.deleteUpload(uploadID: String(upload.id))
+                                                                                await initialize(showProgressView: true)
+                                                                                awaiting = false
+                                                                            } catch {
+                                                                                errorMessage = error.localizedDescription
+                                                                                showingError = true
+                                                                                awaiting = false
+                                                                            }
+
+                                                                            showingDeleteUpload = false
                                                                         }
 
-                                                                        showingDeleteUpload = false
-                                                                    }
-
-                                                                }, label: {
-                                                                    Text("Delete")
-                                                                        .messageButtonStyle()
-                                                                })
-                                                        ))
-                                                    )
+                                                                    }, label: {
+                                                                        Text("Delete")
+                                                                            .messageButtonStyle()
+                                                                    })
+                                                            ))
+                                                        )
+                                                        
+                                                    } label: {
+                                                        Label("Delete", systemImage: "trash")
+                                                    }
                                                     
                                                 } label: {
-                                                    Label("Delete", systemImage: "trash")
+                                                    Image(systemName: "ellipsis.circle.fill")
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .frame(width: 25, height: 25)
                                                 }
-                                                
-                                            } label: {
-                                                Image(systemName: "ellipsis.circle.fill")
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: 25, height: 25)
                                             }
+                                            
+                                            
+                                            //Spacer()
                                         }
-                                        
-                                        
-                                        //Spacer()
-                                    }
-                                }.id("\(upload.id)-2")
-                                    //.padding(.bottom)
+                                    }.id("\(upload.id)-2")
+                                        //.padding(.bottom)
+                                }
                             }
                         })
                     }
