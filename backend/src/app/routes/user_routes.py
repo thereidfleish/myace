@@ -298,11 +298,11 @@ def register():
         password_hash=salt_and_hash(password),
     )
 
-    # Send confirmation email
-    send_conf_email(user)
-
     db.session.add(user)
     db.session.commit()
+
+    # Send confirmation email - must be after commit bc function uses user ID
+    send_conf_email(user)
 
     # Begin user session
     flask_login.login_user(user, remember=True)
