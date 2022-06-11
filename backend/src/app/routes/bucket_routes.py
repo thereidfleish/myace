@@ -1,5 +1,6 @@
 """Routes that pertain to buckets."""
 
+from dataclasses import dataclass
 import json
 
 from flask import request
@@ -8,6 +9,24 @@ from . import routes, success_response, failure_response
 from .. import aws, email
 from ..models import Bucket
 from ..extensions import db
+
+
+@dataclass
+class InvalidBucketName(Exception):
+    """The name of a bucket is invalid, containing a helpful message."""
+
+    message: str
+
+
+def test_valid_bucket_name(bucket_name: str) -> None:
+    """Test if a bucket name is valid.
+
+    :raise InvalidBucketName: if invalid
+    """
+    if bucket_name is None:
+        raise InvalidBucketName("Missing bucket name.")
+    if bucket_name == "" or bucket_name.isspace():
+        raise InvalidBucketName("Invalid bucket name.")
 
 
 @routes.route("/buckets/", methods=["POST"])
@@ -19,10 +38,10 @@ def create_bucket():
     # Get name from request body
     body = json.loads(request.data)
     name = body.get("name")
-    if name is None:
-        return failure_response(
-            "Could not get bucket name from request body.", 400
-        )
+    try:
+        test_valid_bucket_name(name)
+    except InvalidBucketName as e:
+        return failure_response(e.message, 400)
 
     if Bucket.query.filter_by(name=name, user_id=me.id).first() is not None:
         return failure_response("A bucket of this name already exists.", 400)
@@ -70,8 +89,10 @@ def edit_bucket(bucket_id):
     # Update name
     new_name = body.get("name")
     if new_name is not None and bucket.name != new_name:
-        if new_name.isspace():
-            return failure_response("Invalid title.", 400)
+        try:
+            test_valid_bucket_name(new_name)
+        except InvalidBucketName as e:
+            return failure_response(e.message, 400)
         if (
             Bucket.query.filter_by(name=new_name, user_id=me.id).first()
             is not None
@@ -102,7 +123,7 @@ def delete_bucket(bucket_id):
     # Delete bucket and associated uploads
     # Note that deleting like this respects the cascades defined at the ORM level
     # Bucket.query.filter_by(...).delete() does not respect cascades!
-    aws.delete_uploads(bucket.uploads)
+    aws.delete_uploads([u.id for u in bucket.uploads])
     db.session.delete(bucket)
     db.session.commit()
 

@@ -470,9 +470,12 @@ def create_bucket(client: FlaskClient, name: str) -> Bucket:
     return parse_bucket_json(json.loads(res.data))
 
 
-def get_all_buckets(client: FlaskClient, user_id: int | None) -> list[Bucket]:
+def get_all_buckets(
+    client: FlaskClient, user_id: int | None = None
+) -> list[Bucket]:
     """Get a list of all buckets owned by any user."""
-    res = client.get(f"{HOST}/users/{user_id}/buckets")
+    id = "me" if user_id is None else user_id
+    res = client.get(f"{HOST}/users/{id}/buckets")
     assert res.status_code == 200
     return [parse_bucket_json(b) for b in json.loads(res.data)["buckets"]]
 

@@ -637,8 +637,11 @@ class Bucket(db.Model):
     created = db.Column(
         db.DateTime, nullable=False, default=datetime.datetime.utcnow
     )
+    # Somehow "all" works when True doesn't.
+    # "all" disables the nulling-out of Upload.bucket_id foreign keys
+    # I believe this is OK bc we have DB-level cascades in place
     uploads = db.relationship(
-        "Upload", back_populates="bucket", passive_deletes=True
+        "Upload", back_populates="bucket", passive_deletes="all"
     )
 
     def serialize(self, client: User):
@@ -646,13 +649,15 @@ class Bucket(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "size": self._size(),
+            "size": self._size(client),
             "last_modified": self._get_last_modified(client),
         }
 
-    def _size(self) -> int:
+    def _size(self, client: User) -> int:
         """:return: A nonnegative count of all associated uploads"""
-        return Upload.query.filter_by(bucket_id=self.id).count()
+        return Upload.query.filter(
+            and_(Upload.bucket_id == self.id, Upload.viewable_to(client))
+        ).count()
 
     def _get_last_modified(self, client) -> str:
         """:return: The ISO formatted timestamp of this bucket's last update.
