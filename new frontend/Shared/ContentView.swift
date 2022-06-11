@@ -11,58 +11,64 @@ struct ContentView: View {
     @State private var selection = 0
     @EnvironmentObject private var networkController: NetworkController
     var body: some View {
-        TabView(selection: $selection) {
-            StudentUploadView(currentUserAs: .student)
+        ZStack {
+            TabView(selection: $selection) {
+                StudentUploadView(currentUserAs: .student)
+                        .tabItem {
+                            VStack {
+                                Image(systemName: "rectangle.inset.filled.and.person.filled")
+                                    .foregroundColor(.green)
+                                Text("Your Coaches")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .tag(0)
+                
+                StudentUploadView(currentUserAs: .coach)
+                        .tabItem {
+                            VStack {
+                                Image(systemName: "graduationcap.fill")
+                                    .foregroundColor(.green)
+                                Text("Your Students")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                        .tag(1)
+                
+                
+                SearchView()
                     .tabItem {
                         VStack {
-                            Image(systemName: "rectangle.inset.filled.and.person.filled")
+                            Image(systemName: "magnifyingglass.circle.fill")
                                 .foregroundColor(.green)
-                            Text("Your Coaches")
+                            Text("Search")
                                 .foregroundColor(.green)
                         }
                     }
-                    .tag(0)
-            
-            StudentUploadView(currentUserAs: .coach)
-                    .tabItem {
-                        VStack {
-                            Image(systemName: "graduationcap.fill")
-                                .foregroundColor(.green)
-                            Text("Your Students")
-                                .foregroundColor(.green)
-                        }
-                    }
-                    .tag(1)
-            
-            
-            SearchView()
+                    .tag(2)
+                
+                NavigationView {
+                    ProfileView(yourself: true, user: networkController.userData.shared)
+                }
+                .navigationViewStyle(.stack) // helps with Jumping Back bug
                 .tabItem {
                     VStack {
-                        Image(systemName: "magnifyingglass.circle.fill")
+                        Image(systemName: "person.crop.circle.fill")
                             .foregroundColor(.green)
-                        Text("Search")
+                        Text("My Profile")
                             .foregroundColor(.green)
                     }
                 }
-                .tag(2)
+                .tag(3)
+                
+                
+                
+            }.accentColor(Color.green)
             
-            NavigationView {
-                ProfileView(yourself: true, user: networkController.userData.shared)
+            if (networkController.showingMessage) {
+                networkController.messageView
             }
-            .navigationViewStyle(.stack) // helps with Jumping Back bug
-            .tabItem {
-                VStack {
-                    Image(systemName: "person.crop.circle.fill")
-                        .foregroundColor(.green)
-                    Text("My Profile")
-                        .foregroundColor(.green)
-                }
-            }
-            .tag(3)
-            
-            
-            
-        }.accentColor(Color.green)
+        }
     }
 }
 

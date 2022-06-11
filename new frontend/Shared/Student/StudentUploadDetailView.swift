@@ -42,6 +42,8 @@ struct StudentUploadDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
+                Text("Below are videos that \(otherUser.display_name) can see.  Want to add \(otherUser.display_name) to another video?  Edit the permissions for that video on the \"My Profile\" tab.")
+                
                 StrokesView(otherUser: otherUser, currentUserAs: currentUserAs)
             }.padding(.horizontal)
         }

@@ -26,7 +26,7 @@ struct SettingsView: View {
                 showingSuccess = true
                 
                 DispatchQueue.main.async {
-                    Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+                    Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { _ in
                         print(HTTPCookieStorage.shared)
                         let components = DateComponents(calendar: Calendar.current, year: 2000, month: 1, day: 1)
                         HTTPCookieStorage.shared.removeCookies(since: Calendar.current.date(from: components)!)
@@ -99,6 +99,7 @@ struct SettingsView: View {
                                 .shadow(radius: 5)
                         }
                     }
+                    .padding(.horizontal)
                 }
                 .navigationTitle("Settings")
                 .navigationBarItems(trailing:

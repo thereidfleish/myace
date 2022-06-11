@@ -96,6 +96,10 @@ struct Message: View {
         }
         .transition(.move(edge: .top)) // 1
         .animation(.spring()) // 2
+        .onAppear {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(style == .error ? .error : .success)
+        }
 //        .onAppear {
 //            DispatchQueue.main.async {
 //                Timer.scheduledTimer(withTimeInterval: 10, repeats: false, block: { _ in

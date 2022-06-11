@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import SwiftUI
 
 class NetworkController: ObservableObject {
     @Published var userData: UserData = UserData()
@@ -16,6 +17,8 @@ class NetworkController: ObservableObject {
     @Published var newUser = false
     @Published var editUploadID: String = ""
     @Published var errorMessage: String = ""
+    @Published var showingMessage: Bool = false
+    @Published var messageView: AnyView? = nil
     let host = "https://api.myace.ai"
     let decoder = JSONDecoder()
     var (data, response): (Data, URLResponse) = (Data(), URLResponse())
@@ -71,7 +74,9 @@ class NetworkController: ObservableObject {
             print(error)
             print("login failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
 
@@ -99,7 +104,9 @@ class NetworkController: ObservableObject {
             print(error)
             print("registerWithEmail failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -127,7 +134,9 @@ class NetworkController: ObservableObject {
             print(error)
             print("forgotPassword failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -154,8 +163,11 @@ class NetworkController: ObservableObject {
         } catch {
             print("checkUsername failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
+        throw "No return???"
     }
     
     // GET
@@ -180,8 +192,11 @@ class NetworkController: ObservableObject {
         } catch {
             print("getIndividualUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
+        throw "No return???"
     }
     
     
@@ -217,7 +232,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("updateCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -239,7 +256,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteCurrentUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -268,7 +287,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("editUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -286,7 +307,6 @@ class NetworkController: ObservableObject {
             }
             
             let formatter = DateFormatter.iso8601Full
-            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
             decoder.dateDecodingStrategy = .formatted(formatter)
             
             
@@ -300,9 +320,11 @@ class NetworkController: ObservableObject {
         } catch {
             print("getUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
-
+        throw "No return???"
     }
     
     // DELETE
@@ -324,7 +346,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteUpload failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -342,7 +366,7 @@ class NetworkController: ObservableObject {
         }
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
             
             if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
@@ -358,7 +382,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("getComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -378,7 +404,7 @@ class NetworkController: ObservableObject {
         request.httpMethod = "POST"
         
         do {
-            let (data, _) = try await URLSession.shared.upload(for: request, from: encoded)
+            let (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
             print(data.prettyPrintedJSONString!)
             
             if((response as? HTTPURLResponse)?.statusCode ?? -1 != 201) {
@@ -392,7 +418,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("createComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -415,7 +443,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteComments failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -451,7 +481,9 @@ class NetworkController: ObservableObject {
             
         } catch {
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -476,7 +508,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("getBuckets failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -504,7 +538,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("editBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -526,7 +562,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteBucket failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -553,7 +591,6 @@ class NetworkController: ObservableObject {
             }
             
             let formatter = DateFormatter.iso8601Full
-            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
             decoder.dateDecodingStrategy = .formatted(formatter)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -566,7 +603,10 @@ class NetworkController: ObservableObject {
         } catch {
             print("getMyUploads failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            print("ERROR:", decodedResponse.error)
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -589,7 +629,6 @@ class NetworkController: ObservableObject {
             }
             
             let formatter = DateFormatter.iso8601Full
-            formatter.timeZone = TimeZone(secondsFromGMT: TimeZone.current.secondsFromGMT())
             decoder.dateDecodingStrategy = .formatted(formatter)
             let decodedResponse = try decoder.decode(UploadsRes.self, from: data)
             DispatchQueue.main.sync {
@@ -601,8 +640,12 @@ class NetworkController: ObservableObject {
             
         } catch {
             print("getOtherUserUploads failed decode")
+            print(error)
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            print("ERROR:", decodedResponse.error)
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -629,8 +672,11 @@ class NetworkController: ObservableObject {
         } catch {
             print("searchUser failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
+        throw "No return???"
     }
     
     // POST
@@ -660,7 +706,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("createCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -696,7 +744,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("getCourtshipRequests failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -726,7 +776,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("updateIncomingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -748,7 +800,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("deleteOutgoingCourtshipRequest failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -778,7 +832,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("getCourtships failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -799,7 +855,9 @@ class NetworkController: ObservableObject {
         } catch {
             print("removeCourtship failed decode")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
-            throw decodedResponse.error + " (error code: \(error))"
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
         }
     }
     
@@ -830,8 +888,8 @@ extension DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
         formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.timeZone = .current
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        //formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
     }()
     static let iso8601withFractionalSeconds: ISO8601DateFormatter = {

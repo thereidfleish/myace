@@ -33,29 +33,29 @@ struct UserCardHomeView: View {
                                 .bucketTextExternalStyle()
                         }
                         
-                        HStack {
-                            Image(systemName: "text.bubble.fill")
-                                .foregroundColor(.white)
-                                .frame(width: 15)
-                            if (/*studentInfo.numFeedback[i]*/ 0 == 0) {
-                                Text(/*"\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                    .bucketTextExternalStyle()
-                            }
-                            else {
-                                Text(/*"*\(studentInfo.numFeedback[i])*/ "New Feedback")
-                                    .unreadBucketTextExternalStyle()
-                            }
-                            
-                        }
-                        
-                        HStack {
-                            Image(systemName: "clock.fill")
-                                .foregroundColor(.white)
-                                .frame(width: 15)
-                            
-                            Text("last modified here")
-                                .bucketTextExternalStyle()
-                        }
+//                        HStack {
+//                            Image(systemName: "text.bubble.fill")
+//                                .foregroundColor(.white)
+//                                .frame(width: 15)
+//                            if (/*studentInfo.numFeedback[i]*/ 0 == 0) {
+//                                Text(/*"\(studentInfo.numFeedback[i])*/ "New Feedback")
+//                                    .bucketTextExternalStyle()
+//                            }
+//                            else {
+//                                Text(/*"*\(studentInfo.numFeedback[i])*/ "New Feedback")
+//                                    .unreadBucketTextExternalStyle()
+//                            }
+//                            
+//                        }
+//                        
+//                        HStack {
+//                            Image(systemName: "clock.fill")
+//                                .foregroundColor(.white)
+//                                .frame(width: 15)
+//                            
+//                            Text("last modified here")
+//                                .bucketTextExternalStyle()
+//                        }
 
                     }
                     

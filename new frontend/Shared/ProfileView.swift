@@ -97,10 +97,10 @@ struct ProfileView: View {
                         .profileInfoStyle()
                     
                     Text(user.biography)
+                        .padding(.bottom)
                         .profileTextStyle()
                     
-                    
-                    Spacer()
+
                     
     //                Text("User ID: \(user.id)")
     //                    .font(.footnote)

@@ -21,7 +21,7 @@ struct VideoThumbnailView: View {
                     ProgressView()
                 }
                 .scaledToFill()
-                .frame(maxWidth: 200, maxHeight: 150)
+                .frame(width: 200, height: 125)
                 .cornerRadius(10)
                 .shadow(radius: 5)
                 

@@ -141,14 +141,26 @@ struct StudentFeedbackView: View {
                                 // To represent the occurance of the comment, place ${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "$75$my comment"
                                 // To embed a timestamp in a comment, do %{seconds}%.
                                 
+                                let sortedComments = nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})
                                 
-                                ForEach(nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})) { comment in
+                                if (sortedComments.isEmpty) {
+                                    Text("Welcome to the comment editor!")
+                                        .bold()
+                                    
+                                    Text("1. Navigate to the part of the video where you want to add a comment\n\n2. Press the green button to add a comment at that timestamp\n\nTip: Tap on comments to jump to their position in the video!")
+                                        .padding(.top)
+                                }
+                                
+                                ForEach(sortedComments) { comment in
                                     
                                     let isYou: Bool = nc.userData.shared.username == comment.author.username
                                     
                                     VStack(alignment: isYou ? .trailing : .leading) {
                                         Text("\(comment.author.display_name) (\((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))))")
                                             .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                        
+//                                        Text(comment.created.formatted())
+//                                            .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
                                         
                                         Button(action: {
                                             currentSeconds = returnTimestampAndText(text: comment.text).0

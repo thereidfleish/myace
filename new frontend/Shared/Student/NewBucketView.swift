@@ -31,71 +31,71 @@ struct NewBucketView: View {
     }
     
     var body: some View {
-        ZStack {
             NavigationView {
-                ScrollView {
-                    VStack(alignment: .leading) {
-                        Text("Choose from a default folder or add a custom folder")
-                            .bucketTextInternalStyle()
-                        
-                        Menu {
-                            ForEach(defaultStrokes, id: \.self) { stroke in
-                                Button(stroke) {
-                                    name = stroke
-                                }
-                            }
-                        } label: {
-                            Text("Choose from a default folder")
-                                .buttonStyle()
-                        }
-                        
-                        Text("Name")
-                            .bucketTextInternalStyle()
-                            .padding(.top)
-                        
-                        HStack {
-                            TextField("Name", text: $name)
-                                .autocapitalization(.none)
-                                .textFieldStyle()
-                                .disabled(defaultStrokes.contains(name))
+                ZStack {
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            Text("Choose from a default folder or add a custom folder")
+                                .bucketTextInternalStyle()
                             
-                            Button("Clear") {
-                                name = ""
-                            }.disabled(name == "")
-                        }
-                        
-                        if (showingError) {
-                            Text(nc.errorMessage)
-                        }
-                        
-                        
-                    }.padding(.horizontal)
-                }.navigationTitle("New Folder")
-                    .navigationBarItems(leading: Button(action: {
-                        self.mode.wrappedValue.dismiss()
-                    }, label: {
-                        Text("Cancel")
-                            .foregroundColor(Color.green)
-                            .fontWeight(.bold)
-                    }),trailing: Button(action: {
-                        Task {
-                            await add()
-                        }
-                    }, label: {
-                        if (awaiting) {
-                            ProgressView()
-                        }
-                        else {
-                            Text("Save and Close")
+                            Menu {
+                                ForEach(defaultStrokes, id: \.self) { stroke in
+                                    Button(stroke) {
+                                        name = stroke
+                                    }
+                                }
+                            } label: {
+                                Text("Choose from a default folder")
+                                    .buttonStyle()
+                            }
+                            
+                            Text("Name")
+                                .bucketTextInternalStyle()
+                                .padding(.top)
+                            
+                            HStack {
+                                TextField("Name", text: $name)
+                                    .autocapitalization(.none)
+                                    .textFieldStyle()
+                                    .disabled(defaultStrokes.contains(name))
+                                
+                                Button("Clear") {
+                                    name = ""
+                                }.disabled(name == "")
+                            }
+                            
+                            if (showingError) {
+                                Text(nc.errorMessage)
+                            }
+                            
+                            
+                        }.padding(.horizontal)
+                    }.navigationTitle("New Folder")
+                        .navigationBarItems(leading: Button(action: {
+                            self.mode.wrappedValue.dismiss()
+                        }, label: {
+                            Text("Cancel")
                                 .foregroundColor(Color.green)
                                 .fontWeight(.bold)
-                        }
-                    }).disabled(name == "").opacity(name == "" ? 0.5 : 1)
+                        }),trailing: Button(action: {
+                            Task {
+                                await add()
+                            }
+                        }, label: {
+                            if (awaiting) {
+                                ProgressView()
+                            }
+                            else {
+                                Text("Save and Close")
+                                    .foregroundColor(Color.green)
+                                    .fontWeight(.bold)
+                            }
+                        }).disabled(name == "").opacity(name == "" ? 0.5 : 1)
                     )
+                    if showingError {
+                        Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+                    }
+                }
             }
-            if showingError {
-                Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
-            }
-        }
     }
 }
