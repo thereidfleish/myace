@@ -1,8 +1,8 @@
 //
-//  RegisterEmailView.swift
+//  ForgotPasswordView.swift
 //  AI Tennis Coach
 //
-//  Created by Reid Fleishman on 6/4/22.
+//  Created by Andrew Chen on 6/10/22.
 //
 
 import SwiftUI
@@ -10,30 +10,19 @@ import SwiftUI
 struct ForgotPasswordView: View {
     @EnvironmentObject private var nc: NetworkController
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
-    
     @State private var email = ""
-    @State private var username = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
-    @State private var displayName = ""
-    @State private var biography = ""
-    
     
     @State private var awaiting = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var registerMessage = ""
-    @State private var displayRegisterMessage = false
-    @State private var loginMessage = ""
-    @State private var userNameMessage = ""
-    @State private var userNameValidAndAvailable = true
-    @State private var registrationSuccessful = false
+    
+    @State private var resetPasswordEmailSent = false
     
     func registerWithEmail() async {
         do {
             awaiting = true
-            try await nc.registerWithEmail(username: username, display_name: displayName, biography: biography, email: email, password: password)
-            registrationSuccessful = true
+            try await nc.forgotPassword(email: email)
+            resetPasswordEmailSent = true
             awaiting = false
         } catch {
             print("Showing error: \(error)")
@@ -47,17 +36,18 @@ struct ForgotPasswordView: View {
         ZStack {
             ScrollView {
                 VStack(alignment: .leading) {
+                    Text("Please enter the email associated with your account. You can only reset your password if your email is associated with an account that uses email login (i.e. not Google or Apple sign-in).")
+                        .bucketTextInternalStyle()
+                    
                     Text("Email")
                         .bucketTextInternalStyle()
+                        .padding(.top)
                     TextField("john@example.com", text: $email)
                         .textFieldStyle()
                     
                     Button(action: {
                         Task {
                             await registerWithEmail()
-                            withAnimation {
-                                displayRegisterMessage = true;
-                            }
                         }
                         
                     }, label: {
@@ -65,8 +55,6 @@ struct ForgotPasswordView: View {
                             .buttonStyle()
                     })
                     .padding(.top)
-                    .disabled(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "")
-                    .opacity(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "" ? 0.5 : 1)
                     
                     .navigationTitle("Reset Password")
                 }.padding(.horizontal)
@@ -76,8 +64,8 @@ struct ForgotPasswordView: View {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
             }
             
-            if registrationSuccessful {
-                Message(title: "Email Sent", message: "If the email provided is associated with an account that uses email login, a password reset email has been sent to \(email).", style: .success, isPresented: $registrationSuccessful, view:
+            if resetPasswordEmailSent {
+                Message(title: "Email Sent", message: "If the email provided is associated with an account that uses email login, a password reset email has been sent to \(email).", style: .success, isPresented: $resetPasswordEmailSent, view:
                             AnyView(Button(action: {self.mode.wrappedValue.dismiss()}, label: {Text("Continue").messageButtonStyle()}))
                 )
             }

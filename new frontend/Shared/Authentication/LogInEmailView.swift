@@ -95,7 +95,7 @@ struct LogInEmailView: View {
                         .bucketTextInternalStyle()
                         .padding(.top)
                     
-                    NavigationLink(destination: RegisterEmailView()) {
+                    NavigationLink(destination: ForgotPasswordView()) {
                         Text("Reset Password")
                             .buttonStyle()
                     }

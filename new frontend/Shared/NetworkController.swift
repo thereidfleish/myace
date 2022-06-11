@@ -103,6 +103,37 @@ class NetworkController: ObservableObject {
         }
     }
     
+    // POST
+    func forgotPassword(email: String) async throws {
+        let req: ForgotPasswordReq = ForgotPasswordReq(email: email)
+        
+        guard let encoded = try? JSONEncoder().encode(req) else {
+            throw NetworkError.failedEncode
+        }
+        
+        let url = URL(string: "\(host)/users/forgot/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        do {
+            (data, response) = try await URLSession.shared.upload(for: request, from: encoded)
+            print(response)
+            print(data.prettyPrintedJSONString)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
+        } catch {
+            print(error)
+            print("forgotPassword failed decode")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            throw decodedResponse.error + " (error code: \(error))"
+        }
+    }
+    
+    
+    
+    
     // GET
     func checkUsername(userName: String) async throws -> (Bool, Bool) {
         let url = URL(string: "\(host)/usernames/\(userName)/check/")!

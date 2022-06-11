@@ -333,5 +333,9 @@ struct CheckUsername: Codable {
 }
 
 struct ErrorDecode: Codable {
-    var error: String = ""
+    var error: String
+}
+
+struct ForgotPasswordReq: Codable {
+    var email: String
 }
