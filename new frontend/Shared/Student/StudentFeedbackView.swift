@@ -259,7 +259,7 @@ struct StudentFeedbackView: View {
                             showingCommentEditor.toggle()
                         }
                     }, label: {
-                        Image(systemName: !showingCommentEditor ? "bubble.right.fill" : "x.circle.fill")
+                        Image(systemName: !showingCommentEditor ? "plus.bubble.fill" : "x.circle.fill")
                             .resizable()
                             .scaledToFill()
                             .foregroundColor(!showingCommentEditor ? Color.green : Color.red)
