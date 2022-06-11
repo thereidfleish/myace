@@ -134,23 +134,26 @@ struct RegisterEmailView: View {
                             .smallestSubsectionStyle()
                     }
                     
-                    Button(action: {
-                        Task {
-                            await registerWithEmail()
-                            withAnimation {
-                                displayRegisterMessage = true;
+                    if (!awaiting) {
+                        Button(action: {
+                            Task {
+                                await registerWithEmail()
+                                withAnimation {
+                                    displayRegisterMessage = true;
+                                }
                             }
-                        }
-                        
-                    }, label: {
-                        Text("Register")
-                            .buttonStyle()
-                    })
-                    .padding(.top)
-                    .disabled(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "")
-                    .opacity(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "" ? 0.5 : 1)
-                    
-                    .navigationTitle("Register")
+                            
+                        }, label: {
+                            Text("Register")
+                                .buttonStyle()
+                        })
+                        .padding(.top)
+                        .disabled(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "")
+                        .opacity(password != confirmPassword || !userNameValidAndAvailable || password == "" || email == "" ? 0.5 : 1)
+                        .navigationTitle("Register")
+                    } else {
+                        ProgressView()
+                    }
                 }.padding(.horizontal)
             }
             
@@ -160,7 +163,7 @@ struct RegisterEmailView: View {
             
             if registrationSuccessful {
                 Message(title: "Account Created", message: "Registration successful! A confirmation email has been sent to \(email).", style: .success, isPresented: $registrationSuccessful, view:
-                            AnyView(NavigationLink(destination: EmailNotConfirmedView(), label: {Text("Continue").messageButtonStyle()}))
+                            AnyView(NavigationLink(destination: OnboardingView(showProfileSettingsView: false).navigationBarHidden(true), label: {Text("Continue").messageButtonStyle()}))
                 )
             }
         }

@@ -107,6 +107,9 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
             
+            let decodedResponse = try decoder.decode(SharedData.self, from: data)
+            userData.shared = decodedResponse
+//            userData.loggedIn = true
         } catch {
             print(error)
             print("registerWithEmail error")

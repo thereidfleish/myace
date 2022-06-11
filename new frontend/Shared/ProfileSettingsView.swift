@@ -133,10 +133,7 @@ struct ProfileSettingsView: View {
                     
                     
                 }.padding(.horizontal)
-                    .sheet(isPresented: $showingNewBucketView) {
-                        NewBucketView()
-                        
-                    }
+                    
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)

@@ -25,6 +25,9 @@ struct OnboardingView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color.green)
+                    .onAppear(perform: {
+                        print(nc.userData.shared.email_confirmed)
+                    })
                 
                 TabView {
                     Image("iPhone.001")
@@ -46,6 +49,7 @@ struct OnboardingView: View {
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
+                    
                     VStack {
                         Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
                             .padding(.top, 20)
@@ -64,11 +68,19 @@ struct OnboardingView: View {
                         
                         Button(action: {
                             nc.userData.showOnboarding = false
+                            nc.userData.loggedIn = true
+                            print(nc.userData.shared.email_confirmed)
+                            print(nc.userData.loggedIn)
                         }, label: {
                             Text("Let's Go!")
                                 .buttonStyle()
                         }).disabled(nc.userData.buckets.count == 0)
                             .opacity(nc.userData.buckets.count == 0 ? 0.5 : 1)
+                    }
+                    .padding(.horizontal)
+                    .sheet(isPresented: $showingNewBucketView) {
+                        NewBucketView()
+                        
                     }
                 }
                 .tabViewStyle(.page)
