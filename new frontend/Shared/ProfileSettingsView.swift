@@ -19,6 +19,27 @@ struct ProfileSettingsView: View {
     var isNewUser: Bool
     @State private var displaySaveMessage = false
     @State private var saveMessage = ""
+    @State private var userNameMessage = ""
+    @State private var userNameValidAndAvailable = true
+    
+    func checkValidAndAvailable() async {
+        do {
+            let (valid, available) = try await nc.checkUsername(userName: username.replacingOccurrences(of: " ", with: "").lowercased())
+            if(!valid || !available) {
+                userNameMessage = "\(!valid ? "Username is invalid. Must contain 4-16 characters. At least one letter. No special characters except . and _" : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
+                userNameValidAndAvailable = false
+            } else {
+                userNameMessage = "Username is available!"
+                userNameValidAndAvailable = true
+            }
+        }
+        catch {
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
+        }
+    }
     
     func updateUser() async {
             do {
@@ -64,6 +85,16 @@ struct ProfileSettingsView: View {
                         })
                     TextField("Edit Username", text: $username)
                         .textFieldStyle()
+                        .onChange(of: username) { newValue in
+                            Task {
+                                await checkValidAndAvailable()
+                            }
+                        }
+                    
+                    if (userNameMessage != "") {
+                        Text(userNameMessage)
+                            .smallestSubsectionStyle()
+                    }
                     
                     Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
                         .padding(.top, 20)
@@ -99,9 +130,7 @@ struct ProfileSettingsView: View {
                             }
                         }
                     }
-                    
-                    Spacer()
-                    
+                                        
                     if (displaySaveMessage) {
                         Text(saveMessage)
                             .padding(.top, 20)
