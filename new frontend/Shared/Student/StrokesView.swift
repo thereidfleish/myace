@@ -16,22 +16,20 @@ struct StrokesView: View {
     var currentUserAs: CurrentUserAs
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
-        @State private var showingEditingBucketName = false
-        @State private var editingBucketName: String = ""
+    @State private var showingEditingBucketName = false
+    @State private var editingName: String = ""
     @State private var editingBucketNameBucketID: String = ""
-    //    @State private var uploadName = ""
-    //    @State private var originalName = ""
-    //    @State private var showingDeleteUploadID: String = ""
-    //    @State private var showingDelete = false
+    @State private var showingDeleteBucket = false
+    @State private var deletingBucketID: String = ""
     @State private var isShowingMediaPicker = false
     @State private var currentBucketID: Int = -1
     @State private var showsUploadAlert = false
     @State var url: [URL] = []
     @State private var collapsed = false
-    @State private var showingDelete = false
+    @State private var showingDeleteUpload = false
     @State private var showingDeleteUploadID: String = ""
     @State private var showingEditingUpload = false
-
+    
     @State private var errorMessage = ""
     @State private var showingError = false
     @State private var awaiting = true
@@ -93,34 +91,12 @@ struct StrokesView: View {
                     }
                     
                     if (nc.userData.buckets.count == 0) {
-                        Text("\(currentUserAs == .student ? "To start, create a stroke." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
+                        Text("\(currentUserAs == .student ? "Create a folder to store your videos." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
                             .multilineTextAlignment(.center)
                             .bucketTextInternalStyle()
                     }
                     
                     ForEach(nc.userData.buckets) { bucket in
-                        HStack {
-                            if (showingEditingBucketName && String(bucket.id) == editingBucketNameBucketID) {
-                                TextField("Edit name", text: $editingBucketName)
-                                    .textFieldStyle()
-
-                                Button(action: {
-                                    Task {
-                                        awaiting = true
-                                        try await nc.editBucket(bucketID: editingBucketNameBucketID, newName: editingBucketName)
-                                        await initialize(showProgressView: true)
-                                        showingEditingBucketName = false
-                                    }
-
-                                }, label: {
-                                    Text("Save")
-                                        .foregroundColor(.green)
-                                        .fontWeight(.bold)
-                                })
-                            }
-
-                        }
-                        
                         Section(header: HStack {
                             //                        Button(action: {
                             //                            withAnimation {
@@ -151,26 +127,18 @@ struct StrokesView: View {
                                 
                                 Menu {
                                     Button {
-                                        withAnimation {
-                                            if (editingBucketNameBucketID == String(bucket.id)) {
-                                                showingEditingBucketName.toggle()
-                                            } else {
-                                                showingEditingBucketName = true
-                                            }
-                                            editingBucketNameBucketID = String(bucket.id)
-                                        }
+                                        editingName = ""
+                                        showingEditingBucketName.toggle()
+                                        editingBucketNameBucketID = String(bucket.id)
                                     } label: {
-                                        Label("Rename", systemImage: "pencil")
+                                        Label("Rename Folder", systemImage: "pencil")
                                     }
                                     
                                     Button(role: .destructive) {
-                                        Task {
-                                            awaiting = true
-                                            try await nc.deleteBucket(bucketID: String(bucket.id))
-                                            await initialize(showProgressView: true)
-                                        }
+                                        showingDeleteBucket.toggle()
+                                        deletingBucketID = String(bucket.id)
                                     } label: {
-                                        Label("Delete", systemImage: "trash")
+                                        Label("Delete Folder", systemImage: "trash")
                                     }
                                     
                                 } label: {
@@ -184,28 +152,8 @@ struct StrokesView: View {
                             .background(Color.white)
                                 , content: {
                             ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
-                                HStack {
-                                    if (showingDelete && String(upload.id) == showingDeleteUploadID) {
-                                        Text("Are you sure you want to delete this video?  This cannot be undone!")
-                                            .foregroundColor(.red)
-                                        Button(action: {
-                                            Task {
-                                                awaiting = true
-                                                try await nc.deleteUpload(uploadID: String(upload.id))
-                                                await initialize(showProgressView: true)
-                                            }
-                                            
-                                        }, label: {
-                                            Text("Delete")
-                                                .foregroundColor(.red)
-                                                .fontWeight(.bold)
-                                        })
-                                    }
-                                    
-                                }
                                 
-                                Spacer()
-                                
+                                Spacer() // For some reason, app does not compile without this spacer!
                                 
                                 HStack {
                                     VideoThumbnailView(upload: upload)
@@ -241,14 +189,8 @@ struct StrokesView: View {
                                                 }
                                                 
                                                 Button(role: .destructive) {
-                                                    withAnimation {
-                                                        if (showingDeleteUploadID == String(upload.id)) {
-                                                            showingDelete.toggle()
-                                                        } else {
-                                                            showingDelete = true
-                                                        }
+                                                        showingDeleteUpload.toggle()
                                                         showingDeleteUploadID = String(upload.id)
-                                                    }
                                                     
                                                 } label: {
                                                     Label("Delete", systemImage: "trash")
@@ -263,7 +205,7 @@ struct StrokesView: View {
                                         }
                                         
                                         
-                                        Spacer()
+                                        //Spacer()
                                     }
                                 }.id("\(upload.id)-2")
                             }
@@ -332,8 +274,88 @@ struct StrokesView: View {
             .task {
                 await initialize(showProgressView: true)
             }
+            
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
+            
+            if showingEditingBucketName {
+                Message(title: "Edit Folder Name", message: "Provide a new name", style: .message, isPresented: $showingEditingBucketName, view: AnyView(
+                    HStack {
+                        TextField("Edit name", text: $editingName)
+                            .textFieldStyle()
+                        
+                        Button(action: {
+                            Task {
+                                awaiting = true
+                                do {
+                                    try await nc.editBucket(bucketID: editingBucketNameBucketID, newName: editingName)
+                                    await initialize(showProgressView: true)
+                                    awaiting = false
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                    showingError = true
+                                    awaiting = false
+                                }
+                                showingEditingBucketName = false
+                            }
+                            
+                        }, label: {
+                            Text("Save")
+                                .bold()
+                                .foregroundColor(.green)
+                        })
+                    }
+                ))
+            }
+            
+            if showingDeleteBucket {
+                Message(title: "Delete Folder", message: "Are you sure you want to delete this folder and its videos?  This cannot be undone!", style: .delete, isPresented: $showingDeleteBucket, view: AnyView(
+                        Button(action: {
+                            Task {
+                                awaiting = true
+                                do {
+                                    try await nc.deleteBucket(bucketID: deletingBucketID)
+                                    await initialize(showProgressView: true)
+                                    awaiting = false
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                    showingError = true
+                                    awaiting = false
+                                }
+                                showingDeleteBucket = false
+                            }
+                            
+                        }, label: {
+                            Text("Delete")
+                                .messageButtonStyle()
+                        })
+                ))
+            }
+            
+            if showingDeleteUpload {
+                Message(title: "Delete Upload", message: "Are you sure you want to delete this video and its comments?  This cannot be undone!", style: .delete, isPresented: $showingDeleteUpload, view: AnyView(
+                        Button(action: {
+                            Task {
+                                awaiting = true
+                                do {
+                                    try await nc.deleteUpload(uploadID: showingDeleteUploadID)
+                                    await initialize(showProgressView: true)
+                                    awaiting = false
+                                } catch {
+                                    errorMessage = error.localizedDescription
+                                    showingError = true
+                                    awaiting = false
+                                }
+                                
+                                showingDeleteUpload = false
+                            }
+                            
+                        }, label: {
+                            Text("Delete")
+                                .messageButtonStyle()
+                        })
+                ))
             }
         }
     }

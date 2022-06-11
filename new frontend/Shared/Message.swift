@@ -14,10 +14,12 @@ struct Message: View {
         case message
         case success
         case warning
+        case delete
         
         var backgroundColor: Color {
             switch self {
             case .error: return Message.errorRed
+            case .delete: return Message.errorRed
             case .message: return .white
             case .success: return Message.successGreen
             case .warning: return Message.warningYellow
@@ -27,6 +29,7 @@ struct Message: View {
         var textColor: Color {
             switch self {
             case .error: return .white
+            case .delete: return .white
             case .message: return .black
             case .success: return .white
             case .warning: return .black
@@ -62,7 +65,7 @@ struct Message: View {
                             isPresented = false
                         }, label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.white)
+                                .foregroundColor(style == .message ? .black : .white)
                         })
                         
                     }
