@@ -12,6 +12,7 @@ struct StrokesView: View {
     @EnvironmentObject private var nc: NetworkController
     //    @State private var showingFeedback = false
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
+    @Environment(\.colorScheme) var colorScheme
     var otherUser: SharedData
     var currentUserAs: CurrentUserAs
     @State private var isShowingNewStrokeView = false
@@ -149,7 +150,7 @@ struct StrokesView: View {
                             }
                             
                         }.id("\(bucket.id)-1")
-                            .background(Color.white)
+                            .background(colorScheme == .dark ? .black : .white)
                                 , content: {
                             ForEach(nc.userData.uploads.filter{ $0.bucket.id == bucket.id } ) { upload in
                                 
