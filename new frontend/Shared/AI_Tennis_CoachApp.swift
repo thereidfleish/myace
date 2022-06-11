@@ -14,18 +14,24 @@ struct AI_Tennis_CoachApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if (!networkController.userData.loggedIn && !networkController.newUser) {
+            // If the user is not logged in AND the user hasn't initiated a showOnboarding (only shown when it's a new user), then show the login screen
+            if (!networkController.userData.loggedIn && !networkController.userData.showOnboarding) {
                 LogInView()
                     .environmentObject(networkController)
             }
-            else if (networkController.newUser) {
-                ProfileSettingsView(isNewUser: true)
+            else if (!networkController.userData.showOnboarding && )
+            else if (networkController.userData.showOnboarding) {
+                OnboardingView(showProfileSettingsView: true)
                     .environmentObject(networkController)
             }
-            else if (networkController.userData.loggedIn && networkController.userData.shared.email != nil && !(networkController.userData.shared.email_confirmed ?? true)) {
-                EmailNotConfirmedView()
-                    .environmentObject(networkController)
-            }
+//            else if (networkController.userData.loggedIn && networkController.userData.shared.email != nil && !(networkController.userData.shared.email_confirmed ?? true)) {
+//                EmailNotConfirmedView()
+//                    .environmentObject(networkController)
+//            }
+//            else if (networkController.showOnboarding) {
+//                OnboardingView()
+//                    .environmentObject(networkController)
+//            }
             else {
                 ContentView()
                     .environmentObject(networkController)

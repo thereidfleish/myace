@@ -13,7 +13,7 @@ struct SettingsView: View {
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     @EnvironmentObject private var nc: NetworkController
     @State private var showDeleteAccount: Bool = false
-    
+    @State private var showProfileSettingsView = true
     @State private var showingError = false
     @State private var showingSuccess = false
     @State private var errorMessage = ""
@@ -49,7 +49,7 @@ struct SettingsView: View {
                             .bucketNameStyle()
                             .foregroundColor(Color.green)
                             .padding(.horizontal)
-                        NavigationLink(destination: ProfileSettingsView(isNewUser: false)) {
+                        NavigationLink(destination: ProfileSettingsView(isNewUser: false, showProfileSettingsView: $showProfileSettingsView)) {
                             HStack {
                                 Text("Edit Profile Info")
                                     .bucketNameStyle()

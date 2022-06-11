@@ -21,6 +21,7 @@ struct ProfileSettingsView: View {
     @State private var saveMessage = ""
     @State private var userNameMessage = ""
     @State private var userNameValidAndAvailable = true
+    @Binding var showProfileSettingsView: Bool
     
     func checkValidAndAvailable() async {
         do {
@@ -44,26 +45,12 @@ struct ProfileSettingsView: View {
     func updateUser() async {
             do {
                 awaiting = true
-                if(nc.userData.shared.username != username) {
-                    let (valid, available) = try await nc.checkUsername(userName: username)
-                    if(!valid || !available) {
-                        saveMessage = "\(!valid ? "Username is invalid. Must contain 4-16 characters. At least one letter. No special characters except . and _" : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
-                    } else {
-                        try await nc.updateCurrentUser(username: username, displayName: displayName, biography: biography)
-                        saveMessage = "Changes Saved Successfully!"
-                        nc.newUser = false
-                    }
-                }
-                else {
-                    try await nc.updateCurrentUser(username: nil, displayName: displayName, biography: biography)
-                    saveMessage = "Changes Saved Successfully!"
-                    nc.newUser = false
-                }
+                try await nc.updateCurrentUser(username: username.replacingOccurrences(of: " ", with: "").lowercased(), displayName: displayName, biography: biography)
+                showProfileSettingsView = false
                 awaiting = false
             } catch {
                 print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
-                saveMessage = "Changes unsuccessful. See error message."
                 showingError = true
                 awaiting = false
             }
@@ -113,23 +100,6 @@ struct ProfileSettingsView: View {
                     
                     TextField("Edit Bio", text: $biography)
                         .textFieldStyle()
-                    
-                    if(isNewUser) {
-                        Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
-                            .padding(.top, 20)
-                            .bucketTextInternalStyle()
-                        Button(action: {
-                            showingNewBucketView.toggle()
-                        }, label: {
-                            Text("Create New Folder")
-                                .buttonStyle()
-                        })
-                        ForEach(nc.userData.buckets) { bucket in
-                            VStack(alignment: .leading) {
-                                Text(bucket.name)
-                            }
-                        }
-                    }
                                         
                     if (displaySaveMessage) {
                         Text(saveMessage)
@@ -159,8 +129,7 @@ struct ProfileSettingsView: View {
                     }, label: {
                         Text(isNewUser ? "Continue" : "Save")
                             .buttonStyle()
-                    }).disabled(isNewUser && nc.userData.buckets.count == 0)
-                        .opacity(isNewUser && nc.userData.buckets.count == 0 ? 0.5 : 1)
+                    })
                     
                     
                 }.padding(.horizontal)

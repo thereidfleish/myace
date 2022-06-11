@@ -15,6 +15,8 @@ struct UserData {
     
     var loggedIn: Bool = false
     
+    var showOnboarding: Bool = false
+    
     var profilePic: URL? = nil
     
     // Student data

@@ -14,7 +14,6 @@ class NetworkController: ObservableObject {
     @Published var awaiting = false
     @Published var uploadURL: URL = URL(fileURLWithPath: "")
     @Published var uploadURLSaved: Bool = false
-    @Published var newUser = false
     @Published var editUploadID: String = ""
     @Published var errorMessage: String = ""
     @Published var showingMessage: Bool = false
@@ -67,7 +66,7 @@ class NetworkController: ObservableObject {
             
             // Handle the new user
             if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
-                newUser = true
+                userData.showOnboarding = true
             }
             // Handle the error case
             else if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {

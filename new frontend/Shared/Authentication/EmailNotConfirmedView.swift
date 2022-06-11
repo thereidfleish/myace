@@ -35,7 +35,7 @@ struct EmailNotConfirmedView: View {
     func updateUser() async {
         do {
             awaiting = true
-            try await nc.updateCurrentUser(username: nil, displayName: nil, biography: nil)
+            nc.userData.shared = try await nc.getIndividualUser(userID: "me")
             awaiting = false
         } catch {
             print("Showing error: \(error)")
