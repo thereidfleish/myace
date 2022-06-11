@@ -33,6 +33,8 @@
 		256516F3284C0179004B8062 /* RegisterEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256516F1284C0179004B8062 /* RegisterEmailView.swift */; };
 		256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */; };
 		256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */; };
+		256BDBCD2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */; };
+		256BDBCE2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */; };
 		256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
@@ -114,6 +116,7 @@
 		256516EE284BEE23004B8062 /* LogInEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInEmailView.swift; sourceTree = "<group>"; };
 		256516F1284C0179004B8062 /* RegisterEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegisterEmailView.swift; sourceTree = "<group>"; };
 		256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
+		256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailNotConfirmedView.swift; sourceTree = "<group>"; };
 		256CBD07279DD593004FCC44 /* UserCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCardView.swift; sourceTree = "<group>"; };
 		256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserCardHomeView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
@@ -277,6 +280,7 @@
 				256516EE284BEE23004B8062 /* LogInEmailView.swift */,
 				256516F1284C0179004B8062 /* RegisterEmailView.swift */,
 				25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */,
+				256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */,
 			);
 			path = Authentication;
 			sourceTree = "<group>";
@@ -578,6 +582,7 @@
 				2558E2CB2773BA270056DD17 /* ContentView.swift in Sources */,
 				9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */,
 				2558E2C92773BA270056DD17 /* AI_Tennis_CoachApp.swift in Sources */,
+				256BDBCD2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -602,6 +607,7 @@
 				258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				9A2C34D22799BCC700FAC339 /* UploadView.swift in Sources */,
+				256BDBCE2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */,
 				258D41762773C3E00030D437 /* YourCoachesView.swift in Sources */,
 				256516F0284BEE23004B8062 /* LogInEmailView.swift in Sources */,
 				2558E2CC2773BA270056DD17 /* ContentView.swift in Sources */,

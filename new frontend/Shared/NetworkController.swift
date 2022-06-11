@@ -38,6 +38,14 @@ class NetworkController: ObservableObject {
         //UserDefaults.standard.set(Data(), forKey: "appletoken")
     }
     
+    func logOut() {
+        let components = DateComponents(calendar: Calendar.current, year: 2000, month: 1, day: 1)
+        HTTPCookieStorage.shared.removeCookies(since: Calendar.current.date(from: components)!)
+        print("logged out")
+        print(HTTPCookieStorage.shared)
+        clearUserData()
+    }
+    
     // POST
     func login(method: String, email: String?, password: String?, token: String?) async throws {
         let req: LoginReq = LoginReq(method: method, email: email, password: password, token: token)
@@ -72,7 +80,7 @@ class NetworkController: ObservableObject {
             
         } catch {
             print(error)
-            print("login failed decode")
+            print("login error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -102,7 +110,31 @@ class NetworkController: ObservableObject {
             
         } catch {
             print(error)
-            print("registerWithEmail failed decode")
+            print("registerWithEmail error")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
+        }
+    }
+    
+    // POST
+    func resendConfirmationEmail() async throws {
+        let url = URL(string: "\(host)/users/resend/")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+            print(response)
+            print(data.prettyPrintedJSONString)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 204) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            
+        } catch {
+            print(error)
+            print("resendConfirmationEmail error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -132,7 +164,7 @@ class NetworkController: ObservableObject {
             
         } catch {
             print(error)
-            print("forgotPassword failed decode")
+            print("forgotPassword error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -161,7 +193,7 @@ class NetworkController: ObservableObject {
             let decodedResponse = try decoder.decode(CheckUsername.self, from: data)
             return (decodedResponse.valid, decodedResponse.available)
         } catch {
-            print("checkUsername failed decode")
+            print("checkUsername error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -190,7 +222,7 @@ class NetworkController: ObservableObject {
             
             return decodedResponse
         } catch {
-            print("getIndividualUser failed decode")
+            print("getIndividualUser error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -230,7 +262,7 @@ class NetworkController: ObservableObject {
             
             userData.shared = decodedResponse
         } catch {
-            print("updateCurrentUser failed decode")
+            print("updateCurrentUser error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -254,7 +286,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("deleteCurrentUser failed decode")
+            print("deleteCurrentUser error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -285,7 +317,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("editUpload failed decode")
+            print("editUpload error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -318,7 +350,7 @@ class NetworkController: ObservableObject {
             return decodedResponse
             
         } catch {
-            print("getUpload failed decode")
+            print("getUpload error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -344,7 +376,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("deleteUpload failed decode")
+            print("deleteUpload error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -380,7 +412,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getComments failed decode")
+            print("getComments error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -416,7 +448,7 @@ class NetworkController: ObservableObject {
             
             userData.comments.append(decodedResponse)
         } catch {
-            print("createComments failed decode")
+            print("createComments error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -441,7 +473,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("deleteComments failed decode")
+            print("deleteComments error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -506,7 +538,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getBuckets failed decode")
+            print("getBuckets error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -536,7 +568,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("editBucket failed decode")
+            print("editBucket error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -560,7 +592,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("deleteBucket failed decode")
+            print("deleteBucket error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -601,7 +633,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getMyUploads failed decode")
+            print("getMyUploads error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             print("ERROR:", decodedResponse.error)
             if (decodedResponse.error != nil) {
@@ -639,7 +671,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getOtherUserUploads failed decode")
+            print("getOtherUserUploads error")
             print(error)
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             print("ERROR:", decodedResponse.error)
@@ -670,7 +702,7 @@ class NetworkController: ObservableObject {
             return (decodedResponse.users, decodedResponse.has_next)
             
         } catch {
-            print("searchUser failed decode")
+            print("searchUser error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -704,7 +736,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("createCourtshipRequest failed decode")
+            print("createCourtshipRequest error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -742,7 +774,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getCourtshipRequests failed decode")
+            print("getCourtshipRequests error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -774,7 +806,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("updateIncomingCourtshipRequest failed decode")
+            print("updateIncomingCourtshipRequest error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -798,7 +830,7 @@ class NetworkController: ObservableObject {
                 throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
             }
         } catch {
-            print("deleteOutgoingCourtshipRequest failed decode")
+            print("deleteOutgoingCourtshipRequest error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -830,7 +862,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("getCourtships failed decode")
+            print("getCourtships error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"
@@ -853,7 +885,7 @@ class NetworkController: ObservableObject {
             }
             
         } catch {
-            print("removeCourtship failed decode")
+            print("removeCourtship error")
             let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
             if (decodedResponse.error != nil) {
                 throw decodedResponse.error! + " (error code: \(error))"

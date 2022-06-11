@@ -22,6 +22,10 @@ struct AI_Tennis_CoachApp: App {
                 ProfileSettingsView(isNewUser: true)
                     .environmentObject(networkController)
             }
+            else if (networkController.userData.loggedIn && networkController.userData.shared.email != nil && !(networkController.userData.shared.email_confirmed ?? true)) {
+                EmailNotConfirmedView()
+                    .environmentObject(networkController)
+            }
             else {
                 ContentView()
                     .environmentObject(networkController)

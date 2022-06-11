@@ -99,10 +99,8 @@ struct SharedData: Codable, Identifiable, Equatable {
     var biography: String = ""
     var courtship: Courtship?
     var n_uploads: Int = -1;
-    
-    
-    //var email: String? = nil
-    //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
+    var email: String?
+    var email_confirmed: Bool?
 }
 
 //struct SharedDataRequest: Codable, Identifiable, Equatable {
