@@ -52,6 +52,8 @@
 		25D13A72277A684700FFE2B3 /* MediaPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 25D13A71277A684700FFE2B3 /* MediaPicker */; };
 		25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
 		25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */; };
+		25FA7B29285412B5007B5CDD /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */; };
+		25FA7B2A285412B5007B5CDD /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */; };
 		592E5CCCD3A66482BF3E0BF7 /* Pods_AI_Tennis_Coach__iOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B2FFC953389EC9661EDFF70 /* Pods_AI_Tennis_Coach__iOS_.framework */; };
 		947694C06B316AF4DE3949A6 /* Pods_AI_Tennis_Coach__macOS_.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0213868141B25554D6DC1E6D /* Pods_AI_Tennis_Coach__macOS_.framework */; };
 		9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34C02790B21A00FAC339 /* CameraViewWithVideoCapture.swift */; };
@@ -123,6 +125,7 @@
 		258E80EA283C4D4200AD1657 /* StrokesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokesView.swift; sourceTree = "<group>"; };
 		25D13A6A277A594300FFE2B3 /* LogInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogInView.swift; sourceTree = "<group>"; };
 		25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewBucketView.swift; sourceTree = "<group>"; };
+		25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		3CC10C82781C02172B1ADD6F /* Pods-AI Tennis Coach (macOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).release.xcconfig"; sourceTree = "<group>"; };
 		3CCD2C38DDBD8734215F5626 /* Pods-AI Tennis Coach (iOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).debug.xcconfig"; sourceTree = "<group>"; };
 		4804D8D60D0D708451755D17 /* Pods-AI Tennis Coach (iOS).release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (iOS).release.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (iOS)/Pods-AI Tennis Coach (iOS).release.xcconfig"; sourceTree = "<group>"; };
@@ -273,6 +276,7 @@
 				25D13A6A277A594300FFE2B3 /* LogInView.swift */,
 				256516EE284BEE23004B8062 /* LogInEmailView.swift */,
 				256516F1284C0179004B8062 /* RegisterEmailView.swift */,
+				25FA7B28285412B4007B5CDD /* ForgotPasswordView.swift */,
 			);
 			path = Authentication;
 			sourceTree = "<group>";
@@ -554,6 +558,7 @@
 				256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				258E80E8283BE4CD00AD1657 /* Refresher.swift in Sources */,
 				9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */,
+				25FA7B29285412B5007B5CDD /* ForgotPasswordView.swift in Sources */,
 				9A2C34C32792065900FAC339 /* CameraView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34D12799BCC700FAC339 /* UploadView.swift in Sources */,
@@ -588,6 +593,7 @@
 				9A2C34C62793CF4900FAC339 /* TextAlert.swift in Sources */,
 				256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				25105A54284D44610041BC34 /* Message.swift in Sources */,
+				25FA7B2A285412B5007B5CDD /* ForgotPasswordView.swift in Sources */,
 				256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,

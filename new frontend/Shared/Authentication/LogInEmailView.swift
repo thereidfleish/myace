@@ -87,8 +87,16 @@ struct LogInEmailView: View {
                         .padding(.top)
                     
                     NavigationLink(destination: RegisterEmailView()) {
-
                         Text("Register with Email")
+                            .buttonStyle()
+                    }
+                    
+                    Text("Forget Password?")
+                        .bucketTextInternalStyle()
+                        .padding(.top)
+                    
+                    NavigationLink(destination: RegisterEmailView()) {
+                        Text("Reset Password")
                             .buttonStyle()
                     }
                     

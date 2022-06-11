@@ -79,7 +79,7 @@ struct StrokesView: View {
                 }
                 else {
                     HStack {
-                        Text("Strokes")
+                        Text("Folders")
                             .bucketTextInternalStyle()
                         if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                             Button(action: {
@@ -99,27 +99,27 @@ struct StrokesView: View {
                     }
                     
                     ForEach(nc.userData.buckets) { bucket in
-                                                HStack {
-                                                    if (showingEditingBucketName && String(bucket.id) == editingBucketNameBucketID) {
-                                                        TextField("Edit name", text: $editingBucketName)
-                                                            .textFieldStyle()
-                        
-                                                        Button(action: {
-                                                            Task {
-                                                                awaiting = true
-                                                                try await nc.editBucket(bucketID: editingBucketNameBucketID, newName: editingBucketName)
-                                                                await initialize(showProgressView: true)
-                                                                showingEditingBucketName = false
-                                                            }
+                        HStack {
+                            if (showingEditingBucketName && String(bucket.id) == editingBucketNameBucketID) {
+                                TextField("Edit name", text: $editingBucketName)
+                                    .textFieldStyle()
 
-                                                        }, label: {
-                                                            Text("Save")
-                                                                .foregroundColor(.green)
-                                                                .fontWeight(.bold)
-                                                        })
-                                                    }
-                        
-                                                }
+                                Button(action: {
+                                    Task {
+                                        awaiting = true
+                                        try await nc.editBucket(bucketID: editingBucketNameBucketID, newName: editingBucketName)
+                                        await initialize(showProgressView: true)
+                                        showingEditingBucketName = false
+                                    }
+
+                                }, label: {
+                                    Text("Save")
+                                        .foregroundColor(.green)
+                                        .fontWeight(.bold)
+                                })
+                            }
+
+                        }
                         
                         Section(header: HStack {
                             //                        Button(action: {

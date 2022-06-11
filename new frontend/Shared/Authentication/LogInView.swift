@@ -27,6 +27,7 @@ class GoogleAuth: UIViewController {
 
 struct LogInView: View {
     @EnvironmentObject private var nc: NetworkController
+    @Environment(\.colorScheme) var colorScheme
     @State private var showingError = false
     @State private var errorMessage = ""
     private let signInConfig = GIDConfiguration.init(clientID: "530607482320-irblcmsai0p4dn8ocq9bmjv31jo1j3se.apps.googleusercontent.com")
@@ -189,6 +190,7 @@ struct LogInView: View {
                         }
                         .frame(height: 52.5)
                         .cornerRadius(10)
+                        .invertColorStyle(enabled: colorScheme == .dark)
 
                         Text("Or")
                             .padding(.vertical)

@@ -174,6 +174,17 @@ struct friendStatusBackground: ViewModifier {
     }
 }
 
+struct invertColor: ViewModifier {
+    var enabled: Bool
+    func body(content: Content) -> some View {
+        if(enabled) {
+            content.colorInvert()
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
     func buttonStyle() -> some View {
         modifier(button())
@@ -222,5 +233,8 @@ extension View {
     }
     func friendStatusBackgroundStyle() -> some View {
         modifier(friendStatusBackground())
+    }
+    func invertColorStyle(enabled: Bool) -> some View {
+        modifier(invertColor(enabled: enabled))
     }
 }

@@ -81,7 +81,7 @@ struct SettingsView: View {
                                 })
                             }.padding(.horizontal)
                         }
-                        Button(action: {withAnimation {showDeleteAccount = true}}) {
+                        Button(action: {withAnimation {showDeleteAccount.toggle()}}) {
                             HStack {
                                 Text("Delete Account")
                                     .bucketNameStyle()
