@@ -55,7 +55,7 @@ class User(db.Model):
     email_last_sent = db.Column(db.DateTime, nullable=True)
 
     uploads = db.relationship(
-        "Upload", back_populates="user", passive_deletes=True
+        "Upload", back_populates="user", passive_deletes="all"
     )
     comments = db.relationship(
         "Comment", back_populates="author", passive_deletes=True
