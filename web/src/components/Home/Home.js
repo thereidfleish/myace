@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button'
 import './Home.scss'
 import Timeline from './Timeline/Timeline'
 import About from './About/About'
-import Fund from './Fund/Fund'
+// import Fund from './Fund/Fund'
 import Alpha from './Alpha/Alpha'
 
 export default function Home() {
@@ -20,7 +20,7 @@ export default function Home() {
         </div>
       <Timeline />
       <About />
-      <Fund />
+      {/* <Fund /> */}
       <Alpha />
     </div>
   );

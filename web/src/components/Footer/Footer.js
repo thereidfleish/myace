@@ -12,6 +12,9 @@ export default function Footer() {
             <Link to="/privacy" style={{ paddingLeft: '1rem', paddingBottom: '1rem', textDecoration: 'none' }}>
                 Privacy Policy
             </Link>
+            <Link to="/contact" style={{ paddingLeft: '1rem', paddingBottom: '1rem', textDecoration: 'none' }}>
+                Contact Us
+            </Link>
         </div>
     )
 }
