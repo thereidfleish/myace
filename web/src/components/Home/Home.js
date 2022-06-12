@@ -11,8 +11,8 @@ export default function Home() {
     <div>
         <div style= {{ height: '80vh'}} className='d-flex flex-column justify-content-center'>
             <div className='d-flex flex-column align-items-center'>
-                <h1 className='main-font'>myace.ai</h1>
-                <p className="mb-2 text-muted baby-font">the world's premier ai training app</p>
+                <h1 className='main-font'>My Ace 🎾</h1>
+                <p className="mb-2 text-muted baby-font">tennis training on the go</p>
                 <a href="#about"><Button style={{ marginTop: '15px'}}>
                     <span style={{ color: 'white'}}>learn more →</span>
                 </Button></a>
