@@ -41,12 +41,12 @@ struct StudentUploadView: View {
                             .bucketNameStyle()
                             .foregroundColor(Color.green)
                         
-                        Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
-                            .sectionHeadlineStyle()
-                            .foregroundColor(Color.green)
+//                        Text(currentUserAs == .coach ? "Your Students" : "Your Coaches")
+//                            .sectionHeadlineStyle()
+//                            .foregroundColor(Color.green)
                         
                         if nc.userData.courtships.isEmpty {
-                            Text("Welcome!  To get started, use the search bar to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                            Text("Welcome!  To get started, use the search tab to search for some \(currentUserAs == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
                                 .multilineTextAlignment(.center)
                                 .padding(.top)
                         }
@@ -76,11 +76,12 @@ struct StudentUploadView: View {
                     
                     
                 }.padding(.horizontal)
-                    .navigationBarTitle("Home", displayMode: .inline)
+                    .navigationBarTitle(currentUserAs == .student ? "Your Coaches" : "Your Students", displayMode: .inline)
                     .navigationBarItems(trailing: Refresher().refreshable {
                         await initialize()
                     })
-            }.task {
+            }.navigationViewStyle(StackNavigationViewStyle())
+            .task {
                 await initialize()
             }
             if showingError {

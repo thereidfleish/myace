@@ -93,7 +93,7 @@ struct SearchView: View {
                     }
                 }.navigationTitle("Search")
                     .padding(.horizontal)
-            }
+            }.navigationViewStyle(StackNavigationViewStyle())
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
             }

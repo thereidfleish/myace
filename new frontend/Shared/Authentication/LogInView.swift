@@ -220,7 +220,7 @@ struct LogInView: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(Color.green)
             }))
-        }
+        }.navigationViewStyle(StackNavigationViewStyle())
     }
     
 

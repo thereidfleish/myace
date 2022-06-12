@@ -18,10 +18,12 @@ struct UploadView: View {
     @State private var uploading = false
     @State private var uploadingStatus = ""
     @State private var progressPercent = ""
+    @State private var progressPercentFraction = 0.0
     @State private var uploadName = ""
     @State private var uploadBucketName = ""
     @State var url: [URL]
     @State var bucketID: String?
+    @State private var dontAllowClose = true
     var otherUser: SharedData?
     @State private var visibility: Visibility = Visibility()
     let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
@@ -231,47 +233,62 @@ struct UploadView: View {
                             VideoPlayer(player: AVPlayer(url: url[0]))
                                 .frame(height: 300)
                             
-                            if (!uploading) {
-                                Button(action: {
-                                    if(editMode) {
-                                        editUpload()
-                                    }
-                                    else {
-                                        uploadInit(fileURL: url[0], uploadName: uploadName)
-                                    }
-                                }, label: {
-                                    Text(editMode ? "Save" : "Upload")
-                                        .buttonStyle()
-                                        .opacity(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
-                                }).disabled(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)
-                            } else {
-                                ProgressView()
-                            }
+//                            if (!uploading) {
+//                                Button(action: {
+//                                    if(editMode) {
+//                                        editUpload()
+//                                    }
+//                                    else {
+//                                        uploadInit(fileURL: url[0], uploadName: uploadName)
+//                                    }
+//                                }, label: {
+//                                    Text(editMode ? "Save" : "Upload")
+//                                        .buttonStyle()
+//                                        .opacity(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
+//                                }).disabled(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)
+//                            } else {
+//                                ProgressView()
+//                            }
                             
                             
-                            Text(uploadingStatus)
-                                .bucketNameStyle()
-                                .foregroundColor(Color.green)
-                            
-                            Text(progressPercent)
-                                .videoInfoStyle()
-                                .foregroundColor(Color.green)
+//                            Text(uploadingStatus)
+//                                .bucketNameStyle()
+//                                .foregroundColor(Color.green)
+//
+//                            Text(progressPercent)
+//                                .videoInfoStyle()
+//                                .foregroundColor(Color.green)
                             
                         }.padding()
-                            .navigationTitle("Upload Video")
+                            .navigationTitle(editMode ? "Edit Video" : "Upload Video")
                             .navigationBarItems(leading: Button(action: {
                                 self.mode.wrappedValue.dismiss()
                             }, label: {
                                 Text("Cancel")
+                                    .bold()
                                     .foregroundColor(Color.green)
-                                    .fontWeight(.bold)
-                            }))
+                            }), trailing: uploading ? AnyView(ProgressView()) : AnyView(Button(action: {
+                                if(editMode) {
+                                    editUpload()
+                                }
+                                else {
+                                    uploadInit(fileURL: url[0], uploadName: uploadName)
+                                }
+                            }, label: {
+                                Text(editMode ? "Save" : "Upload")
+                                    .foregroundColor(Color.green)
+                                    .bold()
+                                    .opacity(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
+                            }).disabled(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)))
                     }
                 }.onAppear(perform: {if(editMode) {initialize()}})
                 
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
+            if (uploading) {
+                Message(title: uploadingStatus, message: "", style: .success, isPresented: $dontAllowClose, view: AnyView(ProgressView(value: progressPercentFraction, total: 100)))
             }
         }
         
@@ -358,6 +375,7 @@ struct UploadView: View {
             //                print("Upload Total Unit count: \(progress.totalUnitCount)")
             //                print("Upload Completed Unit Count: \(progress.completedUnitCount)")
             progressPercent = "\(Double(round(progress.fractionCompleted * 100 * 10) / 10.0))%"
+            progressPercentFraction = progress.fractionCompleted * 100
             
         }
         .responseJSON(completionHandler: { response in

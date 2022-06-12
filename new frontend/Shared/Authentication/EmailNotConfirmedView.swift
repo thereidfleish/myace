@@ -123,7 +123,7 @@ struct EmailNotConfirmedView: View {
                         await updateUser()
                     })
                 
-            }
+            }.navigationViewStyle(StackNavigationViewStyle())
 
             if resendSuccessful {
                 Message(title: "Email Resent", message: "The confirmation email has been resent to \(nc.userData.shared.email ?? "").", style: .success, isPresented: $resendSuccessful, view: nil)

@@ -30,22 +30,27 @@ struct OnboardingView: View {
                     })
                 
                 TabView {
-                    Image("iPhone.001")
+                    Image("iPhone.001 copy")
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
                     
-                    Image("iPhone.002")
+                    Image("iPhone.002 copy")
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
                     
-                    Image("iPhone.003")
+                    Image("iPhone.003 copy")
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)
                     
-                    Image("iPhone.004")
+                    Image("iPhone.004 copy")
+                        .resizable()
+                        .scaledToFit()
+                        .cornerRadius(10)
+                    
+                    Image("iPhone.005 copy")
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(10)

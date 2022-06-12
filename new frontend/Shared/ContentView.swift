@@ -50,7 +50,7 @@ struct ContentView: View {
                 NavigationView {
                     ProfileView(yourself: true, user: networkController.userData.shared)
                 }
-                .navigationViewStyle(.stack) // helps with Jumping Back bug
+                .navigationViewStyle(StackNavigationViewStyle()) // helps with Jumping Back bug
                 .tabItem {
                     VStack {
                         Image(systemName: "person.crop.circle.fill")

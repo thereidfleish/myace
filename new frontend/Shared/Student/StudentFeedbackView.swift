@@ -114,165 +114,168 @@ struct StudentFeedbackView: View {
     
     var body: some View {
         ZStack {
-            VStack(alignment: .center) {
-                ScrollView {
-                    VideoPlayer(player: player)
-                        .frame(height: 300)
-                }
-                
-                //Text(try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)"))
-                
-                if (showingCommentEditor) {
-                    //Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
-                    TextEditor(text: $createCommentText)
-                        .border(Color.black)
-                    
-                    
-                } else {
+            GeometryReader { geometry in
+                VStack(alignment: .center) {
                     ScrollView {
-                        if (commentsAwaiting) {
-                            ProgressView()
-                        } else if (showingError) {
-                            Text(nc.errorMessage).padding()
-                        } else {
-                            ScrollViewReader { proxy in
-                                
-                                // REGEX-ish:
-                                // To represent the occurance of the comment, place ${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "$75$my comment"
-                                // To embed a timestamp in a comment, do %{seconds}%.
-                                
-                                let sortedComments = nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})
-                                
-                                if (sortedComments.isEmpty) {
-                                    Text("Welcome to the comment editor!")
-                                        .bold()
-                                    
-                                    Text("1. Navigate to the part of the video where you want to add a comment\n\n2. Press the green button to add a comment at that timestamp\n\nTip: Tap on comments to jump to their position in the video!")
-                                        .padding(.top)
-                                }
-                                
-                                ForEach(sortedComments) { comment in
-                                    
-                                    let isYou: Bool = nc.userData.shared.username == comment.author.username
-                                    
-                                    VStack(alignment: isYou ? .trailing : .leading) {
-                                        Text("\(comment.author.display_name) (\((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))))")
-                                            .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
-                                        
-//                                        Text(comment.created.formatted())
-//                                            .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
-                                        
-                                        Button(action: {
-                                            currentSeconds = returnTimestampAndText(text: comment.text).0
-                                            player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
-                                        }, label: {
-                                            Text(returnTimestampAndText(text: comment.text).1)
-                                                .foregroundColor(/*returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary*/.white)
-                                                .multilineTextAlignment(.leading)
-                                        })
-                                        .padding(7)
-                                        .background(isYou ? Color.green : Color.gray)
-                                        .cornerRadius(7)
-                                        .foregroundColor(.white)
-                                        .contextMenu {
-                                            Group {
-                                                Button(role: .destructive, action: {
-                                                    Task {
-                                                        try await nc.deleteComment(commentID: String(comment.id))
-                                                        await initialize()
-                                                    }
-                                                }, label: {
-                                                    Label("Delete", systemImage: "trash")
-                                                })
-                                            }
-                                        }
-                                        
-                                        
-                                    }
-                                    .id(returnTimestampAndText(text: comment.text).0)
-                                    .padding(.bottom)
-                                    //.padding(isYou ? .leading : .trailing, 10)
-                                    .frame(maxWidth: .greatestFiniteMagnitude, alignment: isYou ? .trailing : .leading)
-                                    
-                                    
-                                    
-                                }
-                                
-                                .onChange(of: currentSeconds) { value in
-                                    print(value)
-                                    withAnimation {
-                                        proxy.scrollTo(value, anchor: .top)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .onAppear(perform: {
-                        DispatchQueue.main.async {
-                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
-                                // Hack to fix concurrency issue at the beginning
-                                let currentItem = player.currentItem
-                                if (currentItem != nil) {
-                                    //                                    if (!currentItem!.duration.seconds.isNaN) {
-                                    //                                        withAnimation {
-                                    //                                            playerDuration = Int(player.currentItem!.duration.seconds)
-                                    //                                        }
-                                    //
-                                    //                                    }
-                                    currentSeconds = Int(player.currentTime().seconds)
-                                }
-                                
-                                
-                                
-                            })
-                        }
-                    })
-                }
-                
-                
-                HStack {
-                    if (!showingCommentEditor) {
-                        Spacer()
+                        VideoPlayer(player: player)
+                            .frame(height: geometry.size.height / 2 - 30)
                     }
                     
+                    //Text(try! AttributedString(markdown: "Hello, [#swift](https://www.hackingwithswift.com)"))
                     
                     if (showingCommentEditor) {
-                        Button(action: {
-                            Task {
-                                await createComment()
+                        //Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                        TextEditor(text: $createCommentText)
+                            .border(Color.black)
+                        
+                        
+                    } else {
+                        ScrollView {
+                            if (commentsAwaiting) {
+                                ProgressView()
+                            } else if (showingError) {
+                                Text(nc.errorMessage).padding()
+                            } else {
+                                ScrollViewReader { proxy in
+                                    
+                                    // REGEX-ish:
+                                    // To represent the occurance of the comment, place ${seconds}$ at the very beginning.  e.g., to represent a comment at 00:01:15, send: "$75$my comment"
+                                    // To embed a timestamp in a comment, do %{seconds}%.
+                                    
+                                    let sortedComments = nc.userData.comments.sorted(by: {returnTimestampAndText(text: $0.text).0 < returnTimestampAndText(text: $1.text).0})
+                                    
+                                    if (sortedComments.isEmpty) {
+                                        Text("Welcome to the comment editor!")
+                                            .bold()
+                                        
+                                        Text("1. Navigate to the part of the video where you want to add a comment\n\n2. Press the green button to add a comment at that timestamp\n\nTip: Tap on comments to jump to their position in the video!")
+                                            .padding(.top)
+                                    }
+                                    
+                                    ForEach(sortedComments) { comment in
+                                        
+                                        let isYou: Bool = nc.userData.shared.username == comment.author.username
+                                        
+                                        VStack(alignment: isYou ? .trailing : .leading) {
+                                            Text("\(comment.author.display_name) (\((secondsToHoursMinutesSeconds(seconds: returnTimestampAndText(text: comment.text).0))))")
+                                                .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                            
+    //                                        Text(comment.created.formatted())
+    //                                            .foregroundColor(returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary).font(.system(size: 10.0))
+                                            
+                                            Button(action: {
+                                                currentSeconds = returnTimestampAndText(text: comment.text).0
+                                                player.seek(to: CMTimeMakeWithSeconds(Double(returnTimestampAndText(text: comment.text).0), preferredTimescale: 1))
+                                            }, label: {
+                                                Text(returnTimestampAndText(text: comment.text).1)
+                                                    .foregroundColor(/*returnTimestampAndText(text: comment.text).0 == currentSeconds ? .green : .primary*/.white)
+                                                    .multilineTextAlignment(.leading)
+                                            })
+                                            .padding(7)
+                                            .background(isYou ? Color.green : Color.gray)
+                                            .cornerRadius(7)
+                                            .foregroundColor(.white)
+                                            .contextMenu {
+                                                Group {
+                                                    Button(role: .destructive, action: {
+                                                        Task {
+                                                            try await nc.deleteComment(commentID: String(comment.id))
+                                                            await initialize()
+                                                        }
+                                                    }, label: {
+                                                        Label("Delete", systemImage: "trash")
+                                                    })
+                                                }
+                                            }
+                                            
+                                            
+                                        }
+                                        .id(returnTimestampAndText(text: comment.text).0)
+                                        .padding(.bottom)
+                                        //.padding(isYou ? .leading : .trailing, 10)
+                                        .frame(maxWidth: .greatestFiniteMagnitude, alignment: isYou ? .trailing : .leading)
+                                        
+                                        
+                                        
+                                    }
+                                    
+                                    .onChange(of: currentSeconds) { value in
+                                        print(value)
+                                        withAnimation {
+                                            proxy.scrollTo(value, anchor: .top)
+                                        }
+                                    }
+                                }
                             }
+                        }
+                        .onAppear(perform: {
+                            DispatchQueue.main.async {
+                                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+                                    // Hack to fix concurrency issue at the beginning
+                                    let currentItem = player.currentItem
+                                    if (currentItem != nil) {
+                                        //                                    if (!currentItem!.duration.seconds.isNaN) {
+                                        //                                        withAnimation {
+                                        //                                            playerDuration = Int(player.currentItem!.duration.seconds)
+                                        //                                        }
+                                        //
+                                        //                                    }
+                                        currentSeconds = Int(player.currentTime().seconds)
+                                    }
+                                    
+                                    
+                                    
+                                })
+                            }
+                        })
+                    }
+                    
+                    
+                    HStack {
+                        if (!showingCommentEditor) {
+                            Spacer()
+                        }
+                        
+                        
+                        if (showingCommentEditor) {
+                            Button(action: {
+                                Task {
+                                    await createComment()
+                                }
+                                
+                                //                                withAnimation {
+                                //                                    showingCommentEditor.toggle()
+                                //                                }
+                            }, label: {
+                                Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
+                                    .buttonStyle()
+                            })
                             
-                            //                                withAnimation {
-                            //                                    showingCommentEditor.toggle()
-                            //                                }
+                        }
+                        
+                        
+                        Button(action: {
+                            player.pause()
+                            withAnimation {
+                                showingCommentEditor.toggle()
+                            }
                         }, label: {
-                            Text("Add comment at \(secondsToHoursMinutesSeconds(seconds:currentSeconds))")
-                                .buttonStyle()
+                            Image(systemName: !showingCommentEditor ? "plus.bubble.fill" : "x.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundColor(!showingCommentEditor ? Color.green : Color.red)
+                                .frame(width: 40, height: 40)
+                            
                         })
                         
                     }
+                    .padding(.bottom)
                     
                     
-                    Button(action: {
-                        player.pause()
-                        withAnimation {
-                            showingCommentEditor.toggle()
-                        }
-                    }, label: {
-                        Image(systemName: !showingCommentEditor ? "plus.bubble.fill" : "x.circle.fill")
-                            .resizable()
-                            .scaledToFill()
-                            .foregroundColor(!showingCommentEditor ? Color.green : Color.red)
-                            .frame(width: 40, height: 40)
-                        
-                    })
                     
-                }
-                .padding(.bottom)
-                
-                
-                
-            }.padding(.horizontal)
+                }.padding(.horizontal)
+
+            }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
             }

@@ -65,12 +65,12 @@ struct SettingsView: View {
                             .cornerRadius(10)
                             .shadow(radius: 5)
                         }
-                        Text("General")
+                        Text("Account")
                             .bucketNameStyle()
                             .foregroundColor(Color.green)
-                        NavigationLink(destination: ProfileSettingsView(isNewUser: false, showProfileSettingsView: $showProfileSettingsView)) {
+                        NavigationLink(destination: ProfileSettingsView(isNewUser: false, showProfileSettingsView: $showProfileSettingsView).navigationTitle("Edit Profile")) {
                             HStack {
-                                Text("Edit Profile Info")
+                                Text("Edit Profile")
                                     .bucketNameStyle()
                                     .foregroundColor(Color.white)
                                 Spacer()
