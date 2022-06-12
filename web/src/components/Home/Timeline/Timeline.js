@@ -5,6 +5,7 @@ export default function Timeline() {
   const timelines = [
       {
           contents: [
+              "Development",
               "Social Media Infrastructure",
           ],
           date: "March 2022"
