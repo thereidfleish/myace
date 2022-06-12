@@ -6,25 +6,21 @@ import Navbar from 'react-bootstrap/Navbar'
 export default function Header() {
 
     return (
-        <Navbar style={{ margin: '0px 30px', borderBottom: '2px solid lightgrey' }}>
+        <Navbar style={{ margin: '0px 30px', borderBottom: '2px solid lightgrey', height: "5vh" }}>
             <Link to="/" style={{ textDecoration: 'none' }}><Navbar.Brand href="">
-                <strong>myace.ai</strong>
+                <img 
+                    style={{ 
+                        width: "2rem"
+                    }}
+                    src="https://myace.ai/logo.svg"
+                    alt="My Ace logo"
+                    />
             </Navbar.Brand></Link>
             <Navbar.Toggle />
             <Navbar.Collapse className="justify-content-end">
-                {/* <Link to="/coaches" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
-                    <span style={{ color: '#8AD28A', marginRight: '20px' }}>coaches</span>
+                <Link to="/contact" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
+                    <span style={{ color: '#7ac07a', marginRight: '20px' }}>Contact Us</span>
                 </Navbar.Text></Link>
-                <Link to="/fund" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
-                    <span style={{ color: '#8AD28A', marginRight: '20px'}}>fund</span>
-                </Navbar.Text></Link>
-                <Link to="/alpha" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
-                    <span style={{ color: '#8AD28A', marginRight: '20px' }}>alpha</span>
-                </Navbar.Text></Link>
-                <Link to="/about" style={{ textDecoration: 'none' }}><Navbar.Text style={{ cursor: 'pointer'}}>
-                    <span style={{ color: '#8AD28A' }}>about</span>
-                </Navbar.Text></Link>
-            */}
             </Navbar.Collapse>
         </Navbar>
     )

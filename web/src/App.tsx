@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop'
 import Header from './components/Header/Header'
 import Footer from './components/Footer/Footer'
 import Home from './components/Home/Home';
@@ -9,20 +10,18 @@ import ContactUs from './components/ContactUs/ContactUs'
 import './App.scss'
 
 function App() {
-return (
+  return (
     <Router>
-      <div>
+      <ScrollToTop>
         <Header />
-      </div>
-      <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/privacy" element={<Privacy/>} />
-        <Route path="/contact" element={<ContactUs/>} />
-        <Route path="/forgotpassword" element={<ForgotPassword/>} />
-      </Routes>
-      <div>
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/privacy" element={<Privacy/>} />
+          <Route path="/contact" element={<ContactUs/>} />
+          <Route path="/forgotpassword" element={<ForgotPassword/>} />
+        </Routes>
         <Footer />
-      </div>
+      </ScrollToTop>
     </Router>
   );
 }

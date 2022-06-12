@@ -5,14 +5,14 @@ import {Link} from 'react-router-dom'
 export default function Footer() {
 
     return (
-        <div>
-            <Link to="/" style={{ paddingLeft: '1rem', paddingBottom: '1rem', textDecoration: 'none' }}>
+        <div style={{ backgroundColor: '#8AD28A', padding: "1rem" }}>
+            <Link to="/" style={{ color: "white", marginRight: "1rem", textDecoration: 'none' }}>
                 Home
             </Link>
-            <Link to="/privacy" style={{ paddingLeft: '1rem', paddingBottom: '1rem', textDecoration: 'none' }}>
+            <Link to="/privacy" style={{ color: "white", marginRight: "1rem", textDecoration: 'none' }}>
                 Privacy Policy
             </Link>
-            <Link to="/contact" style={{ paddingLeft: '1rem', paddingBottom: '1rem', textDecoration: 'none' }}>
+            <Link to="/contact" style={{ color: "white", marginRight: "1rem", textDecoration: 'none' }}>
                 Contact Us
             </Link>
         </div>
