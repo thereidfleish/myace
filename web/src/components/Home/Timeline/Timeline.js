@@ -5,26 +5,32 @@ export default function Timeline() {
   const timelines = [
       {
           contents: [
-              "Base Backend Infrastructure",
-              "Base Frontend Infrastructure"
+              "Development",
+              "Social Media Infrastructure",
           ],
-          date: "January 2022"
+          date: "March 2022"
       },
-      {
-          contents: [
-              "Alpha App Store Release",
-              "Coaching Web Portal"
-          ],
-          date: 'February 2022'
-      },
-      {
-        contents: [
-            "Beta App Store Release",
-            "Customer Aquisition Strategy"
-        ],
-        date: 'March 2022'
+        {
+            contents: [
+                "Beta App Store Release",
+                "Customer Aquisition Strategy"
+            ],
+            date: 'June 2022'
+        },
+        {
+            contents: [
+                "Feedback Loop",
+                "Demonstrated User Growth"
+            ],
+            date: 'July 2022'
+        },
+        {
+            contents: [
+                "Marketplace Release",
+                "Financial Investment"
+            ],
+            date: 'August 2022'
         }
-      
   ]
 
     return (
