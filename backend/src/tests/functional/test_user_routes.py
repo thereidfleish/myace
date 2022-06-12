@@ -326,9 +326,21 @@ def test_username_taken(test_client: FlaskClient):
 
 
 def test_delete_user(test_client: FlaskClient):
-    """Test deleting current user."""
+    """Test deleting current user w/ many uploads."""
     user, created = routes.login_w_google(test_client, USER_A_TOKEN)
     assert created
+    # create dummy uploads
+    bucket = routes.create_bucket(test_client, "Test bucket")
+    t = ("x.mp4", "Test Upload")  # upload template
+    for _ in range(4):
+        routes.create_upload_url(
+            test_client,
+            t[0],
+            t[1],
+            bucket.id,
+            routes.VisibilitySetting("private", []),
+        )
+    # delete
     routes.delete_user(test_client)
     assert not routes.is_logged_in(test_client)
     # ensure another login attempt with return "user created"
