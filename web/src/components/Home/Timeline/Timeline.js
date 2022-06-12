@@ -24,18 +24,18 @@ export default function Timeline() {
             ],
             date: 'July 2022'
         },
-        {
+        /*{
             contents: [
                 "Marketplace Release",
                 "Financial Investment"
             ],
             date: 'August 2022'
-        }
+        }*/
   ]
 
     return (
         <div>
-            <h2 style={{ textAlign: 'center' }}>Project Timeline</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: "2vh" }}>Project Timeline</h2>
             <div id="vertical-timeline" className='d-flex justify-content-center'>
                 {
                     timelines.map((timeline, i) => {

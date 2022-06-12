@@ -2,12 +2,12 @@
 export default function ContactUs() {
 
     return (
-        <div style={{ margin: "1rem 2rem", lineHeight: "1.5" }}>
+        <div style={{ margin: "1rem auto", maxWidth: "35rem", padding: "0 1rem", lineHeight: "1.7" }}>
             <h1>Contact Us</h1>
             <div style={{ padding: "0.5rem 0" }}>
             <p>For support or any questions:<br/>
-                Email <a href="mailto:myaceai@gmail.com">myaceai@gmail.com</a><br/>
-                or call Chris Price at <a href="tel:18324441653">+1 (832) 444-1653</a>.
+                    Email <a href="mailto:myaceai@gmail.com" style={{ color: '#7ac07a', textDecoration: 'none' }}>myaceai@gmail.com</a><br/>
+                or call Chris Price at <a href="tel:18324441653" style={{ color: '#7ac07a', textDecoration: 'none' }}>+1 (832) 444-1653</a>.
             </p>
             <address>
                 <strong>MyAce.ai LLC</strong><br/>

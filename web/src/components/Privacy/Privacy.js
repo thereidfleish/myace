@@ -1,8 +1,9 @@
-// test
+import {Link} from 'react-router-dom'
+
 export default function Privacy() {
 
     return (
-        <div>
+        <div style={{ margin: "1rem auto", maxWidth: "35rem", padding: "0 1rem", lineHeight: "1.7" }}>
             <h1>Privacy Policy</h1>
             <p>Protecting your private information is our priority. This Statement of Privacy applies to MyAce, and MyAce.ai LLC and governs data collection and usage. For the purposes of this Privacy Policy, unless otherwise noted, all references to MyAce.ai LLC include MyAce.ai and MyAce. The MyAce application is a Sports and Coaching application. By using the MyAce application, you consent to the data practices described in this statement.</p>
             <h2>Collection of your Personal Information</h2>
@@ -46,17 +47,9 @@ export default function Privacy() {
             <h2>Changes to this Statement</h2>
             <p>MyAce reserves the right to change this Privacy Policy from time to time. We will notify you about significant changes in the way we treat personal information by sending a notice to the primary email address specified in your account, by placing a prominent notice on our application, and/or by updating any privacy information. Your continued use of the application and/or Services available after such modifications will constitute your: (a) acknowledgment of the modified Privacy Policy; and (b) agreement to abide and be bound by that Policy.</p>
             <h2>Contact Information</h2>
-            <p>MyAce welcomes your questions or comments regarding this Statement of Privacy. If you believe that MyAce has not adhered to this Statement, please contact MyAce at:</p>
+            <p>MyAce welcomes your questions or comments regarding this Statement of Privacy. If you believe that MyAce has not adhered to this Statement, please contact MyAce. Contact information may be found at <Link to="/contact">https://myace.ai/contact</Link>.</p>
             <br/>
-            <p>MyAce.ai LLC
-               8 The Green Suite, A
-               Dover, Delaware 19901</p>
-            <br/>
-            <p>Email address: MyAceai@gmail.com</p>
-            <br/>
-            <p>Telephone number: 8324441653</p>
-            <br/><br/>
-            <p>Effective as of June 04, 2022</p>
+            <p>Effective as of June 04, 2022.</p>
         </div>
     )
 }
