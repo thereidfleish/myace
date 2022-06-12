@@ -18,6 +18,7 @@ struct SettingsView: View {
     @State private var showingSuccess = false
     @State private var errorMessage = ""
     @State private var awaiting = true
+    @State private var showAboutPage = false
     
     func deleteCurrentUser()  {
         Task {
@@ -30,7 +31,7 @@ struct SettingsView: View {
                         nc.logOut()
                         self.mode.wrappedValue.dismiss()
                     })
-                }  
+                }
             } catch {
                 print("Showing error: \(error)")
                 errorMessage = error.localizedDescription
@@ -45,10 +46,28 @@ struct SettingsView: View {
             NavigationView {
                 ScrollView {
                     VStack(alignment: .leading) {
+                        Button(action: {
+                            UIApplication.shared.open(URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSf9aY2-RUsSVp3pIBqvP6dmdqVJcC9Z6LOygBFlWmEY_f213Q/viewform?usp=sf_link")!)
+                        }) {
+                            HStack {
+                                Text("Give Feedback")
+                                    .bucketNameStyle()
+                                    .foregroundColor(Color.white)
+                                Spacer()
+                                Image(systemName: "text.bubble.fill")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 20, height: 20)
+                            }
+                            .padding()
+                            .background(.green)
+                            .cornerRadius(10)
+                            .shadow(radius: 5)
+                        }
                         Text("General")
                             .bucketNameStyle()
                             .foregroundColor(Color.green)
-                            .padding(.horizontal)
                         NavigationLink(destination: ProfileSettingsView(isNewUser: false, showProfileSettingsView: $showProfileSettingsView)) {
                             HStack {
                                 Text("Edit Profile Info")
@@ -88,16 +107,23 @@ struct SettingsView: View {
                                     .foregroundColor(Color.white)
                                     .frame(width: 20, height: 20)
                             }
-                                .padding()
-                                .background(.red)
-                                .cornerRadius(10)
-                                .shadow(radius: 5)
+                            .padding()
+                            .background(.red)
+                            .cornerRadius(10)
+                            .shadow(radius: 5)
                         }
+                        
+                        
                     }
                     .padding(.horizontal)
                 }
                 .navigationTitle("Settings")
-                .navigationBarItems(trailing:
+                .navigationBarItems(leading: Button(action: {
+                    showAboutPage.toggle()
+                }, label: {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundColor(Color.green)
+                }), trailing:
                                         Button(action: {
                     self.mode.wrappedValue.dismiss()
                 }, label: {
@@ -106,6 +132,9 @@ struct SettingsView: View {
                 })
                                     
                 )
+                .sheet(isPresented: $showAboutPage) {
+                    Info()
+                }
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)

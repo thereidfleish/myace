@@ -66,7 +66,15 @@ class NetworkController: ObservableObject {
             
             // Handle the new user
             if ((response as? HTTPURLResponse)?.statusCode ?? -1 == 201) {
-                userData.showOnboarding = true
+                print("got here")
+                // Fix a glitch; the showOnboarding is called for Google in the LoginView instead
+                DispatchQueue.main.async {
+                    Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false, block: { _ in
+                        self.userData.showOnboarding = true
+                    })
+                }
+                
+                print("got heres")
             }
             // Handle the error case
             else if ((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
@@ -76,7 +84,7 @@ class NetworkController: ObservableObject {
             let decodedResponse = try decoder.decode(SharedData.self, from: data)
             userData.shared = decodedResponse
             userData.loggedIn = true
-            
+            print("got here2")
         } catch {
             print(error)
             print("login error")

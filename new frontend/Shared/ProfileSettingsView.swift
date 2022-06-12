@@ -78,7 +78,7 @@ struct ProfileSettingsView: View {
                             }
                         }
                     
-                    if (userNameMessage != "") {
+                    if (userNameMessage != "" && username != nc.userData.shared.username) {
                         Text(userNameMessage)
                             .smallestSubsectionStyle()
                     }

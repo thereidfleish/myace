@@ -35,6 +35,7 @@ struct LogInView: View {
     var googleAuth = GoogleAuth.instance
     //@EnvironmentObject var delegate: AppDelegate
     @State private var awaiting = true
+    @State private var showAboutPage = false
     
     func checkPreviousSignIn() {
         print("checking previous sign in...")
@@ -135,8 +136,14 @@ struct LogInView: View {
                             awaiting = true
                             signIn(withVC: googleAuth)
                         }, label: {
-                            Text("Sign in with Google")
-                                .buttonStyle()
+                            HStack {
+                                Image("google")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                Text("Sign in with Google")
+                                    
+                            }.buttonStyle()
                         })
                         
                         SignInWithAppleButton(.signIn) { request in
@@ -152,15 +159,7 @@ struct LogInView: View {
                                     
                                     let email = credential.email
                                     let name = credential.fullName
-                                    
-                                    print(userID)
-                                    print(token1)
-                                    print(token2)
-                                    print(email)
-                                    print(name)
-                                    
-                                    //print("calling TokenSignIn with token1...")
-                                    //self.tokenSignIn(idToken: String(decoding: token1!, as: UTF8.self), method: "apple")
+
                                     print("calling TokenSignIn with token2...")
                                     if let token2 = token2 {
                                         awaiting = true
@@ -211,6 +210,16 @@ struct LogInView: View {
                     Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
                 }
             }
+            .sheet(isPresented: $showAboutPage) {
+                Info()
+            }
+            .navigationBarItems(trailing:
+                                    Button(action: {
+                showAboutPage.toggle()
+            }, label: {
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(Color.green)
+            }))
         }
     }
     

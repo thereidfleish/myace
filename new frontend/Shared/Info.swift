@@ -79,16 +79,30 @@ struct Info: View {
                             .cornerRadius(10)
                             .shadow(radius: 5)
                         }
+                        
+                        Text("Questions, Comments, or Suggestions???")
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                            .padding(.top, 20.0)
+                        
+                        Button(action: {
+                            UIApplication.shared.open(URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSf9aY2-RUsSVp3pIBqvP6dmdqVJcC9Z6LOygBFlWmEY_f213Q/viewform?usp=sf_link")!)
+                        }, label: {
+                            Text("Feedback Form")
+                                .buttonStyle()
+                        })
+                        
                         Button(action: {
                             tapCount += 1;
                         }) {
-                            Text("© 2022 MyAce")
+                            Text("© 2022 MyAce.ai, LLC")
                                 .foregroundColor(.green)
                         }
+                        .padding(.top)
                     }.padding(.horizontal)
 
                 }
-            }.navigationBarTitle("About This App", displayMode: .inline)
+            }.navigationBarTitle("About MyAce", displayMode: .inline)
             .navigationBarItems(trailing: Button("Close") {
                 self.mode.wrappedValue.dismiss()
             })
