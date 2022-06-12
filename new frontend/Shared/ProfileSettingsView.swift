@@ -43,17 +43,18 @@ struct ProfileSettingsView: View {
     }
     
     func updateUser() async {
-            do {
-                awaiting = true
-                try await nc.updateCurrentUser(username: username.replacingOccurrences(of: " ", with: "").lowercased(), displayName: displayName, biography: biography)
-                showProfileSettingsView = false
-                awaiting = false
-            } catch {
-                print("Showing error: \(error)")
-                errorMessage = error.localizedDescription
-                showingError = true
-                awaiting = false
-            }
+        do {
+            awaiting = true
+            try await nc.updateCurrentUser(username: username.replacingOccurrences(of: " ", with: "").lowercased(), displayName: displayName, biography: biography)
+            showProfileSettingsView = false
+            displaySaveMessage = true
+            awaiting = false
+        } catch {
+            print("Showing error: \(error)")
+            errorMessage = error.localizedDescription
+            showingError = true
+            awaiting = false
+        }
     }
     
     var body: some View {
@@ -86,9 +87,9 @@ struct ProfileSettingsView: View {
                     Text(isNewUser ? "We've also created a display name for you below.  Since this is how friends will refer to you, feel free to change it below.": "Display Name")
                         .padding(.top, 20)
                         .bucketTextInternalStyle()
-    //                    .onAppear(perform: {
-    //                        //username = nc.userData.shared.username
-    //                    })
+                    //                    .onAppear(perform: {
+                    //                        //username = nc.userData.shared.username
+                    //                    })
                     
                     TextField("Edit Display Name", text: $displayName)
                         .textFieldStyle()
@@ -100,30 +101,11 @@ struct ProfileSettingsView: View {
                     
                     TextField("Edit Bio", text: $biography)
                         .textFieldStyle()
-                                        
-                    if (displaySaveMessage) {
-                        Text(saveMessage)
-                            .padding(.top, 20)
-                            .bucketTextInternalStyle()
-                            .onAppear {
-                                DispatchQueue.main.async {
-                                    Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
-                                        withAnimation {
-                                            displaySaveMessage = false
-                                        }
-                                    })
-                                }
-                            }
-                    }
+                    
                     
                     Button(action: {
                         Task {
                             await updateUser()
-                            //if(!isNewUser) {
-                                withAnimation {
-                                    displaySaveMessage = true;
-                                }
-                            //}
                         }
                         
                     }, label: {
@@ -133,10 +115,23 @@ struct ProfileSettingsView: View {
                     
                     
                 }.padding(.horizontal)
-                    
+                
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)
+            }
+            
+            if displaySaveMessage {
+                Message(title: "Save successful!", message: "Changes made to profile were saved successfully.", style: .success, isPresented: $displaySaveMessage, view: nil)
+//                    .onAppear{
+//                        DispatchQueue.main.async {
+//                            Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+//                                withAnimation {
+//                                    displaySaveMessage = false
+//                                }
+//                            })
+//                        }}
+                
             }
         }
         
