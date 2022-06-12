@@ -17,7 +17,7 @@ struct SearchView: View {
     @State private var hasNext: Bool = false
     @State private var lastPageLoaded: Int = 1
     @State private var nextUsers: [SharedData] = []
-    
+    @FocusState private var nameIsFocused: Bool
     
     func search() async {
             do {
@@ -69,6 +69,7 @@ struct SearchView: View {
                         .padding(.top)
                     
                     TextField("Name", text: $searchText)
+                        .focused($nameIsFocused)
                         .autocapitalization(.none)
                         .textFieldStyle()
                         .onChange(of: searchText) { newValue in
@@ -76,21 +77,29 @@ struct SearchView: View {
                                 await search()
                             }
                         }
-                    
-                    ScrollView {
-                        ForEach(searchedUsers) { user in
-                            
-                            UserCardView(user: user)
-                            
+                        .onTapGesture {
+                            nameIsFocused.toggle()
                         }
-                        if(hasNext) {
-                            Button(action: loadMoreSearch) {
-                                Text("Load More...")
-                                    .bucketTextInternalStyle()
-                                    .padding()
+
+                        ScrollView {
+                            ForEach(searchedUsers) { user in
+                                
+                                UserCardView(user: user)
+                                    .onTapGesture {
+                                        nameIsFocused = false
+                                    }
+                                
+                            }
+                            if(hasNext) {
+                                Button(action: loadMoreSearch) {
+                                    Text("Load More...")
+                                        .bucketTextInternalStyle()
+                                        .padding()
+                                }
                             }
                         }
-                    }
+                    
+                    
                 }.navigationTitle("Search")
                     .padding(.horizontal)
             }.navigationViewStyle(StackNavigationViewStyle())

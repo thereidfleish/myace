@@ -20,11 +20,11 @@ struct AI_Tennis_CoachApp: App {
                     .environmentObject(networkController)
             }
             else if (!networkController.userData.showOnboarding && networkController.userData.shared.email_confirmed == false) {
-                OnboardingView(showProfileSettingsView: false)
+                OnboardingView(showProfileSettingsView: false, hideLastPageCuzAndrewIsAnnoying: false)
                     .environmentObject(networkController)
             }
             else if (networkController.userData.showOnboarding) {
-                OnboardingView(showProfileSettingsView: true)
+                OnboardingView(showProfileSettingsView: true, hideLastPageCuzAndrewIsAnnoying: false)
                     .environmentObject(networkController)
             }
 //            else if (networkController.userData.loggedIn && networkController.userData.shared.email != nil && !(networkController.userData.shared.email_confirmed ?? true)) {

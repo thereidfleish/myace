@@ -19,6 +19,7 @@ struct SettingsView: View {
     @State private var errorMessage = ""
     @State private var awaiting = true
     @State private var showAboutPage = false
+    @State private var showingOnboarding = true
     
     func deleteCurrentUser()  {
         Task {
@@ -64,6 +65,20 @@ struct SettingsView: View {
                             .background(.green)
                             .cornerRadius(10)
                             .shadow(radius: 5)
+                        }
+                        NavigationLink(destination: OnboardingView(showProfileSettingsView: false, hideLastPageCuzAndrewIsAnnoying: true)) {
+                            HStack {
+                                Text("Show Onboarding")
+                                    .bucketNameStyle()
+                                    .foregroundColor(Color.white)
+                                Spacer()
+                                Image(systemName: "chevron.right.square.fill")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 20, height: 20)
+                            }
+                            .navigationLinkStyle()
                         }
                         Text("Account")
                             .bucketNameStyle()

@@ -38,6 +38,7 @@ class NetworkController: ObservableObject {
     }
     
     func logOut() {
+        userData.loggedIn = false
         let components = DateComponents(calendar: Calendar.current, year: 2000, month: 1, day: 1)
         HTTPCookieStorage.shared.removeCookies(since: Calendar.current.date(from: components)!)
         print("logged out")

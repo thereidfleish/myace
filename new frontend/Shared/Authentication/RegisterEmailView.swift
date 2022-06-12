@@ -163,7 +163,7 @@ struct RegisterEmailView: View {
             
             if registrationSuccessful {
                 Message(title: "Account Created", message: "Registration successful! A confirmation email has been sent to \(email).", style: .success, isPresented: $registrationSuccessful, view:
-                            AnyView(NavigationLink(destination: OnboardingView(showProfileSettingsView: false).navigationBarHidden(true), label: {Text("Continue").messageButtonStyle()}))
+                            AnyView(NavigationLink(destination: OnboardingView(showProfileSettingsView: false, hideLastPageCuzAndrewIsAnnoying: false).navigationBarHidden(true), label: {Text("Continue").messageButtonStyle()}))
                 )
             }
         }

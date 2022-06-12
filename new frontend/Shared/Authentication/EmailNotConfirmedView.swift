@@ -35,7 +35,7 @@ struct EmailNotConfirmedView: View {
     func updateUser() async {
         do {
             awaiting = true
-            nc.userData.shared = try await nc.getIndividualUser(userID: "me")
+            try await nc.updateCurrentUser(username: nil, displayName: nil, biography: nil)
             awaiting = false
         } catch {
             print("Showing error: \(error)")
@@ -84,7 +84,10 @@ struct EmailNotConfirmedView: View {
                                 .buttonStyle()
                         })
                         Button(action: {
+                            nc.userData.showOnboarding = false
                             nc.logOut()
+                            print(nc.userData.loggedIn)
+                            print(nc.userData.showOnboarding)
                         }, label: {
                             Text("Log Out")
                                 .buttonStyle()

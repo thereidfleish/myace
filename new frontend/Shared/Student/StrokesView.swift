@@ -263,13 +263,13 @@ struct StrokesView: View {
                                                     nc.editUploadID = String(upload.id)
                                                     showingEditingUpload = true
                                                 } label: {
-                                                    Label("Edit Upload", systemImage: "pencil")
+                                                    Label("Edit Video", systemImage: "pencil")
                                                 }
                                                 
                                                 Button(role: .destructive) {
                                                     nc.showingMessage = true
                                                     nc.messageView = AnyView(
-                                                        Message(title: "Delete Upload", message: "Are you sure you want to delete the video, \"\(upload.display_title)\", and its comments?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
+                                                        Message(title: "Delete Video", message: "Are you sure you want to delete the video, \"\(upload.display_title)\", and its comments?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
                                                             Button(action: {
                                                                 Task {
                                                                     nc.showingMessage = false
