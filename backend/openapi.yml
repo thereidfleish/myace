@@ -1065,6 +1065,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /feed:
+    get:
+      summary: Get feed
+      description: This route returns a chronologically sorted list of uploads and their authors with whom the client has a courtship.
+      parameters:
+        - name: type
+          in: query
+          description: Filter response by the type of courtship. For example, "student" will filter uploads made by the user's students.
+          required: false
+          schema:
+            $ref: '#/components/schemas/CourtshipType'
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+      responses:
+        '200':
+          description: 'Retrieved search results.'
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pageable"
+                  - type: object
+                    required:
+                      - feed
+                    properties:
+                      feed:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            - user
+                            - upload
+                          properties:
+                            user:
+                              $ref: "#/components/schemas/OtherUser"
+                            upload:
+                              $ref: "#/components/schemas/Upload"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
   parameters:

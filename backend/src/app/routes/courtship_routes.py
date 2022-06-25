@@ -11,7 +11,13 @@ from sqlalchemy.sql import func
 import flask_login
 from . import routes, success_response, failure_response
 from .. import email
-from ..models import User, UserRelationship, RelationshipType, rel_req_of_str
+from ..models import (
+    User,
+    Upload,
+    UserRelationship,
+    RelationshipType,
+    rel_req_of_str,
+)
 from ..extensions import db
 
 
@@ -27,8 +33,6 @@ def search_users():
     if request.args.get("page") is None:
         return failure_response("Missing page URL parameter.", 400)
     # empty query returns no users
-    has_next = False
-    found = []
     if len(query.strip()) > 0:
         # Search
         query = query.lower()
@@ -50,7 +54,6 @@ def search_users():
         has_next = pagination.has_next
         items = pagination.items
         found = items if items is not None else []
-    # Exclude current user from search results
     return success_response(
         {
             "has_next": has_next,
@@ -282,3 +285,56 @@ def remove_courtship(other_user_id):
     db.session.commit()
 
     return success_response(code=204)
+
+
+@routes.route("/feed")
+@flask_login.login_required
+@email.email_conf_required
+def get_feed():
+    me: User = flask_login.current_user
+
+    # Optionally filter by courtship type
+    type = request.args.get("type")
+    if type is not None:
+        if type not in ("friend", "coach", "student"):
+            return failure_response("Invalid type.", 400)
+
+    # map type to filtering function
+    cship_type_fns = {
+        None: lambda other_id: True,
+        "friend": me.friends_with,
+        "student": me.coaches,
+        "coach": me.student_of,
+    }
+
+    if request.args.get("page") is None:
+        return failure_response("Missing page URL parameter.", 400)
+
+    pagination: Pagination = (
+        Upload.query.filter(
+            and_(
+                me.has_courtship_with(Upload.user_id),
+                Upload.viewable_to(me),
+                # exclude client's uploads
+                Upload.user_id != me.id,
+                # Upload.stream_ready, # TODO: only show uploads in feed that are completed
+                # filter by courtship type
+                cship_type_fns[type](Upload.user_id),
+            )
+        )
+        .order_by(Upload.created.desc())
+        .paginate(error_out=True)
+    )  # Pagination class automatically checks query for params
+    has_next = pagination.has_next
+    uploads: list[Upload] = (
+        pagination.items if pagination.items is not None else []
+    )
+    return success_response(
+        {
+            "has_next": has_next,
+            "feed": [
+                {"user": up.user.serialize(me), "upload": up.serialize(me)}
+                for up in uploads
+            ],
+        }
+    )

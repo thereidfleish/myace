@@ -62,7 +62,7 @@ jobs:
           npm i -g redoc-cli
       - name: Generate docs
         run: |
-          redoc-cli build api.yml --options.theme.colors.primary.main=green -o src/app/docs.html
+          redoc-cli build openapi.yml --options.theme.colors.primary.main=green -o src/app/docs.html
 
       - name: Install Python and dependencies
         run: |

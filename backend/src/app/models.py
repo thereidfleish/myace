@@ -170,12 +170,37 @@ class User(db.Model):
         b_to_a = db.session.query(UserRelationship).get((other.id, self.id))
         return b_to_a
 
+    def has_courtship_with(self, other_id: db.Column):
+        """:return: An EXISTS subquery true if this user has a courtship with other."""
+        return UserRelationship.query.filter(
+            or_(
+                and_(
+                    UserRelationship.user_a_id == self.id,
+                    UserRelationship.user_b_id == other_id,
+                ),
+                and_(
+                    UserRelationship.user_a_id == other_id,
+                    UserRelationship.user_b_id == self.id,
+                ),
+            )
+        ).exists()
+
     def coaches(self, other_id: db.Column):
         """:return: An EXISTS subquery true if this user coaches other."""
         return UserRelationship.query.filter(
             and_(
                 UserRelationship.user_a_id == self.id,
                 UserRelationship.user_b_id == other_id,
+                UserRelationship.type == RelationshipType.A_COACHES_B,
+            )
+        ).exists()
+
+    def student_of(self, other_id: db.Column):
+        """:return: An EXISTS subquery true if other coaches this user."""
+        return UserRelationship.query.filter(
+            and_(
+                UserRelationship.user_a_id == other_id,
+                UserRelationship.user_b_id == self.id,
                 UserRelationship.type == RelationshipType.A_COACHES_B,
             )
         ).exists()
