@@ -106,7 +106,7 @@ struct ProfileView: View {
     //                    .font(.footnote)
     //                    .foregroundColor(Color.green)
     //
-                    StrokesView(otherUser: user, currentUserAs: .observer)
+                    StrokesView(otherUser: user, currentUserAs: .friend)
                     //StrokesView(otherUser: yourself ? nc.userData.shared : user!, filteredBucketsAndUploads: nc.userData.uploads)
                     //.onAppear(perform: {initialize()})
                     

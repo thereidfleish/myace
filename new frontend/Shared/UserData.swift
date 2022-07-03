@@ -120,7 +120,7 @@ struct Courtship: Codable, Equatable {
     var dir: CourtshipRequestDir?
 }
 
-enum CourtshipType: String, Codable {
+enum CourtshipType: String, Codable, CaseIterable {
     case friend = "friend"
     case coach = "coach"
     case student = "student"

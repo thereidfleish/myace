@@ -15,6 +15,8 @@
 		252E7EF8285551A800834755 /* Info.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252E7EF6285551A800834755 /* Info.swift */; };
 		2537F4E6278348BA00596AF6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2537F4E5278348BA00596AF6 /* ProfileView.swift */; };
 		2537F4E7278348BA00596AF6 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2537F4E5278348BA00596AF6 /* ProfileView.swift */; };
+		2549824928712DB000F7CDAC /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2549824828712DB000F7CDAC /* VideoView.swift */; };
+		2549824A28712DB000F7CDAC /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2549824828712DB000F7CDAC /* VideoView.swift */; };
 		2552DDAC277CCD750035EFB4 /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2552DDAB277CCD750035EFB4 /* UserData.swift */; };
 		2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2552DDAB277CCD750035EFB4 /* UserData.swift */; };
 		2552DDAF277CCDA40035EFB4 /* NetworkController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2552DDAE277CCDA40035EFB4 /* NetworkController.swift */; };
@@ -39,14 +41,12 @@
 		256BDBCE2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */; };
 		256CBD08279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
 		256CBD09279DD593004FCC44 /* UserCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256CBD07279DD593004FCC44 /* UserCardView.swift */; };
-		256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
-		256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */; };
 		25890D0128553EDD001368E8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25890D0028553EDD001368E8 /* OnboardingView.swift */; };
 		25890D0228553EDD001368E8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25890D0028553EDD001368E8 /* OnboardingView.swift */; };
 		258D416F2773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
 		258D41702773C1D90030D437 /* StudentUploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */; };
-		258D41752773C3E00030D437 /* YourCoachesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* YourCoachesView.swift */; };
-		258D41762773C3E00030D437 /* YourCoachesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* YourCoachesView.swift */; };
+		258D41752773C3E00030D437 /* SpacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* SpacesView.swift */; };
+		258D41762773C3E00030D437 /* SpacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41742773C3E00030D437 /* SpacesView.swift */; };
 		258D41782773FC480030D437 /* StudentFeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41772773FC470030D437 /* StudentFeedbackView.swift */; };
 		258D41792773FC480030D437 /* StudentFeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258D41772773FC470030D437 /* StudentFeedbackView.swift */; };
 		258E80E8283BE4CD00AD1657 /* Refresher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258E80E7283BE4CD00AD1657 /* Refresher.swift */; };
@@ -76,8 +76,6 @@
 		9A2C34D9279A45FF00FAC339 /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34D7279A45FF00FAC339 /* FriendsView.swift */; };
 		9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
 		9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2C34E9279E20DA00FAC339 /* SettingsView.swift */; };
-		9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
-		9A598D18283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */; };
 		9A95176527815E6F003276A2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95176427815E6F003276A2 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -106,6 +104,7 @@
 		2519DB312798C9C600A91759 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		252E7EF6285551A800834755 /* Info.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Info.swift; sourceTree = "<group>"; };
 		2537F4E5278348BA00596AF6 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		2549824828712DB000F7CDAC /* VideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
 		2552DDAB277CCD750035EFB4 /* UserData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
 		2552DDAE277CCDA40035EFB4 /* NetworkController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkController.swift; sourceTree = "<group>"; };
 		2558E2A12773BA260056DD17 /* AI_Tennis_CoachApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AI_Tennis_CoachApp.swift; sourceTree = "<group>"; };
@@ -125,12 +124,11 @@
 		256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		256BDBCC2855145C00F750B6 /* EmailNotConfirmedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailNotConfirmedView.swift; sourceTree = "<group>"; };
 		256CBD07279DD593004FCC44 /* UserCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCardView.swift; sourceTree = "<group>"; };
-		256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserCardHomeView.swift; sourceTree = "<group>"; };
 		25734AA8277FBEBD00D2B8BE /* AI-Tennis-Coach--iOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--iOS--Info.plist"; sourceTree = "<group>"; };
 		25734AA9277FBEFB00D2B8BE /* AI-Tennis-Coach--macOS--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "AI-Tennis-Coach--macOS--Info.plist"; sourceTree = "<group>"; };
 		25890D0028553EDD001368E8 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentUploadDetailView.swift; sourceTree = "<group>"; };
-		258D41742773C3E00030D437 /* YourCoachesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourCoachesView.swift; sourceTree = "<group>"; };
+		258D41742773C3E00030D437 /* SpacesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacesView.swift; sourceTree = "<group>"; };
 		258D41772773FC470030D437 /* StudentFeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentFeedbackView.swift; sourceTree = "<group>"; };
 		258E80E7283BE4CD00AD1657 /* Refresher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Refresher.swift; sourceTree = "<group>"; };
 		258E80EA283C4D4200AD1657 /* StrokesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokesView.swift; sourceTree = "<group>"; };
@@ -148,7 +146,6 @@
 		9A2C34D02799BCC700FAC339 /* UploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
 		9A2C34D7279A45FF00FAC339 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		9A2C34E9279E20DA00FAC339 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
 		9A95176427815E6F003276A2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0782398B85E0C54B0E479ED /* Pods-AI Tennis Coach (macOS).debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AI Tennis Coach (macOS).debug.xcconfig"; path = "Target Support Files/Pods-AI Tennis Coach (macOS)/Pods-AI Tennis Coach (macOS).debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -219,7 +216,6 @@
 				256A8B042798E71000B7DC30 /* ProfileSettingsView.swift */,
 				2519DB312798C9C600A91759 /* SearchView.swift */,
 				256CBD07279DD593004FCC44 /* UserCardView.swift */,
-				256DDCAF28159AFB00D91921 /* UserCardHomeView.swift */,
 				9A2C34D02799BCC700FAC339 /* UploadView.swift */,
 				9A2C34E9279E20DA00FAC339 /* SettingsView.swift */,
 				2537F4E5278348BA00596AF6 /* ProfileView.swift */,
@@ -274,12 +270,12 @@
 			isa = PBXGroup;
 			children = (
 				259328D028709BB4004F5AB9 /* FeedView.swift */,
-				258D41742773C3E00030D437 /* YourCoachesView.swift */,
+				258D41742773C3E00030D437 /* SpacesView.swift */,
 				258D416E2773C1D90030D437 /* StudentUploadDetailView.swift */,
 				258E80EA283C4D4200AD1657 /* StrokesView.swift */,
+				2549824828712DB000F7CDAC /* VideoView.swift */,
 				258D41772773FC470030D437 /* StudentFeedbackView.swift */,
 				25D13A73277A6F6C00FFE2B3 /* NewBucketView.swift */,
-				9A598D16283FCC72006C4B09 /* VideoThumbnailView.swift */,
 			);
 			path = Student;
 			sourceTree = "<group>";
@@ -565,7 +561,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				256DDCB028159AFB00D91921 /* UserCardHomeView.swift in Sources */,
 				2552DDAF277CCDA40035EFB4 /* NetworkController.swift in Sources */,
 				9A2C34C12790B21A00FAC339 /* CameraViewWithVideoCapture.swift in Sources */,
 				25D13A6B277A594300FFE2B3 /* LogInView.swift in Sources */,
@@ -573,8 +568,8 @@
 				256516EF284BEE23004B8062 /* LogInEmailView.swift in Sources */,
 				256A8B052798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				258E80E8283BE4CD00AD1657 /* Refresher.swift in Sources */,
-				9A598D17283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */,
 				25FA7B29285412B5007B5CDD /* ForgotPasswordView.swift in Sources */,
+				2549824928712DB000F7CDAC /* VideoView.swift in Sources */,
 				9A2C34C32792065900FAC339 /* CameraView.swift in Sources */,
 				25D13A74277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34D12799BCC700FAC339 /* UploadView.swift in Sources */,
@@ -590,7 +585,7 @@
 				258D41782773FC480030D437 /* StudentFeedbackView.swift in Sources */,
 				258E80EB283C4D4200AD1657 /* StrokesView.swift in Sources */,
 				2537F4E6278348BA00596AF6 /* ProfileView.swift in Sources */,
-				258D41752773C3E00030D437 /* YourCoachesView.swift in Sources */,
+				258D41752773C3E00030D437 /* SpacesView.swift in Sources */,
 				9A2C34D8279A45FF00FAC339 /* FriendsView.swift in Sources */,
 				9A2C34EA279E20DA00FAC339 /* SettingsView.swift in Sources */,
 				259328D128709BB4004F5AB9 /* FeedView.swift in Sources */,
@@ -606,15 +601,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				2552DDB0277CCDA40035EFB4 /* NetworkController.swift in Sources */,
-				9A598D18283FCC72006C4B09 /* VideoThumbnailView.swift in Sources */,
 				2519DB332798C9C600A91759 /* SearchView.swift in Sources */,
 				25D13A6C277A594300FFE2B3 /* LogInView.swift in Sources */,
 				25D13A75277A6F6C00FFE2B3 /* NewBucketView.swift in Sources */,
 				9A2C34C62793CF4900FAC339 /* TextAlert.swift in Sources */,
+				2549824A28712DB000F7CDAC /* VideoView.swift in Sources */,
 				256A8B062798E71000B7DC30 /* ProfileSettingsView.swift in Sources */,
 				25105A54284D44610041BC34 /* Message.swift in Sources */,
 				25FA7B2A285412B5007B5CDD /* ForgotPasswordView.swift in Sources */,
-				256DDCB128159AFB00D91921 /* UserCardHomeView.swift in Sources */,
 				259328D228709BB4004F5AB9 /* FeedView.swift in Sources */,
 				2552DDAD277CCD750035EFB4 /* UserData.swift in Sources */,
 				9A2C34EB279E20DA00FAC339 /* SettingsView.swift in Sources */,
@@ -626,7 +620,7 @@
 				9A2C34CC2798CF8F00FAC339 /* Styles.swift in Sources */,
 				9A2C34D22799BCC700FAC339 /* UploadView.swift in Sources */,
 				256BDBCE2855145C00F750B6 /* EmailNotConfirmedView.swift in Sources */,
-				258D41762773C3E00030D437 /* YourCoachesView.swift in Sources */,
+				258D41762773C3E00030D437 /* SpacesView.swift in Sources */,
 				256516F0284BEE23004B8062 /* LogInEmailView.swift in Sources */,
 				2558E2CC2773BA270056DD17 /* ContentView.swift in Sources */,
 				256516F3284C0179004B8062 /* RegisterEmailView.swift in Sources */,

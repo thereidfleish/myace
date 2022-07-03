@@ -117,6 +117,7 @@ struct StudentFeedbackView: View {
             GeometryReader { geometry in
                 VStack(alignment: .center) {
                     ScrollView {
+                        
                         VideoPlayer(player: player)
                             .frame(height: geometry.size.height / 2 - 30)
                     }

@@ -14,7 +14,7 @@ struct StrokesView: View {
     @Environment(\.presentationMode) var mode: Binding<PresentationMode>
     @Environment(\.colorScheme) var colorScheme
     var otherUser: SharedData
-    var currentUserAs: CurrentUserAs
+    var currentUserAs: CourtshipType
     @State private var isShowingNewStrokeView = false
     @State private var isShowingCamera = false
     @State private var showingEditingBucketName = false
@@ -30,6 +30,7 @@ struct StrokesView: View {
     @State private var showingDeleteUpload = false
     @State private var showingDeleteUploadID: String = ""
     @State private var showingEditingUpload = false
+    @State private var viewType = 0 // 0 = Feed, 1 = Old Folder View
     
     @State private var errorMessage = ""
     @State private var showingError = false
@@ -42,9 +43,9 @@ struct StrokesView: View {
             }
             
             print("getting buckets")
-            try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .observer ? String(otherUser.id) : "me")
+            try await nc.getBuckets(userID: currentUserAs == .coach || currentUserAs == .friend ? String(otherUser.id) : "me")
             print("getting uploads")
-            if(currentUserAs == .coach || currentUserAs == .observer) {
+            if(currentUserAs == .coach || currentUserAs == .friend) {
                 try await nc.getOtherUserUploads(userID: otherUser.id, bucketID: nil)
             }
             else if(currentUserAs == .student) {
@@ -65,7 +66,7 @@ struct StrokesView: View {
     }
     
     var body: some View {
-        LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
+        VStack(alignment: .leading) {
             if(awaiting) {
                 ProgressView()
             }
@@ -73,17 +74,13 @@ struct StrokesView: View {
                 Text(nc.errorMessage).padding()
             }
             else {
-                HStack {
-                    Text("Folders")
-                        .bucketTextInternalStyle()
-                    if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                        Button(action: {
-                            isShowingNewStrokeView.toggle()
-                        }, label: {
-                            Image(systemName: "plus.circle.fill")
-                                .resizable()
-                                .circularButtonStyle()
-                        })
+                Menu {
+                    Button("Feed", action: {viewType = 0})
+                    Button("Folder", action: {viewType = 1})
+                } label: {
+                    HStack {
+                        Text("View Options: \(viewType == 0 ? "Feed" : "Folders")").smallestSubsectionStyle()
+                        Image(systemName: "chevron.right")
                     }
                 }
                 
@@ -92,185 +89,97 @@ struct StrokesView: View {
                         .multilineTextAlignment(.center)
                 }
                 
-                ForEach(nc.userData.buckets) { bucket in
-                    Section(header:
-                                VStack {
-                        HStack(alignment: .center) {
-                            //                        Button(action: {
-                            //                            withAnimation {
-                            //                                collapsed.toggle()
-                            //                            }
-                            //
-                            //                        }, label: {
-                            //                            Image(systemName: "chevron.right")
-                            //                                .resizable()
-                            //                                .circularButtonStyle()
-                            //                        })
-                            
-                            Text(bucket.name)
+                if viewType == 0 {
+                    
+                        if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                            HStack {
+                            Text("Upload Video")
                                 .bucketTextInternalStyle()
                             
-                            
-                            Spacer()
-                            
+                            Button(action: {
+                                isShowingMediaPicker.toggle()
+                            }, label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .resizable()
+                                    .circularButtonStyle()
+                            })
+                            }
+                        }
+                    
+                    
+                    ForEach(nc.userData.uploads.sorted(by: { $0.created > $1.created })) { upload in
+                        VStack(alignment: .leading) {
+                            VideoView(upload: upload, currentUserAs: currentUserAs, otherUser: otherUser, initialize: {
+                                Task {
+                                    await self.initialize(showProgressView: true)
+                                }
+                            })
+                        }
+                    }
+                }
+                else {
+                    LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
+                        HStack {
+                            Text("Folders")
+                                .bucketTextInternalStyle()
                             if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                                 Button(action: {
-                                    currentBucketID = bucket.id
-                                    isShowingMediaPicker.toggle()
+                                    isShowingNewStrokeView.toggle()
                                 }, label: {
-                                    Image(systemName: "video.circle.fill")
+                                    Image(systemName: "plus.circle.fill")
                                         .resizable()
                                         .circularButtonStyle()
                                 })
-                                
-                                Menu {
-                                    Button {
-                                        editingName = ""
-                                        nc.showingMessage = true
-                                        nc.messageView = AnyView(
-                                            Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
-                                                HStack {
-                                                    TextField("Edit name", text: $editingName)
-                                                        .textFieldStyle()
-                                                    
-                                                    Button(action: {
-                                                        Task {
-                                                            nc.showingMessage = false
-                                                            awaiting = true
-                                                            do {
-                                                                try await nc.editBucket(bucketID: String(bucket.id), newName: editingName)
-                                                                await initialize(showProgressView: true)
-                                                                awaiting = false
-                                                            } catch {
-                                                                errorMessage = error.localizedDescription
-                                                                showingError = true
-                                                                awaiting = false
-                                                            }
-                                                            showingEditingBucketName = false
-                                                        }
-                                                        
-                                                    }, label: {
-                                                        Text("Save")
-                                                            .bold()
-                                                            .foregroundColor(.green)
-                                                    })
-                                                }
-                                            ))
-                                        )
-                                        
-                                        
-                                    } label: {
-                                        Label("Rename Folder", systemImage: "pencil")
-                                    }
-                                    
-                                    Button(role: .destructive) {
-                                        nc.showingMessage = true
-                                        nc.messageView = AnyView(
-                                            Message(title: "Delete Folder", message: "Are you sure you want to delete this folder, \"\(bucket.name)\", and its videos?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
-                                                Button(action: {
-                                                    Task {
-                                                        nc.showingMessage = false
-                                                        awaiting = true
-                                                        do {
-                                                            try await nc.deleteBucket(bucketID: String(bucket.id))
-                                                            await initialize(showProgressView: true)
-                                                            awaiting = false
-                                                        } catch {
-                                                            errorMessage = error.localizedDescription
-                                                            showingError = true
-                                                            awaiting = false
-                                                        }
-                                                        showingDeleteBucket = false
-                                                    }
-                                                    
-                                                }, label: {
-                                                    Text("Delete")
-                                                        .messageButtonStyle()
-                                                })
-                                            ))
-                                        )
-                                    } label: {
-                                        Label("Delete Folder", systemImage: "trash")
-                                    }
-                                    
-                                } label: {
-                                    Image(systemName: "ellipsis.circle.fill")
-                                        .resizable()
-                                        .circularButtonStyle()
-                                }
                             }
-                            
-                        }.padding(.bottom, -5)
-                            .padding(.top, 5)
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.green)
-                            .frame(height: 2)
+                        }
                         
-                    }
-                            
-                            //                            .padding(5)
-                            //                            .overlay(
-                            //                                                    RoundedRectangle(cornerRadius: 10)
-                            //                                                        .stroke(Color.green, lineWidth: 3)
-                            //                                                )
-                        .id("\(bucket.id)-1")
-                        .background(colorScheme == .dark ? .black : .white)
-                            
-                            
-                            , content: {
-                        VStack(alignment: .leading) {
-                            let filteredUploads = nc.userData.uploads.filter{ $0.bucket.id == bucket.id }
-                            if (filteredUploads.isEmpty) {
-                                Text("Tap the Camera icon to upload your first video into \"\(bucket.name)\"")
-                            }
-                            ForEach(filteredUploads) { upload in
-                                
-                                
-                                //Spacer() // For some reason, app does not compile without this spacer!
-                                
-                                HStack(alignment: .top) {
-                                    VideoThumbnailView(upload: upload)
+                        ForEach(nc.userData.buckets) { bucket in
+                            Section(header:
+                                        VStack {
+                                HStack(alignment: .center) {
+                                    //                        Button(action: {
+                                    //                            withAnimation {
+                                    //                                collapsed.toggle()
+                                    //                            }
+                                    //
+                                    //                        }, label: {
+                                    //                            Image(systemName: "chevron.right")
+                                    //                                .resizable()
+                                    //                                .circularButtonStyle()
+                                    //                        })
                                     
-                                    VStack(alignment: .leading) {
-                                        Text(upload.display_title == "" ? "Untitled" : upload.display_title)
-                                            .smallestSubsectionStyle()
+                                    Text(bucket.name)
+                                        .bucketTextInternalStyle()
+                                    
+                                    
+                                    Spacer()
+                                    
+                                    if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                                        Button(action: {
+                                            currentBucketID = bucket.id
+                                            isShowingMediaPicker.toggle()
+                                        }, label: {
+                                            Image(systemName: "video.circle.fill")
+                                                .resizable()
+                                                .circularButtonStyle()
+                                        })
                                         
-                                        Text(upload.created.formatted())
-                                            .font(.subheadline)
-                                            .foregroundColor(Color.green)
-                                        
-                                        Text(nc.visOptions[upload.visibility.default]!)
-                                            .font(.subheadline)
-                                            .foregroundColor(Color.green)
-                                        
-                                        
-                                        //Text("\(upload.id)")
-                                        
-                                        if (!upload.stream_ready) {
-                                            Text("Processing video, please wait...")
-                                                .font(.footnote)
-                                                .foregroundColor(Color.green)
-                                        }
-                                        else if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                                            // If you're a student or viewing your own profile you can edit the uploads.
-                                            Menu {
-                                                Button {
-                                                    nc.editUploadID = String(upload.id)
-                                                    showingEditingUpload = true
-                                                } label: {
-                                                    Label("Edit Video", systemImage: "pencil")
-                                                }
-                                                
-                                                Button(role: .destructive) {
-                                                    nc.showingMessage = true
-                                                    nc.messageView = AnyView(
-                                                        Message(title: "Delete Video", message: "Are you sure you want to delete the video, \"\(upload.display_title)\", and its comments?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
+                                        Menu {
+                                            Button {
+                                                editingName = ""
+                                                nc.showingMessage = true
+                                                nc.messageView = AnyView(
+                                                    Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
+                                                        HStack {
+                                                            TextField("Edit name", text: $editingName)
+                                                                .textFieldStyle()
+                                                            
                                                             Button(action: {
                                                                 Task {
                                                                     nc.showingMessage = false
                                                                     awaiting = true
                                                                     do {
-                                                                        try await nc.deleteUpload(uploadID: String(upload.id))
+                                                                        try await nc.editBucket(bucketID: String(bucket.id), newName: editingName)
                                                                         await initialize(showProgressView: true)
                                                                         awaiting = false
                                                                     } catch {
@@ -278,42 +187,95 @@ struct StrokesView: View {
                                                                         showingError = true
                                                                         awaiting = false
                                                                     }
-                                                                    
-                                                                    showingDeleteUpload = false
+                                                                    showingEditingBucketName = false
                                                                 }
                                                                 
                                                             }, label: {
-                                                                Text("Delete")
-                                                                    .messageButtonStyle()
+                                                                Text("Save")
+                                                                    .bold()
+                                                                    .foregroundColor(.green)
                                                             })
-                                                        ))
-                                                    )
-                                                    
-                                                } label: {
-                                                    Label("Delete", systemImage: "trash")
-                                                }
-                                                
+                                                        }
+                                                    ))
+                                                )
                                             } label: {
-                                                Image(systemName: "ellipsis.circle.fill")
-                                                    .resizable()
-                                                    .scaledToFill()
-                                                    .frame(width: 25, height: 25)
+                                                Label("Rename Folder", systemImage: "pencil")
                                             }
+                                            
+                                            Button(role: .destructive) {
+                                                nc.showingMessage = true
+                                                nc.messageView = AnyView(
+                                                    Message(title: "Delete Folder", message: "Are you sure you want to delete this folder, \"\(bucket.name)\", and its videos?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
+                                                        Button(action: {
+                                                            Task {
+                                                                nc.showingMessage = false
+                                                                awaiting = true
+                                                                do {
+                                                                    try await nc.deleteBucket(bucketID: String(bucket.id))
+                                                                    await initialize(showProgressView: true)
+                                                                    awaiting = false
+                                                                } catch {
+                                                                    errorMessage = error.localizedDescription
+                                                                    showingError = true
+                                                                    awaiting = false
+                                                                }
+                                                                showingDeleteBucket = false
+                                                            }
+                                                            
+                                                        }, label: {
+                                                            Text("Delete")
+                                                                .messageButtonStyle()
+                                                        })
+                                                    ))
+                                                )
+                                            } label: {
+                                                Label("Delete Folder", systemImage: "trash")
+                                            }
+                                            
+                                        } label: {
+                                            Image(systemName: "ellipsis.circle.fill")
+                                                .resizable()
+                                                .circularButtonStyle()
                                         }
-                                        
-                                        
-                                        //Spacer()
                                     }
-                                }.id("\(upload.id)-2")
-                                //.padding(.bottom)
+                                    
+                                }.padding(.bottom, -5)
+                                    .padding(.top, 5)
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color.green)
+                                    .frame(height: 2)
                             }
+                                .id("\(bucket.id)-1")
+                                .background(colorScheme == .dark ? .black : .white)
+                                    
+                                    
+                                    , content: {
+                                VStack(alignment: .leading) {
+                                    let filteredUploads = nc.userData.uploads.filter{ $0.bucket.id == bucket.id }
+                                    if (filteredUploads.isEmpty) {
+                                        Text("Tap the Camera icon to upload your first video into \"\(bucket.name)\"")
+                                    }
+                                    ForEach(filteredUploads) { upload in
+                                        
+                                        //Spacer() // For some reason, app does not compile without this spacer!
+                                        
+                                        VideoView(upload: upload, currentUserAs: currentUserAs, otherUser: otherUser, initialize: {
+                                            Task {
+                                                await self.initialize(showProgressView: true)
+                                            }
+                                        }).id("\(upload.id)-2")
+                                        //.padding(.bottom)
+                                    }
+                                }
+                            })
                         }
-                    })
+                        
+                    }
                 }
                 
             }
-            
         }
+        
         .mediaImporter(isPresented: $isShowingMediaPicker,
                        allowedMediaTypes: .videos,
                        allowsMultipleSelection: false) { result in
@@ -357,19 +319,11 @@ struct StrokesView: View {
         }) {
             NewBucketView()
         }
-        .sheet(isPresented: $showingEditingUpload, onDismiss: {
-            Task {
-                await initialize(showProgressView: true)
-            }
-        }) {
-            UploadView(url: [], bucketID: "", otherUser: otherUser, editMode: true)
-        }
         .navigationBarItems(trailing: Refresher().refreshable {
             await initialize(showProgressView: true)
         })
         .task {
             await initialize(showProgressView: true)
         }
-        
     }
 }

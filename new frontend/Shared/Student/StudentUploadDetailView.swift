@@ -24,7 +24,7 @@ struct StudentUploadDetailView: View {
     @State var url: [URL] = []
     @State private var originalName = ""
     var otherUser: SharedData
-    var currentUserAs: CurrentUserAs
+    var currentUserAs: CourtshipType
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false

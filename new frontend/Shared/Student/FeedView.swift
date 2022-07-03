@@ -82,24 +82,8 @@ struct FeedView: View {
                                     VStack(alignment: .leading) {
                                         Text(feedItem.user.display_name).bucketTextInternalStyle()
                                         
-                                        HStack(alignment: .top) {
-                                            VideoThumbnailView(upload: feedItem.upload)
-                                            
-                                            VStack(alignment: .leading) {
-                                                Text(feedItem.upload.display_title == "" ? "Untitled" : feedItem.upload.display_title)
-                                                    .smallestSubsectionStyle()
-                                                
-                                                Text(feedItem.upload.created.formatted())
-                                                    .font(.subheadline)
-                                                    .foregroundColor(Color.green)
-                                                
-                                                Text(nc.visOptions[feedItem.upload.visibility.default]!)
-                                                    .font(.subheadline)
-                                                    .foregroundColor(Color.green)
-                                            }
-                                        }
+                                        VideoView(upload: feedItem.upload, currentUserAs: courtshipType, otherUser: feedItem.user, initialize: {()})
                                     }
-                                    
                                 }
                             }
                         }

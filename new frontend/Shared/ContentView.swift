@@ -24,28 +24,16 @@ struct ContentView: View {
                     }
                     .tag(0)
                 
-                StudentUploadView(currentUserAs: .student)
+                SpacesView()
                         .tabItem {
                             VStack {
-                                Image(systemName: "rectangle.inset.filled.and.person.filled")
+                                Image(systemName: "person.3.fill")
                                     .foregroundColor(.green)
-                                Text("Your Coaches")
+                                Text("Courtships")
                                     .foregroundColor(.green)
                             }
                         }
                         .tag(1)
-                
-                StudentUploadView(currentUserAs: .coach)
-                        .tabItem {
-                            VStack {
-                                Image(systemName: "graduationcap.fill")
-                                    .foregroundColor(.green)
-                                Text("Your Students")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        .tag(2)
-                
                 
                 SearchView()
                     .tabItem {
