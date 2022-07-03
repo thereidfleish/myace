@@ -34,11 +34,6 @@ struct StrokesView: View {
     @State private var errorMessage = ""
     @State private var showingError = false
     @State private var awaiting = true
-    let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
-                                                   .coaches_only: "Coaches Only",
-                                                   .friends_only: "Friends Only",
-                                                   .friends_and_coaches: "Friends and Coaches Only",
-                                                   .`public`: "Public"]
     
     func initialize(showProgressView: Bool) async {
         do {
@@ -244,7 +239,7 @@ struct StrokesView: View {
                                             .font(.subheadline)
                                             .foregroundColor(Color.green)
                                         
-                                        Text(visOptions[upload.visibility.default]!)
+                                        Text(nc.visOptions[upload.visibility.default]!)
                                             .font(.subheadline)
                                             .foregroundColor(Color.green)
                                         

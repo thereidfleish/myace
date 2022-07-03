@@ -13,6 +13,17 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             TabView(selection: $selection) {
+                FeedView()
+                    .tabItem {
+                        VStack {
+                            Image(systemName: "rectangle.stack.badge.play.fill")
+                                .foregroundColor(.green)
+                            Text("Feed")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .tag(0)
+                
                 StudentUploadView(currentUserAs: .student)
                         .tabItem {
                             VStack {
@@ -22,7 +33,7 @@ struct ContentView: View {
                                     .foregroundColor(.green)
                             }
                         }
-                        .tag(0)
+                        .tag(1)
                 
                 StudentUploadView(currentUserAs: .coach)
                         .tabItem {
@@ -33,7 +44,7 @@ struct ContentView: View {
                                     .foregroundColor(.green)
                             }
                         }
-                        .tag(1)
+                        .tag(2)
                 
                 
                 SearchView()
@@ -45,7 +56,7 @@ struct ContentView: View {
                                 .foregroundColor(.green)
                         }
                     }
-                    .tag(2)
+                    .tag(3)
                 
                 NavigationView {
                     ProfileView(yourself: true, user: networkController.userData.shared)
@@ -59,7 +70,7 @@ struct ContentView: View {
                             .foregroundColor(.green)
                     }
                 }
-                .tag(3)
+                .tag(4)
                 
                 
                 

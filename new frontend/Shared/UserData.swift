@@ -105,17 +105,15 @@ struct SharedData: Codable, Identifiable, Equatable {
     var email_confirmed: Bool?
 }
 
-//struct SharedDataRequest: Codable, Identifiable, Equatable {
-//    var id: Int = -1
-//    var username: String = ""
-//    var display_name: String = ""
-//    var biography: String = ""
-//    var n_uploads: Int = -1;
-//    var n_courtships: CourtshipTypeQuantity = CourtshipTypeQuantity()
-//    var courtship: Courtship = Courtship(type: .friend)
-//    //var email: String? = nil
-//    //var type: Int // -1 == user not logged in, 0 == student, 1 == coach
-//}
+struct FeedRes: Codable {
+    var has_next: Bool = false
+    var feed: [Feed]
+}
+
+struct Feed: Codable {
+    var user: SharedData
+    var upload: Upload
+}
 
 struct Courtship: Codable, Equatable {
     var type: CourtshipType

@@ -19,6 +19,11 @@ class NetworkController: ObservableObject {
     @Published var showingMessage: Bool = false
     @Published var messageView: AnyView? = nil
     let host = "https://api.myace.ai"
+    let visOptions: [VisibilityOptions: String] = [.`private`: "Private",
+                                                   .coaches_only: "Coaches Only",
+                                                   .friends_only: "Friends Only",
+                                                   .friends_and_coaches: "Friends and Coaches Only",
+                                                   .`public`: "Public"]
     let decoder = JSONDecoder()
     var (data, response): (Data, URLResponse) = (Data(), URLResponse())
         
@@ -183,8 +188,33 @@ class NetworkController: ObservableObject {
         }
     }
     
-    
-    
+    // GET
+    func getFeed(type: CourtshipType, page: Int, per_page: Int) async throws -> FeedRes {
+        let url = URL(string: "\(host)/feed?type=\(type)&page=\(page)&per_page=\(per_page)")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+            print(data.prettyPrintedJSONString)
+            print(response)
+            if((response as? HTTPURLResponse)?.statusCode ?? -1 != 200) {
+                throw "\((response as? HTTPURLResponse)?.statusCode ?? -1)"
+            }
+            let decodedResponse = try decoder.decode(FeedRes.self, from: data)
+            print("RETURNING \(decodedResponse)")
+            return decodedResponse
+        } catch {
+            print("getFeed error")
+            let decodedResponse = try decoder.decode(ErrorDecode.self, from: data)
+            if (decodedResponse.error != nil) {
+                throw decodedResponse.error! + " (error code: \(error))"
+            }
+        }
+        throw "No return???"
+    }
     
     // GET
     func checkUsername(userName: String) async throws -> (Bool, Bool) {
