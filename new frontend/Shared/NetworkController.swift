@@ -218,7 +218,11 @@ class NetworkController: ObservableObject {
     
     // GET
     func checkUsername(userName: String) async throws -> (Bool, Bool) {
-        let url = URL(string: "\(host)/usernames/\(userName)/check/")!
+        if (userName == "" || userName.contains("?") || userName.contains("!") || userName.contains("/") || userName.contains("#")) {
+            // Username contains characters that make link invalid
+            return (false, true)
+        }
+        guard let url = URL(string: "\(host)/usernames/\(userName)/check/") else { return (false, true) }
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

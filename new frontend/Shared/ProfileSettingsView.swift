@@ -20,7 +20,6 @@ struct ProfileSettingsView: View {
     @State private var displaySaveMessage = false
     @State private var saveMessage = ""
     @State private var userNameMessage = ""
-    @State private var userNameValidAndAvailable = true
     @Binding var showProfileSettingsView: Bool
     
     func checkValidAndAvailable() async {
@@ -28,10 +27,8 @@ struct ProfileSettingsView: View {
             let (valid, available) = try await nc.checkUsername(userName: username.replacingOccurrences(of: " ", with: "").lowercased())
             if(!valid || !available) {
                 userNameMessage = "\(!valid ? "Username is invalid. Must contain 4-16 characters. At least one letter. No special characters except . and _" : "")\(!available ? "Username is not available." : "")\nPlease try a different username."
-                userNameValidAndAvailable = false
             } else {
                 userNameMessage = "Username is available!"
-                userNameValidAndAvailable = true
             }
         }
         catch {

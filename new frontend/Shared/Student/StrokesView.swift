@@ -172,7 +172,9 @@ struct StrokesView: View {
                                                     Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
                                                         HStack {
                                                             TextField("Edit name", text: $editingName)
+                                                                .invertColorStyle(enabled: colorScheme == .dark)
                                                                 .textFieldStyle()
+                                                                
                                                             
                                                             Button(action: {
                                                                 Task {
