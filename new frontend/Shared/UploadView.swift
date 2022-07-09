@@ -145,6 +145,8 @@ struct UploadView: View {
                             
                             TextField("My Video", text: $uploadName)
                                 .textFieldStyle()
+                                .disabled(uploading)
+                            
                             
                             
                             Text("Stroke")
@@ -211,6 +213,7 @@ struct UploadView: View {
                                 
                                 TextField("Search for courtships...", text: $searchText)
                                     .textFieldStyle()
+                                    .disabled(uploading)
                                 
                                 ForEach(nc.userData.courtships.filter { ($0.display_name.lowercased().contains(searchText.lowercased()) || $0.username.lowercased().contains(searchText.lowercased())) && (!visibility.also_shared_with.contains($0)) }, id: \.self.id) { courtship in
                                     
@@ -226,12 +229,13 @@ struct UploadView: View {
                                 }
                             }
                             
-                            Text("Preview Video")
-                                .padding(.top)
-                                .bucketTextInternalStyle()
-                            
-                            VideoPlayer(player: AVPlayer(url: url[0]))
-                                .frame(height: 300)
+                            if !uploading {
+                                Text("Preview Video")
+                                    .padding(.top)
+                                    .bucketTextInternalStyle()
+                                VideoPlayer(player: AVPlayer(url: url[0]))
+                                    .frame(height: 300)
+                            }
                             
 //                            if (!uploading) {
 //                                Button(action: {
