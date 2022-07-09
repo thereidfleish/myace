@@ -25,6 +25,11 @@ struct FeedView: View {
     func initialize() async {
         do {
             awaiting = true
+            
+            /// hack to make feed view load lol
+            try await nc.getBuckets(userID: "me")
+            ///
+            
             feedRes = try await nc.getFeed(type: courtshipType, page: pageNumber, per_page: 20)
             awaiting = false
             //return feedRes
@@ -58,6 +63,7 @@ struct FeedView: View {
                         } label: {
                             HStack {
                                 Text("Filter By: Your \(courtshipType == .coach ? "Coache" : courtshipType.rawValue.capitalized)s").smallestSubsectionStyle()
+                                    
                                 
                                 Image(systemName: "chevron.right")
                             }
@@ -81,8 +87,25 @@ struct FeedView: View {
                                 ForEach(feedRes.feed, id: \.self.upload.id) { feedItem in
                                     VStack(alignment: .leading) {
                                         Text(feedItem.user.display_name).bucketTextInternalStyle()
+                                            .padding(.bottom, -2)
+                                            .padding(.top, 5)
                                         
-                                        VideoView(upload: feedItem.upload, currentUserAs: courtshipType, otherUser: feedItem.user, initialize: {()})
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.green)
+                                            .frame(height: 2)
+                                        
+                                        VideoView(upload: feedItem.upload, currentUserAs: {
+                                            switch courtshipType {
+                                            case .friend:
+                                                return CourtshipType.friend
+                                            case .coach:
+                                                return CourtshipType.student
+                                            case .student:
+                                                return CourtshipType.coach
+                                            default:
+                                                return CourtshipType.undefined
+                                            }
+                                        }(), otherUser: feedItem.user, initialize: {()})
                                     }
                                 }
                             }

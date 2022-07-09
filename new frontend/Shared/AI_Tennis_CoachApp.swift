@@ -38,6 +38,9 @@ struct AI_Tennis_CoachApp: App {
             else {
                 ContentView()
                     .environmentObject(networkController)
+                    .onAppear {
+                        UITabBar.appearance().scrollEdgeAppearance = UITabBarAppearance.init(idiom: .unspecified)
+                    }
             }
         }
     }
