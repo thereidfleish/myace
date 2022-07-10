@@ -170,6 +170,7 @@ struct StrokesView: View {
                                                         Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
                                                             HStack {
                                                                 TextField("Edit name", text: $editingName)
+                                                                    .invertColorStyle(enabled: colorScheme == .dark)
                                                                     .textFieldStyle()
                                                                 
                                                                 Button(action: {
@@ -204,18 +205,6 @@ struct StrokesView: View {
                                                     nc.showingMessage = true
                                                     nc.messageView = AnyView(
                                                         Message(title: "Delete Folder", message: "Are you sure you want to delete this folder, \"\(bucket.name)\", and its videos?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
-                                        Menu {
-                                            Button {
-                                                editingName = ""
-                                                nc.showingMessage = true
-                                                nc.messageView = AnyView(
-                                                    Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
-                                                        HStack {
-                                                            TextField("Edit name", text: $editingName)
-                                                                .invertColorStyle(enabled: colorScheme == .dark)
-                                                                .textFieldStyle()
-                                                                
-                                                            
                                                             Button(action: {
                                                                 Task {
                                                                     nc.showingMessage = false
