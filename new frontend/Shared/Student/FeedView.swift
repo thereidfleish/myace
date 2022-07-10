@@ -59,7 +59,7 @@ struct FeedView: View {
                         Menu {
                             Button("Everyone", action: {courtshipType = .undefined})
                             Button("Your Students", action: {courtshipType = .student})
-                            Button("Your Coaches", action: {courtshipType = .coach})
+                            //Button("Your Coaches", action: {courtshipType = .coach})
                             Button("Your Friends", action: {courtshipType = .friend})
                         } label: {
                             HStack {
@@ -85,8 +85,20 @@ struct FeedView: View {
                                 
                                 ForEach(feedRes.feed, id: \.self.upload.id) { feedItem in
                                     VStack(alignment: .leading) {
-                                        Text(feedItem.user.display_name).bucketTextInternalStyle()
-                                            .padding(.bottom, -2)
+                                        HStack {
+                                            switch feedItem.user.courtship!.type {
+                                            case .friend:
+                                                Image(systemName: "face.smiling.fill").foregroundColor(.green)
+                                            case .coach:
+                                                Image(systemName: "rectangle.inset.filled.and.person.filled").foregroundColor(.green)
+                                            case .student:
+                                                Image(systemName: "graduationcap.fill").foregroundColor(.green)
+                                            default:
+                                                Image(systemName: "person.fill.questionmark").foregroundColor(.green)
+                                            }
+                                            
+                                            Text(feedItem.user.display_name).bucketTextInternalStyle()
+                                        }.padding(.bottom, -2)
                                             .padding(.top, 5)
                                         
                                         RoundedRectangle(cornerRadius: 4)
