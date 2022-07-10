@@ -129,9 +129,6 @@ struct UploadView: View {
                     if(awaiting && editMode) { // Don't need to initialize if not in edit mode
                         ProgressView()
                     }
-                    else if(showingError) {
-                        Text(nc.errorMessage).padding()
-                    }
                     else {
                         VStack(alignment: .leading) {
                             

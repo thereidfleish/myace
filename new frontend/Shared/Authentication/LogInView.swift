@@ -129,9 +129,8 @@ struct LogInView: View {
                     
                     if (awaiting) {
                         ProgressView().padding()
-                    } else if (showingError) {
-                        Text(nc.errorMessage).padding()
-                    } else {
+                    }
+                    else {
                         Button(action: {
                             awaiting = true
                             signIn(withVC: googleAuth)

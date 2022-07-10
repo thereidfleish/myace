@@ -18,7 +18,7 @@ struct FeedView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var awaiting = false
-    @State private var courtshipType: CourtshipType = .student
+    @State private var courtshipType: CourtshipType = .undefined
     @State private var pageNumber: Int = 1
     @State private var feedRes: FeedRes = FeedRes(feed: [])
     
@@ -57,22 +57,17 @@ struct FeedView: View {
                             }
                         
                         Menu {
+                            Button("Everyone", action: {courtshipType = .undefined})
                             Button("Your Students", action: {courtshipType = .student})
                             Button("Your Coaches", action: {courtshipType = .coach})
                             Button("Your Friends", action: {courtshipType = .friend})
                         } label: {
                             HStack {
-                                Text("Filter By: Your \(courtshipType == .coach ? "Coache" : courtshipType.rawValue.capitalized)s").smallestSubsectionStyle()
+                                Text("Filter By: \(courtshipType == .undefined ? "Everyone" : "Your \(courtshipType == .coach ? "Coache" : courtshipType.rawValue.capitalized)s")").smallestSubsectionStyle()
                                     
                                 
                                 Image(systemName: "chevron.right")
                             }
-                        }
-                        
-                        if feedRes.feed.isEmpty {
-                            Text("Welcome!  To get started, use the search tab to search for some students or coaches.  Once they have accepted your courtship requests and shared videos with you, they will appear here.")
-                                .multilineTextAlignment(.center)
-                                .padding(.top)
                         }
                         
                         
@@ -80,10 +75,14 @@ struct FeedView: View {
                             if(awaiting) {
                                 ProgressView()
                             }
-                            else if(showingError) {
-                                Text(nc.errorMessage).padding()
-                            }
                             else {
+                                if feedRes.feed.isEmpty {
+                                    Text("Welcome!  To get started, use the search tab to search for some \(courtshipType == .undefined ? "Coaches, Students, or Friends" : "\(courtshipType == .coach ? "Coache" : courtshipType.rawValue.capitalized)s").  Once they have accepted your courtship requests and shared videos with you, they will appear here.")
+                                        .multilineTextAlignment(.center)
+                                        .padding(.top)
+                                }
+
+                                
                                 ForEach(feedRes.feed, id: \.self.upload.id) { feedItem in
                                     VStack(alignment: .leading) {
                                         Text(feedItem.user.display_name).bucketTextInternalStyle()
@@ -94,18 +93,19 @@ struct FeedView: View {
                                             .fill(Color.green)
                                             .frame(height: 2)
                                         
-                                        VideoView(upload: feedItem.upload, currentUserAs: {
-                                            switch courtshipType {
-                                            case .friend:
-                                                return CourtshipType.friend
-                                            case .coach:
-                                                return CourtshipType.student
-                                            case .student:
-                                                return CourtshipType.coach
-                                            default:
-                                                return CourtshipType.undefined
-                                            }
-                                        }(), otherUser: feedItem.user, initialize: {()})
+                                        VideoView(upload: feedItem.upload, currentUserAs:
+                                                    {
+                                                        switch feedItem.user.courtship!.type {
+                                                        case .friend:
+                                                            return CourtshipType.friend
+                                                        case .coach:
+                                                            return CourtshipType.student
+                                                        case .student:
+                                                            return CourtshipType.coach
+                                                        default:
+                                                            return CourtshipType.undefined
+                                                        }
+                                                    }(), otherUser: feedItem.user, initialize: {()})
                                     }
                                 }
                             }

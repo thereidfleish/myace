@@ -134,9 +134,8 @@ struct StudentFeedbackView: View {
                         ScrollView {
                             if (commentsAwaiting) {
                                 ProgressView()
-                            } else if (showingError) {
-                                Text(nc.errorMessage).padding()
-                            } else {
+                            }
+                            else {
                                 ScrollViewReader { proxy in
                                     
                                     // REGEX-ish:

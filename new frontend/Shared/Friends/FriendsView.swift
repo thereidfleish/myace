@@ -35,9 +35,8 @@ struct FriendsView: View {
             VStack {
                 if (awaiting) {
                     ProgressView()
-                } else if (showingError) {
-                    Text(nc.errorMessage).padding()
-                } else {
+                }
+                else {
                     VStack {
                         Picker("", selection: $tabIndex) {
                             Text("Courtships").tag(0)

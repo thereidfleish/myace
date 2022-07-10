@@ -54,7 +54,7 @@ struct SpacesView: View {
                         }.pickerStyle(.segmented)
                         
                         if nc.userData.courtships.isEmpty {
-                            Text("Welcome!  To get started, use the search tab to search for some \(tabIndex == .coach ? "students" : "coaches").  Once they have accepted your courtship requests, they will appear here.")
+                            Text("Welcome!  To get started, use the search tab to search for some \(tabIndex == .coach ? "Coaches" : "Students").  Once they have accepted your courtship requests, they will appear here.")
                                 .multilineTextAlignment(.center)
                                 .padding(.top)
                         }
@@ -63,9 +63,6 @@ struct SpacesView: View {
                         ScrollView {
                             if(awaiting) {
                                 ProgressView()
-                            }
-                            else if(showingError) {
-                                Text(nc.errorMessage).padding()
                             }
                             else {
                                 ForEach(nc.userData.courtships, id: \.self.id) { user in

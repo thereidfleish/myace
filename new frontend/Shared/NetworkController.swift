@@ -8,6 +8,7 @@
 import Foundation
 import Alamofire
 import SwiftUI
+import AVFAudio
 
 class NetworkController: ObservableObject {
     @Published var userData: UserData = UserData()
@@ -190,7 +191,10 @@ class NetworkController: ObservableObject {
     
     // GET
     func getFeed(type: CourtshipType, page: Int, per_page: Int) async throws -> FeedRes {
-        let url = URL(string: "\(host)/feed?type=\(type)&page=\(page)&per_page=\(per_page)")!
+        var url = URL(string: "\(host)/feed?type=\(type)&page=\(page)&per_page=\(per_page)")!
+        if type == .undefined {
+            url = URL(string: "\(host)/feed?page=\(page)&per_page=\(per_page)")!
+        }
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
