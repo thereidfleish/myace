@@ -222,7 +222,11 @@ class NetworkController: ObservableObject {
     
     // GET
     func checkUsername(userName: String) async throws -> (Bool, Bool) {
-        let url = URL(string: "\(host)/usernames/\(userName)/check/")!
+        if (userName == "" || userName.contains("?") || userName.contains("!") || userName.contains("/") || userName.contains("#")) {
+            // Username contains characters that make link invalid
+            return (false, true)
+        }
+        guard let url = URL(string: "\(host)/usernames/\(userName)/check/") else { return (false, true) }
         
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -728,7 +732,10 @@ class NetworkController: ObservableObject {
     
     // GET
     func searchUser(query: String, page: Int) async throws -> ([SharedData], Bool) {
-        let url = URL(string: "\(host)/users/search?q=\(query)&page=\(page)")!
+        if query == "" {
+            return ([], false)
+        }
+        guard let url = URL(string: "\(host)/users/search?q=\(query)&page=\(page)") else { return ([], false) }
         
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
