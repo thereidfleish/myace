@@ -58,7 +58,7 @@ struct OnboardingView: View {
                     
                     if (!hideLastPageCuzAndrewIsAnnoying) {
                         VStack {
-                            Text("Before getting started, you must create at least one tag.  Tags are where you will store videos to share with your coaches, students, and friends.")
+                            Text("Before getting started, you must create at least one tag.  Tags will help you organize your videos into categories, such as types of strokes or matches.")
                                 .padding(.top, 20)
                                 .bucketTextInternalStyle()
                             Button(action: {
