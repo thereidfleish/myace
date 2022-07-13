@@ -72,21 +72,6 @@ struct StrokesView: View {
                     ProgressView()
                 }
                 else {
-                    Menu {
-                        Button("Feed", action: {viewType = 0})
-                        Button("Tags", action: {viewType = 1})
-                    } label: {
-                        HStack {
-                            Text("View Options: \(viewType == 0 ? "Feed" : "Tags")").smallestSubsectionStyle()
-                            Image(systemName: "chevron.right")
-                        }
-                    }
-                    
-                    if (nc.userData.buckets.count == 0) {
-                        Text("\(currentUserAs == .student ? "Create a folder to store your videos." : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
-                            .multilineTextAlignment(.center)
-                    }
-                    
                     if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
                         HStack {
                             Text("Upload Video")
@@ -102,6 +87,29 @@ struct StrokesView: View {
                         }
                     }
                     
+                    Menu {
+                        Button(action: {
+                            viewType = 0
+                        }, label: {
+                            Label("Feed", systemImage: "rectangle.stack.badge.play.fill")
+                        })
+                        Button(action: {
+                            viewType = 1
+                        }, label: {
+                            Label("Tags", systemImage: "tag.circle.fill")
+                        })
+                    } label: {
+                        HStack {
+                            Text("View Options: \(viewType == 0 ? "Feed" : "Tags")").smallestSubsectionStyle()
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    
+                    if (nc.userData.uploads.count == 0) {
+                        Text("\(otherUser.id == nc.userData.shared.id ? "Upload your first video!" : "It appears that \(otherUser.display_name) has not yet uploaded any videos that you can view.")")
+                            .multilineTextAlignment(.center)
+                    }
+                    
                     if viewType == 0 {
                         
                         ForEach(nc.userData.uploads.sorted(by: { $0.created > $1.created })) { upload in
@@ -110,7 +118,7 @@ struct StrokesView: View {
                                     Task {
                                         await self.initialize(showProgressView: true)
                                     }
-                                })
+                                }, showAsMe: otherUser.id == nc.userData.shared.id || currentUserAs == .student)
                             }
                         }
                     }
@@ -139,21 +147,27 @@ struct StrokesView: View {
                                         Spacer()
                                         
                                         if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                                            Button(action: {
-                                                currentBucketID = bucket.id
-                                                isShowingMediaPicker.toggle()
-                                            }, label: {
-                                                Image(systemName: "video.circle.fill")
-                                                    .resizable()
-                                                    .circularButtonStyle()
-                                            })
+                                            //                                            Button(action: {
+                                            //                                                currentBucketID = bucket.id
+                                            //                                                isShowingMediaPicker.toggle()
+                                            //                                            }, label: {
+                                            //                                                Image(systemName: "video.circle.fill")
+                                            //                                                    .resizable()
+                                            //                                                    .circularButtonStyle()
+                                            //                                            })
                                             
                                             Menu {
+                                                Button(action: {
+                                                    isShowingNewStrokeView.toggle()
+                                                }, label: {
+                                                    Label("New Tag", systemImage: "plus.circle.fill")
+                                                })
+                                                
                                                 Button {
                                                     editingName = ""
                                                     nc.showingMessage = true
                                                     nc.messageView = AnyView(
-                                                        Message(title: "Edit Folder Name", message: "Provide a new name for the folder, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
+                                                        Message(title: "Edit Tag Name", message: "Provide a new name for the tag, \"\(bucket.name)\"", style: .message, isPresented: $nc.showingMessage, view: AnyView(
                                                             HStack {
                                                                 TextField("Edit name", text: $editingName)
                                                                     .invertColorStyle(enabled: colorScheme == .dark)
@@ -184,13 +198,13 @@ struct StrokesView: View {
                                                         ))
                                                     )
                                                 } label: {
-                                                    Label("Rename Folder", systemImage: "pencil")
+                                                    Label("Rename Tag", systemImage: "pencil")
                                                 }
                                                 
                                                 Button(role: .destructive) {
                                                     nc.showingMessage = true
                                                     nc.messageView = AnyView(
-                                                        Message(title: "Delete Folder", message: "Are you sure you want to delete this folder, \"\(bucket.name)\", and its videos?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
+                                                        Message(title: "Delete Tag Videos", message: "Are you sure you want to delete this tag, \"\(bucket.name)\", and its videos?  This cannot be undone!", style: .delete, isPresented: $nc.showingMessage, view: AnyView(
                                                             Button(action: {
                                                                 Task {
                                                                     nc.showingMessage = false
@@ -214,7 +228,7 @@ struct StrokesView: View {
                                                         ))
                                                     )
                                                 } label: {
-                                                    Label("Delete Folder", systemImage: "trash")
+                                                    Label("Delete Tag Videos", systemImage: "trash")
                                                 }
                                                 
                                             } label: {
@@ -238,7 +252,7 @@ struct StrokesView: View {
                                     VStack(alignment: .leading) {
                                         let filteredUploads = nc.userData.uploads.filter{ $0.bucket.id == bucket.id }
                                         if (filteredUploads.isEmpty) {
-                                            Text("Tap the Camera icon to upload your first video into \"\(bucket.name)\"")
+                                            Text("No videos yet for \"\(bucket.name)\"")
                                         }
                                         ForEach(filteredUploads) { upload in
                                             
@@ -248,7 +262,7 @@ struct StrokesView: View {
                                                 Task {
                                                     await self.initialize(showProgressView: true)
                                                 }
-                                            }).id("\(upload.id)-2")
+                                            }, showAsMe: otherUser.id == nc.userData.shared.id || currentUserAs == .student).id("\(upload.id)-2")
                                             //.padding(.bottom)
                                         }
                                     }

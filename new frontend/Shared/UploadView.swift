@@ -50,28 +50,6 @@ struct UploadView: View {
         return "Choose a tag"
     }
     
-    func computeVisibilityStatus() -> String {
-        var stringBuilder = "Shared with"
-        
-        switch visibility.default {
-        case .private:
-            stringBuilder += "No one."
-        case .friends_only:
-            stringBuilder += "Friends only."
-        case .coaches_only:
-            stringBuilder += "Coaches only"
-        case .friends_and_coaches:
-            stringBuilder += "Friends and Coaches."
-        case .public:
-            stringBuilder += "Everyone in the world!"
-        }
-        
-        if otherUser != nil {
-            stringBuilder += otherUser!.display_name
-        }
-        return "Choose a tag"
-    }
-    
     func initialize() {
         Task {
             do {
@@ -144,27 +122,21 @@ struct UploadView: View {
                             TextField("My Video", text: $uploadName)
                                 .textFieldStyle()
                                 .disabled(uploading)
-                            
-                            
-                            
-                            HStack(alignment: .center) {
+
                                 Text("Tag")
                                 .bucketTextInternalStyle()
-                                
-                                Button(action: {
-                                    isShowingNewStrokeView.toggle()
-                                }, label: {
-                                    Image(systemName: "plus.circle.fill")
-                                        .resizable()
-                                        .circularButtonStyle()
-                                        .foregroundColor(.green)
-                                })
-                            }.padding(.top)
+                                .padding(.top)
                             
                             HStack {
                                 Text(computeBucketName())
                                 
                                 Menu {
+                                    Button(action: {
+                                        isShowingNewStrokeView.toggle()
+                                    }, label: {
+                                        Label("New Tag", systemImage: "plus.circle.fill")
+                                    })
+                                    
                                     ForEach(nc.userData.buckets) { bucket in
                                         Button(bucketID == "\(bucket.id)" ? "\(bucket.name)  🎾" : bucket.name) {
                                             bucketID = "\(bucket.id)"
@@ -290,8 +262,8 @@ struct UploadView: View {
                                 Text(editMode ? "Save" : "Upload")
                                     .foregroundColor(Color.green)
                                     .bold()
-                                    .opacity(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
-                            }).disabled(bucketID == "" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)))
+                                    .opacity(bucketID == "-1" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility ? 0.5 : 1)
+                            }).disabled(bucketID == "-1" || editMode && uploadName == uploadInfo.display_title && bucketID! == String(uploadInfo.bucket.id) && uploadInfo.visibility == visibility)))
                     }
                 }.onAppear(perform: {if(editMode) {initialize()}})
                 

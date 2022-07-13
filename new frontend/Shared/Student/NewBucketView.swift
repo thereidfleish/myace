@@ -35,7 +35,7 @@ struct NewBucketView: View {
                 ZStack {
                     ScrollView {
                         VStack(alignment: .leading) {
-                            Text("Choose from a default folder or add a custom folder")
+                            Text("Choose from a default tag or add a custom tag")
                                 .bucketTextInternalStyle()
                             
                             Menu {
@@ -45,7 +45,7 @@ struct NewBucketView: View {
                                     }
                                 }
                             } label: {
-                                Text("Choose from a default folder")
+                                Text("Choose from a default tag")
                                     .buttonStyle()
                             }
                             
@@ -70,7 +70,7 @@ struct NewBucketView: View {
                             
                             
                         }.padding(.horizontal)
-                    }.navigationTitle("New Folder")
+                    }.navigationTitle("New Tag")
                         .navigationBarItems(leading: Button(action: {
                             self.mode.wrappedValue.dismiss()
                         }, label: {

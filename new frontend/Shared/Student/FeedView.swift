@@ -58,9 +58,21 @@ struct FeedView: View {
                         
                         Menu {
                             Button("Everyone", action: {courtshipType = .undefined})
-                            Button("Your Students", action: {courtshipType = .student})
-                            //Button("Your Coaches", action: {courtshipType = .coach})
-                            Button("Your Friends", action: {courtshipType = .friend})
+                            Button(action: {
+                                courtshipType = .student
+                            }, label: {
+                                Label("Your Students", systemImage: "graduationcap.fill")
+                            })
+                            Button(action: {
+                                courtshipType = .coach
+                            }, label: {
+                                Label("Your Coaches", systemImage: "rectangle.inset.filled.and.person.filled")
+                            })
+                            Button(action: {
+                                courtshipType = .friend
+                            }, label: {
+                                Label("Your Friends", systemImage: "face.smiling.fill")
+                            })
                         } label: {
                             HStack {
                                 Text("Filter By: \(courtshipType == .undefined ? "Everyone" : "Your \(courtshipType == .coach ? "Coache" : courtshipType.rawValue.capitalized)s")").smallestSubsectionStyle()
@@ -85,25 +97,25 @@ struct FeedView: View {
                                 
                                 ForEach(feedRes.feed, id: \.self.upload.id) { feedItem in
                                     VStack(alignment: .leading) {
-                                        HStack {
-                                            switch feedItem.user.courtship!.type {
-                                            case .friend:
-                                                Image(systemName: "face.smiling.fill").foregroundColor(.green)
-                                            case .coach:
-                                                Image(systemName: "rectangle.inset.filled.and.person.filled").foregroundColor(.green)
-                                            case .student:
-                                                Image(systemName: "graduationcap.fill").foregroundColor(.green)
-                                            default:
-                                                Image(systemName: "person.fill.questionmark").foregroundColor(.green)
-                                            }
-                                            
-                                            Text(feedItem.user.display_name).bucketTextInternalStyle()
-                                        }.padding(.bottom, -2)
-                                            .padding(.top, 5)
-                                        
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(Color.green)
-                                            .frame(height: 2)
+//                                        HStack {
+//                                            switch feedItem.user.courtship!.type {
+//                                            case .friend:
+//                                                Image(systemName: "face.smiling.fill").foregroundColor(.green)
+//                                            case .coach:
+//                                                Image(systemName: "rectangle.inset.filled.and.person.filled").foregroundColor(.green)
+//                                            case .student:
+//                                                Image(systemName: "graduationcap.fill").foregroundColor(.green)
+//                                            default:
+//                                                Image(systemName: "person.fill.questionmark").foregroundColor(.green)
+//                                            }
+//                                            
+//                                            Text(feedItem.user.display_name).bucketTextInternalStyle()
+//                                        }.padding(.bottom, -2)
+//                                            .padding(.top, 5)
+//                                        
+//                                        RoundedRectangle(cornerRadius: 4)
+//                                            .fill(Color.green)
+//                                            .frame(height: 2)
                                         
                                         VideoView(upload: feedItem.upload, currentUserAs:
                                                     {
@@ -117,7 +129,7 @@ struct FeedView: View {
                                                         default:
                                                             return CourtshipType.undefined
                                                         }
-                                                    }(), otherUser: feedItem.user, initialize: {()})
+                                        }(), otherUser: feedItem.user, initialize: {()}, showAsMe: false)
                                     }
                                 }
                             }

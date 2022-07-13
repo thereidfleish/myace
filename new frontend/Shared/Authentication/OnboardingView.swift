@@ -58,13 +58,13 @@ struct OnboardingView: View {
                     
                     if (!hideLastPageCuzAndrewIsAnnoying) {
                         VStack {
-                            Text("Before getting started, you must create at least one folder. Folders are where you will store videos to share with your coaches, students, and friends.")
+                            Text("Before getting started, you must create at least one tag.  Tags are where you will store videos to share with your coaches, students, and friends.")
                                 .padding(.top, 20)
                                 .bucketTextInternalStyle()
                             Button(action: {
                                 showingNewBucketView.toggle()
                             }, label: {
-                                Text("Create New Folder")
+                                Text("Create New Tag")
                                     .buttonStyle()
                             })
                             ForEach(nc.userData.buckets) { bucket in
