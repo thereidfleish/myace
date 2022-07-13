@@ -21,6 +21,7 @@ struct UploadView: View {
     @State private var progressPercentFraction = 0.0
     @State private var uploadName = ""
     @State private var uploadBucketName = ""
+    @State private var isShowingNewStrokeView = false
     @State var url: [URL]
     @State var bucketID: String?
     @State private var dontAllowClose = true
@@ -46,7 +47,7 @@ struct UploadView: View {
                 }
             }
         }
-        return "Choose a stroke to upload the video into"
+        return "Choose a tag"
     }
     
     func computeVisibilityStatus() -> String {
@@ -68,7 +69,7 @@ struct UploadView: View {
         if otherUser != nil {
             stringBuilder += otherUser!.display_name
         }
-        return "Choose a stroke to upload the video into"
+        return "Choose a tag"
     }
     
     func initialize() {
@@ -146,9 +147,19 @@ struct UploadView: View {
                             
                             
                             
-                            Text("Stroke")
-                                .padding(.top)
+                            HStack(alignment: .center) {
+                                Text("Tag")
                                 .bucketTextInternalStyle()
+                                
+                                Button(action: {
+                                    isShowingNewStrokeView.toggle()
+                                }, label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .resizable()
+                                        .circularButtonStyle()
+                                        .foregroundColor(.green)
+                                })
+                            }.padding(.top)
                             
                             HStack {
                                 Text(computeBucketName())
@@ -284,6 +295,9 @@ struct UploadView: View {
                     }
                 }.onAppear(perform: {if(editMode) {initialize()}})
                 
+            }
+            .sheet(isPresented: $isShowingNewStrokeView) {
+                NewBucketView()
             }
             if showingError {
                 Message(title: "Error", message: errorMessage, style: .error, isPresented: $showingError, view: nil)

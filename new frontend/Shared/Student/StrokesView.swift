@@ -74,10 +74,10 @@ struct StrokesView: View {
                 else {
                     Menu {
                         Button("Feed", action: {viewType = 0})
-                        Button("Folder", action: {viewType = 1})
+                        Button("Tags", action: {viewType = 1})
                     } label: {
                         HStack {
-                            Text("View Options: \(viewType == 0 ? "Feed" : "Folders")").smallestSubsectionStyle()
+                            Text("View Options: \(viewType == 0 ? "Feed" : "Tags")").smallestSubsectionStyle()
                             Image(systemName: "chevron.right")
                         }
                     }
@@ -87,23 +87,22 @@ struct StrokesView: View {
                             .multilineTextAlignment(.center)
                     }
                     
-                    if viewType == 0 {
-                        
-                        if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                            HStack {
-                                Text("Upload Video")
-                                    .bucketTextInternalStyle()
-                                
-                                Button(action: {
-                                    isShowingMediaPicker.toggle()
-                                }, label: {
-                                    Image(systemName: "plus.circle.fill")
-                                        .resizable()
-                                        .circularButtonStyle()
-                                })
-                            }
+                    if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
+                        HStack {
+                            Text("Upload Video")
+                                .bucketTextInternalStyle()
+                            
+                            Button(action: {
+                                isShowingMediaPicker.toggle()
+                            }, label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .resizable()
+                                    .circularButtonStyle()
+                            })
                         }
-                        
+                    }
+                    
+                    if viewType == 0 {
                         
                         ForEach(nc.userData.uploads.sorted(by: { $0.created > $1.created })) { upload in
                             VStack(alignment: .leading) {
@@ -117,19 +116,6 @@ struct StrokesView: View {
                     }
                     else {
                         LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
-                            HStack {
-                                Text("Folders")
-                                    .bucketTextInternalStyle()
-                                if (currentUserAs == .student || otherUser.id == nc.userData.shared.id) {
-                                    Button(action: {
-                                        isShowingNewStrokeView.toggle()
-                                    }, label: {
-                                        Image(systemName: "plus.circle.fill")
-                                            .resizable()
-                                            .circularButtonStyle()
-                                    })
-                                }
-                            }
                             
                             ForEach(nc.userData.buckets) { bucket in
                                 Section(header:
