@@ -12,6 +12,7 @@ struct ProfileSettingsView: View {
     @State private var username = ""
     @State private var displayName = ""
     @State private var biography = ""
+    @State private var email = ""
     @State private var awaiting = false
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -64,6 +65,7 @@ struct ProfileSettingsView: View {
                             username = nc.userData.shared.username
                             displayName = nc.userData.shared.display_name
                             biography = nc.userData.shared.biography
+                            email = nc.userData.shared.email ?? "N/A"
                             if(isNewUser) {
                                 nc.userData.buckets = []
                             }
@@ -99,6 +101,12 @@ struct ProfileSettingsView: View {
                     TextField("Edit Bio", text: $biography)
                         .textFieldStyle()
                     
+                    Text("Email")
+                        .padding(.top, 20)
+                        .bucketTextInternalStyle()
+                    
+                    Text(email)
+                        .padding([.top, .bottom], 10)
                     
                     Button(action: {
                         Task {
@@ -135,9 +143,3 @@ struct ProfileSettingsView: View {
         
     }
 }
-
-//struct NewUserOnboardingView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        NewUserOnboardingView()
-//    }
-//}
