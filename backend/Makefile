@@ -1,0 +1,35 @@
+# Load .env as makefile vars
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
+# reset the database
+# All DB users must be disconnected for this to succeed. Try exiting rust-analyzer if this fails.
+reset:
+	# shutdown services that access the DB
+	# docker kill backend-adminer-1
+	docker compose --profile db up --detach
+	cd ./rust-src && sqlx db reset -y
+
+# Start only the database services
+db:
+	docker compose --profile db up
+
+# Start the backend, database, and web on the local machine
+local:
+	BACKEND_ENDPOINT="http://localhost:8080" docker compose --profile db up --wait
+	sleep 1 
+	xdg-open http://localhost:3000
+	xdg-open "http://localhost:7000/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
+	cd ./rust-src/ && cargo watch --exec run
+
+
+# Just the web frontend pointing at the development server
+dev:
+	# In the background, sleep then open site
+	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="dev.myace.ai" docker compose up
+
+# Just the web frontend pointing at the production server
+prod:
+	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="api.myace.ai" docker compose up

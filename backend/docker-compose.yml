@@ -3,7 +3,7 @@
 
 services:
 
-  # api:
+  # python-api:
   #   build: src/ # build image from Dockerfile
   #   restart: unless-stopped
   #   env_file:
@@ -12,9 +12,27 @@ services:
   #     - "80:6000"
   #   depends_on:
   #     - db
+  #
+
+  web:
+    build: ../web/
+    tty: false # docker run -t
+    # services without a profile will always run on `docker compose up`
+    environment:
+      REACT_APP_BACKEND_ENDPOINT: ${BACKEND_ENDPOINT}
+    ports:
+      - 3000:3000
+    volumes:
+      # mirror directory on container
+      - ../web/:/src/
+    depends_on:
+      - rust-api
+      - db
+      - adminer
 
   db:
     image: postgres
+    profiles: ["db"]
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USERNAME}
@@ -25,9 +43,10 @@ services:
 
   adminer:
     image: adminer
+    profiles: ["db"]
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - 7000:8080
 
   token-retriever:
     build: src/tests/token_retriever/

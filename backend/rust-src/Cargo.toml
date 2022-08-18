@@ -1,0 +1,46 @@
+[package]
+name = "myace"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+# Core dependencies: runtime, HTTP framework, database client
+tokio = { version = "1.19.2", features = ["full"] }
+axum = { version = "0.5.9", features = ["tower-log"] }
+sqlx = { version = "0.6.1", features = [
+  "runtime-tokio-native-tls",
+  "postgres",
+  "uuid",
+  "time",
+  "macros",
+] }
+
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.1.2", features = ["serde"] }
+time = { version = "0.3.12", features = ["serde-well-known"] }
+
+clap = { version = "3.2.16", features = ["derive", "env"] }
+dotenvy = "0.15.1"
+
+# State of the art password hashing.
+argon2 = "0.4.1"
+rand = "0.8.5"
+
+# JWT validation
+jwt = "0.16.0"
+sha2 = "0.10.2"
+hmac = "0.12.1"
+
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Axum builds on the types in tower
+tower = "0.4.13"
+tower-http = { version = "0.3.4", features = ["trace"] }
+
+# Utility crates
+anyhow = "1.0.58"
+thiserror = "1.0.32"
+async-trait = "0.1.57"
+log = "0.4.17"
