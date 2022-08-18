@@ -4,13 +4,22 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
+# Generate openapi documentation
+docs:
+	redoc-cli build openapi.yml --options.theme.colors.primary.main=green -o src/docs.html
+
+docs-open:
+	redoc-cli build openapi.yml --options.theme.colors.primary.main=green -o src/docs.html
+	xdg-open src/docs.html
+
+
 # reset the database
 # All DB users must be disconnected for this to succeed. Try exiting rust-analyzer if this fails.
 reset:
 	# shutdown services that access the DB
 	# docker kill backend-adminer-1
 	docker compose --profile db up --detach
-	cd ./rust-src && sqlx db reset -y
+	sqlx db reset -y
 
 # Start only the database services
 db:
@@ -22,7 +31,7 @@ local:
 	sleep 1 
 	xdg-open http://localhost:3000
 	xdg-open "http://localhost:7000/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
-	cd ./rust-src/ && cargo watch --exec run
+	cargo watch --exec run
 
 
 # Just the web frontend pointing at the development server
