@@ -5,7 +5,7 @@ WORKDIR /src
 
 COPY package.json /src
 
-RUN npm install --silent
+RUN npm install
 
 COPY . /src
 
