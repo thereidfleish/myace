@@ -23,12 +23,7 @@ pub fn router() -> Router {
         // .route("/users/forgot", post(forgot_password)) // TODO: implement
         .route("/users/:id", get(get_user))
         .route("/users/me", patch(update_me).delete(delete_me))
-}
-
-/// A wrapper type for all requests/responses from these routes.
-#[derive(serde::Serialize, serde::Deserialize)]
-struct UserBody<T> {
-    user: T,
+        .route("/usernames/:username/check", get(check_username))
 }
 
 #[derive(serde::Deserialize)]
@@ -48,20 +43,13 @@ struct NewMyAceTeamMember {
     server_password: String,
 }
 
-#[derive(serde::Deserialize, sqlx::Type, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(serde::Deserialize, sqlx::Type, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "myace_team_role", rename_all = "snake_case")]
 pub enum MyAceTeamRole {
     Business,
     Frontend,
     Backend,
-}
-
-#[test]
-fn team_role_ord() {
-    assert!(MyAceTeamRole::Backend > MyAceTeamRole::Frontend);
-    assert!(MyAceTeamRole::Frontend > MyAceTeamRole::Business);
-    assert!(MyAceTeamRole::Backend > MyAceTeamRole::Business);
 }
 
 #[derive(serde::Deserialize)]
@@ -110,7 +98,6 @@ struct PublicUser {
 }
 
 /// The private view of a user, which **contains sensitive profile information**!
-/// This should only be available to enterprise admins and the logged in user.
 #[derive(serde::Serialize)]
 struct PrivateUser {
     user_id: Uuid,
@@ -119,15 +106,15 @@ struct PrivateUser {
     biography: String,
     email: String,
 
-    /// The user's JWT to be used for future authentication.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    token: Option<String>,
-
     #[serde(with = "time::serde::iso8601")]
     created_at: OffsetDateTime,
 
     #[serde(with = "time::serde::iso8601::option")]
     updated_at: Option<OffsetDateTime>,
+
+    /// The user's JWT to be used for future authentication.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    token: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -177,14 +164,14 @@ impl UserFromDB {
 /// Accept an enterprise invitation and register a new user account, creating a new user session.
 async fn create_user(
     ctx: Extension<ApiContext>,
-    Json(req): Json<UserBody<NewUser>>,
-) -> Result<Json<UserBody<PrivateUser>>> {
-    let user: UserFromDB = match req.user {
+    Json(req): Json<NewUser>,
+) -> Result<(StatusCode, Json<PrivateUser>)> {
+    let user: UserFromDB = match req {
         NewUser::TeamMember(user) => {
             let password_hash = hash_password(user.password).await?;
             // check server password matches
             if user.server_password != ctx.config.server_password {
-                return Err(Error::Unauthorized);
+                return Err(Error::IncorrectServerPassword);
             }
             // add team member
             sqlx::query_as!(
@@ -265,26 +252,24 @@ async fn create_user(
     }
     .to_jwt(&ctx);
 
-    Ok(Json(UserBody {
-        user: user.into_private(Some(token)),
-    }))
+    Ok((StatusCode::CREATED, Json(user.into_private(Some(token)))))
 }
 
 /// Create a user session by verifying a registered user's username and password.
 async fn login(
     ctx: Extension<ApiContext>,
-    Json(req): Json<UserBody<LoginUser>>,
-) -> Result<Json<UserBody<PrivateUser>>> {
+    Json(req): Json<LoginUser>,
+) -> Result<Json<PrivateUser>> {
     let user = sqlx::query_as!(
         UserFromDB,
         r#"select * from "user" where email = $1"#,
-        req.user.email,
+        req.email,
     )
     .fetch_optional(&ctx.db)
     .await?
     .ok_or(Error::NotFound("account with email".to_string()))?;
 
-    verify_password(&req.user.password, &user.password_hash).await?;
+    verify_password(&req.password, &user.password_hash).await?;
 
     // create authentication token
     let token = AuthUser {
@@ -292,9 +277,7 @@ async fn login(
     }
     .to_jwt(&ctx);
 
-    Ok(Json(UserBody {
-        user: user.into_private(Some(token)),
-    }))
+    Ok(Json(user.into_private(Some(token))))
 }
 
 /// Get a user by ID. Return private info only if the authenticated user requests themselves.
@@ -302,7 +285,7 @@ async fn get_user(
     auth_user: MaybeAuthUser,
     Path(id): Path<Uuid>,
     ctx: Extension<ApiContext>,
-) -> Result<Json<UserBody<PrivatePublicUser>>> {
+) -> Result<Json<PrivatePublicUser>> {
     let user = sqlx::query_as!(UserFromDB, r#"select * from "user" where user_id = $1"#, id)
         .fetch_one(&ctx.db)
         .await?;
@@ -313,20 +296,20 @@ async fn get_user(
         None => PrivatePublicUser::Public(user.into_public()),
     };
 
-    Ok(Json(UserBody { user }))
+    Ok(Json(user))
 }
 
 /// Update the authorized user's account info
 async fn update_me(
     auth_user: AuthUser,
     ctx: Extension<ApiContext>,
-    Json(req): Json<UserBody<UpdateUser>>,
-) -> Result<Json<UserBody<PrivateUser>>> {
+    Json(req): Json<UpdateUser>,
+) -> Result<Json<PrivateUser>> {
     // handle password update
     let password_hash = if let Some(UpdatePassword {
         old_password,
         new_password,
-    }) = req.user.password
+    }) = req.password
     {
         // verify old password matches
         let old_hash = sqlx::query_scalar!(
@@ -351,23 +334,21 @@ async fn update_me(
                biography     = coalesce($3, biography),
                password_hash = coalesce($4, password_hash)
            where user_id = $5 returning *"#,
-        req.user.username,
-        req.user.display_name,
-        req.user.biography,
+        req.username,
+        req.display_name,
+        req.biography,
         password_hash,
         auth_user.user_id
     )
     .fetch_one(&ctx.db)
     .await
     .on_constraint("uname_check", |_| {
-        Error::InvalidUsername(req.user.username.clone().unwrap())
+        Error::InvalidUsername(req.username.clone().unwrap())
     })
     .on_constraint("user_username_key", |_| {
-        Error::UsernameTaken(req.user.username.clone().unwrap())
+        Error::UsernameTaken(req.username.clone().unwrap())
     })?;
-    Ok(Json(UserBody {
-        user: user.into_private(None),
-    }))
+    Ok(Json(user.into_private(None)))
 }
 
 /// Delete the authorized user's account.
@@ -379,6 +360,23 @@ async fn delete_me(auth_user: AuthUser, ctx: Extension<ApiContext>) -> Result<St
     .execute(&ctx.db)
     .await?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(serde::Serialize)]
+struct AvailableResponse {
+    available: bool,
+}
+
+/// Check the availability of a username.
+async fn check_username(
+    Path(username): Path<String>,
+    ctx: Extension<ApiContext>,
+) -> Result<Json<AvailableResponse>> {
+    let available = sqlx::query_scalar!(r#"select 1 from "user" where username = $1"#, username)
+        .fetch_optional(&ctx.db)
+        .await?
+        .is_none();
+    Ok(Json(AvailableResponse { available }))
 }
 
 /// Attempt to hash a password using Argon2

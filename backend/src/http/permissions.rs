@@ -1,17 +1,11 @@
-use std::fmt::{self, write};
+use std::fmt;
 
 use super::enterprises::invitations::EnterpriseRole;
 use super::{extractor::AuthUser, Error};
+use crate::http::users::MyAceTeamRole;
 use crate::http::ApiContext;
-use crate::http::{enterprises::invitations, users::MyAceTeamRole};
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
-
-/// An abstract role that any user may assume in different environments.
-pub enum UserRole {
-    MyAceTeam(MyAceTeamRole),
-    User(EnterpriseRole),
-}
 
 /// Helps improve readability in permission logic.
 trait PermissionShortcut {

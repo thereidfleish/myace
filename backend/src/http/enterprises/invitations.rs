@@ -2,7 +2,7 @@ use super::Enterprise;
 use crate::http::error::Error;
 use crate::http::extractor::AuthUser;
 use crate::http::permissions::ApiPermission;
-use crate::http::{permissions, ApiContext, Result};
+use crate::http::{ApiContext, Result};
 
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -10,13 +10,12 @@ use axum::routing::{delete, get, post};
 use axum::{extract::Extension, Json, Router};
 use sqlx::types::time::OffsetDateTime;
 use sqlx::types::Uuid;
-use sqlx::{Pool, Postgres};
 
 pub fn router() -> Router {
     Router::new()
         .route(
             "/enterprises/:enterprise_id/invitations",
-            get(invitations_for_enterprise).post(create_invitation),
+            post(create_invitation).get(invitations_for_enterprise),
         )
         .route("/enterprises/invitations", get(invitations_for_user))
         .route(
@@ -29,19 +28,13 @@ pub fn router() -> Router {
         )
 }
 
-/// A wrapper type for all requests/responses from these routes
-#[derive(serde::Serialize, serde::Deserialize)]
-struct InvitationBody<T> {
-    invitation: T,
-}
-
 /// A wrapper type for a response containing multiple invitations
 #[derive(serde::Serialize)]
 struct InvListBody<T> {
     invitations: Vec<T>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, sqlx::Type, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(serde::Serialize, serde::Deserialize, sqlx::Type, PartialEq, Eq)]
 #[sqlx(type_name = "enterprise_role", rename_all = "snake_case")]
 pub enum EnterpriseRole {
     Parent,
@@ -51,7 +44,7 @@ pub enum EnterpriseRole {
 }
 
 /// An invitation from the perspective of an enterprise manager.
-#[derive(serde::Serialize, sqlx::FromRow)]
+#[derive(serde::Serialize)]
 struct InvitationForEnterprise {
     invite_id: Uuid,
     user_email: String,
@@ -63,7 +56,7 @@ struct InvitationForEnterprise {
 
 /// An invitation from the perspective of the user to whom it is intended.
 #[derive(serde::Serialize)]
-struct InvitationForUser {
+struct InvitationForRecipient {
     invite_id: Uuid,
     role: EnterpriseRole,
     enterprise: Enterprise,
@@ -85,7 +78,6 @@ pub(in crate::http) struct InvitationFromDB {
     enterprise_phone: Option<String>,
     enterprise_logo: Option<String>,
     enterprise_created: OffsetDateTime,
-    enterprise_updated: Option<OffsetDateTime>,
 }
 
 impl From<InvitationFromDB> for InvitationForEnterprise {
@@ -99,9 +91,9 @@ impl From<InvitationFromDB> for InvitationForEnterprise {
     }
 }
 
-impl From<InvitationFromDB> for InvitationForUser {
+impl From<InvitationFromDB> for InvitationForRecipient {
     fn from(inv: InvitationFromDB) -> Self {
-        InvitationForUser {
+        InvitationForRecipient {
             invite_id: inv.invite_id,
             role: inv.role,
             enterprise: Enterprise {
@@ -127,10 +119,10 @@ struct NewInvitation {
 /// Invite a new or existing user to an enterprise.
 async fn create_invitation(
     Path(enterprise_id): Path<Uuid>,
-    Json(req): Json<InvitationBody<NewInvitation>>,
+    Json(req): Json<NewInvitation>,
     auth_user: AuthUser,
     ctx: Extension<ApiContext>,
-) -> Result<Json<InvitationBody<InvitationForEnterprise>>> {
+) -> Result<Json<InvitationForEnterprise>> {
     auth_user
         .check_permission(
             &ctx,
@@ -161,16 +153,15 @@ async fn create_invitation(
             enterprise.support_email          enterprise_email,
             enterprise.support_phone          enterprise_phone,
             enterprise.logo                   enterprise_logo,
-            enterprise.created_at             enterprise_created,
-            enterprise.updated_at             enterprise_updated
+            enterprise.created_at             enterprise_created
         from "enterprise"
         inner join "new_invitation"
         using (enterprise_id)
         --on enterprise.enterprise_id = new_invitation.enterprise_id
         ;"#,
         enterprise_id,
-        req.invitation.user_email,
-        req.invitation.role as EnterpriseRole
+        req.user_email,
+        req.role as EnterpriseRole
     )
     .fetch_optional(&ctx.db)
     .await?
@@ -181,7 +172,7 @@ async fn create_invitation(
     // email should look different depending on if the user has an account or not
     todo!();
 
-    Ok(Json(InvitationBody { invitation }))
+    Ok(Json(invitation))
 }
 
 /// Reject an invitation to join an enterprise.
@@ -197,7 +188,7 @@ async fn delete_invitation(
         )
         .await?;
     // delete the invitation
-    let res = sqlx::query!(
+    sqlx::query!(
         r#"delete from "enterprise_invite" where invite_id = $1"#,
         invitation_id,
     )
@@ -219,7 +210,7 @@ async fn accept_invitation(
         )
         .await?;
     // accept the invitation
-    let res = sqlx::query!(
+    sqlx::query!(
         r#"select accept_invitation(invite_id => $1)"#,
         invitation_id,
     )
@@ -232,9 +223,9 @@ async fn accept_invitation(
 async fn invitations_for_user(
     ctx: Extension<ApiContext>,
     auth_user: AuthUser,
-) -> Result<Json<InvListBody<InvitationForUser>>> {
+) -> Result<Json<InvListBody<InvitationForRecipient>>> {
     // query invitations
-    let invitations: Vec<InvitationForUser> = sqlx::query_as!(
+    let invitations: Vec<InvitationForRecipient> = sqlx::query_as!(
         InvitationFromDB,
         r#"select
             invite_id,
@@ -248,8 +239,7 @@ async fn invitations_for_user(
             enterprise.support_email          enterprise_email,
             enterprise.support_phone          enterprise_phone,
             enterprise.logo                   enterprise_logo,
-            enterprise.created_at             enterprise_created,
-            enterprise.updated_at             enterprise_updated
+            enterprise.created_at             enterprise_created
         from "enterprise"
         inner join "enterprise_invite" using (enterprise_id)
         where enterprise_invite.user_email = (select email from "user" where user_id = $1);"#,
@@ -290,8 +280,7 @@ async fn invitations_for_enterprise(
             enterprise.support_email          enterprise_email,
             enterprise.support_phone          enterprise_phone,
             enterprise.logo                   enterprise_logo,
-            enterprise.created_at             enterprise_created,
-            enterprise.updated_at             enterprise_updated
+            enterprise.created_at             enterprise_created
         from "enterprise"
         inner join "enterprise_invite" using (enterprise_id)
         where enterprise_id = $1;"#,

@@ -18,8 +18,12 @@ use super::permissions::ApiPermission;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Return `401 Unauthorized`
-    #[error("authentication failed")]
+
+    #[error("user authentication failed")]
     Unauthorized,
+
+    #[error("invalid server password")]
+    IncorrectServerPassword,
 
     /// Return `403 Forbidden`
     #[error("user not allowed to {0}")]
@@ -115,7 +119,8 @@ impl Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::Forbidden(_) => StatusCode::FORBIDDEN,
+            Self::Forbidden(_) => StatusCode::UNAUTHORIZED,
+            Error::IncorrectServerPassword => StatusCode::FORBIDDEN,
             Self::IncorrectPassword => StatusCode::FORBIDDEN,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,

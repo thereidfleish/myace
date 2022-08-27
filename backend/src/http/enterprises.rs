@@ -25,12 +25,6 @@ pub fn router() -> Router {
         .merge(invitations::router())
 }
 
-/// A wrapper type for all requests/responses from these routes
-#[derive(serde::Serialize, serde::Deserialize)]
-struct EnterpriseBody<T> {
-    enterprise: T,
-}
-
 #[derive(serde::Serialize, sqlx::FromRow)]
 struct EnterpriseFromDB {
     enterprise_id: Uuid,
@@ -76,7 +70,6 @@ struct NewEnterprise {
     website: Option<String>,
     support_email: Option<String>,
     support_phone: Option<String>,
-    logo: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -85,15 +78,14 @@ struct UpdateEnterprise {
     website: Option<String>,
     support_email: Option<String>,
     support_phone: Option<String>,
-    logo: Option<String>,
 }
 
 /// Create a new enterprise
 async fn create_enterprise(
-    Json(req): Json<EnterpriseBody<NewEnterprise>>,
+    Json(req): Json<NewEnterprise>,
     auth_user: AuthUser,
     ctx: Extension<ApiContext>,
-) -> Result<Json<EnterpriseBody<Enterprise>>> {
+) -> Result<Json<Enterprise>> {
     // check permissions
     auth_user
         .check_permission(&ctx, ApiPermission::CreateEnterprise)
@@ -101,21 +93,18 @@ async fn create_enterprise(
 
     let new_enterprise: Enterprise = sqlx::query_as!(
         EnterpriseFromDB,
-        r#"insert into "enterprise" (name, website, support_email, support_phone, logo) values ($1, $2, $3::TEXT, $4::TEXT, $5) returning *"#,
-        req.enterprise.name,
-        req.enterprise.website,
-        req.enterprise.support_email,
-        req.enterprise.support_phone,
-        req.enterprise.logo,
+        r#"insert into "enterprise" (name, website, support_email, support_phone) values ($1, $2, $3::TEXT, $4::TEXT) returning *"#,
+        req.name,
+        req.website,
+        req.support_email,
+        req.support_phone,
     )
     .fetch_one(&ctx.db)
     .await
-    .on_constraint("phone_number_check", |_| Error::InvalidPhone(req.enterprise.support_phone.unwrap()))
-    .on_constraint("email_address_check", |_| Error::InvalidEmail(req.enterprise.support_email.unwrap()))?.into();
+    .on_constraint("phone_number_check", |_| Error::InvalidPhone(req.support_phone.unwrap()))
+    .on_constraint("email_address_check", |_| Error::InvalidEmail(req.support_email.unwrap()))?.into();
 
-    Ok(Json(EnterpriseBody {
-        enterprise: new_enterprise,
-    }))
+    Ok(Json(new_enterprise))
 }
 
 /// Retrieve a specific enterprise by ID
@@ -123,7 +112,7 @@ async fn get_enterprise(
     Path(enterprise_id): Path<Uuid>,
     auth_user: AuthUser,
     ctx: Extension<ApiContext>,
-) -> Result<Json<EnterpriseBody<Enterprise>>> {
+) -> Result<Json<Enterprise>> {
     auth_user
         .check_permission(&ctx, ApiPermission::RetrieveEnterprise(enterprise_id))
         .await?;
@@ -136,16 +125,16 @@ async fn get_enterprise(
     .await?
     .ok_or_else(|| Error::NotFound("enterprise".to_string()))?
     .into();
-    Ok(Json(EnterpriseBody { enterprise }))
+    Ok(Json(enterprise))
 }
 
 /// Update a specific enterprise by ID
 async fn update_enterprise(
     Path(enterprise_id): Path<Uuid>,
-    Json(req): Json<EnterpriseBody<UpdateEnterprise>>,
+    Json(req): Json<UpdateEnterprise>,
     ctx: Extension<ApiContext>,
     auth_user: AuthUser,
-) -> Result<Json<EnterpriseBody<Enterprise>>> {
+) -> Result<Json<Enterprise>> {
     auth_user
         .check_permission(&ctx, ApiPermission::UpdateEnterprise(enterprise_id))
         .await?;
@@ -156,29 +145,25 @@ async fn update_enterprise(
                name          = coalesce($1, name),
                website       = coalesce($2, website),
                support_email = coalesce($3::TEXT),
-               support_phone = coalesce($4::TEXT),
-               logo          = coalesce($5)
-           where enterprise_id = $6 returning *"#,
-        req.enterprise.name,
-        req.enterprise.website,
-        req.enterprise.support_email,
-        req.enterprise.support_phone,
-        req.enterprise.logo,
+               support_phone = coalesce($4::TEXT)
+           where enterprise_id = $5 returning *"#,
+        req.name,
+        req.website,
+        req.support_email,
+        req.support_phone,
         enterprise_id
     )
     .fetch_optional(&ctx.db)
     .await
     .on_constraint("phone_number_check", |_| {
-        Error::InvalidPhone(req.enterprise.support_phone.unwrap())
+        Error::InvalidPhone(req.support_phone.unwrap())
     })
     .on_constraint("email_address_check", |_| {
-        Error::InvalidEmail(req.enterprise.support_email.unwrap())
+        Error::InvalidEmail(req.support_email.unwrap())
     })?
     .ok_or_else(|| Error::NotFound("enterprise".to_string()))?
     .into();
-    Ok(Json(EnterpriseBody {
-        enterprise: updated,
-    }))
+    Ok(Json(updated))
 }
 
 /// Delete a specific enterprise by ID

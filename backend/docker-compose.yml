@@ -26,7 +26,6 @@ services:
       # mirror directory on container
       - ../web/:/src/
     depends_on:
-      - rust-api
       - db
       - adminer
 
@@ -47,9 +46,3 @@ services:
     restart: unless-stopped
     ports:
       - 7000:8080
-
-  token-retriever:
-    build: src/tests/token_retriever/
-    restart: unless-stopped
-    ports:
-      - "5000:80"
