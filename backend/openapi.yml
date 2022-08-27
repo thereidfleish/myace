@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   version: '1'
   title: 'MyAce API Documentation'
@@ -9,10 +9,10 @@ info:
 servers:
   - url: 'https://api.myace.ai'
 paths:
-  /register/:
+  /register:
     post:
-      summary: Register with email
-      description: This route creates a new user via email and password and establishes a session.
+      summary: Register
+      description: This route creates a new application user by accepting an enterprise invitation or a new team member using the server password.
       tags:
         - User
       requestBody:
@@ -20,23 +20,9 @@ paths:
         content:
           'application/json':
               schema:
-                type: object
-                required:
-                  - username
-                  - display_name
-                  - email
-                  - password
-                properties:
-                  username:
-                    $ref: "#/components/schemas/UserUsername"
-                  display_name:
-                    $ref: "#/components/schemas/UserDisplayName"
-                  biography:
-                    $ref: "#/components/schemas/UserBio"
-                  email:
-                    $ref: "#/components/schemas/UserEmail"
-                  password:
-                    $ref: "#/components/schemas/UserPassword"
+                oneOf:
+                  - $ref: "#/components/schemas/NewAppUser"
+                  - $ref: "#/components/schemas/NewMyAceTeamMember"
       security: [] # no authentication
       responses:
         '201':
@@ -44,59 +30,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Me'
+                $ref: '#/components/schemas/PrivateUserWToken'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /users/resend/:
-    post:
-      summary: Resend confirmation email
-      description: This route resends the account verification email necessary to set `email_confirmed`.
-      tags:
-        - User
-      responses:
-        '204':
-          description: Email sent.
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/forgot/:
-    post:
-      summary: Forgot password
-      description: This route sends a password recovery link to a specified email if the email belongs to a user. If the provided email is invalid, no email will be sent, but the response will still indicate success in order to mitigate abuse.
-      tags:
-        - User
-      requestBody:
-        required: true
-        content:
-          'application/json':
-              schema:
-                type: object
-                required:
-                  - email
-                properties:
-                  email:
-                    $ref: "#/components/schemas/UserEmail"
-      security: [] # no authentication
-      responses:
-        '204':
-          description: Email possibly sent.
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /login/:
+  /login:
     post:
       summary: Login
       description: This route establishes a session and returns a user.
@@ -107,97 +45,109 @@ paths:
         content:
           'application/json':
               schema:
-                oneOf:
-                  - type: object
-                    description: Login with email and password
-                    required:
-                      - method
-                      - email
-                      - password
-                    properties:
-                      method:
-                        type: string
-                        description: Login with email and password.
-                        enum: [password]
-                      email:
-                        $ref: "#/components/schemas/UserEmail"
-                      password:
-                        $ref: "#/components/schemas/UserPassword"
-                  - type: object
-                    description: Register/Login with Google. If the user does not exist, the user is created.
-                    required:
-                      - method
-                      - token
-                    properties:
-                      method:
-                        type: string
-                        description: Login with Google OAuth.
-                        enum: [google]
-                      token:
-                        type: string
-                        description: A valid Google OAuth token.
-                        example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
-                  - type: object
-                    description: Register/Login with Apple. If the user does not exist, the user is created.
-                    required:
-                      - method
-                      - token
-                    properties:
-                      method:
-                        type: string
-                        description: Login with Apple.
-                        enum: [apple]
-                      token:
-                        type: string
-                        description: A valid Apple token.
-                        example: eyJhbGjQ4OiJSUzpZCI6NmYxNjQ4MjAwNI1NiciIIsImtWEyYkyMTQwMThkMDI5Y2E0NmZiNT2RhZjI2ZDYiLCJ0eXAiOiJ.eyJpc3MiOiJodKV1QifQHRwczovL2FjY291...
+                type: object
+                required: [email, password]
+                properties:
+                  email:
+                    $ref: '#/components/schemas/UserEmail'
+                  password:
+                    $ref: '#/components/schemas/UserPassword'
       security: [] # no authentication
       responses:
         '200':
-          description: User fetched
+          description: Login successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Me'
-        '201':
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Me'
+                $ref: '#/components/schemas/PrivateUserWToken'
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/DefaultError'
+
+  /users/{user_id}:
+    get:
+      summary: Get individual user
+      description: This route retrieves the profile of a given user. If the authentication header is submitted and `user_id` matches that of the authenticated user, sensitive information will be returned.
+      tags:
+        - User
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserID'
+      security: [] # no authentication required
+      responses:
+        '200':
+          description: Retrieved user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                oneOf:
+                  - $ref: '#/components/schemas/PublicUser'
+                  - $ref: '#/components/schemas/PrivateUser'
+        default:
+          $ref: '#/components/responses/DefaultError'
 
-  /logout/:
-    post:
-      summary: Logout
-      description: This route ends a user session. All sensitive routes will return error code `401` until the user's session is reestablished.
+  /users/me:
+    patch:
+      summary: Update current user
+      description: This route edits the profile of the authenticated user.
+      tags:
+        - User
+      requestBody:
+        description: All fields are optional
+        required: false
+        content:
+          'application/json':
+              schema:
+                type: object
+                properties:
+                  username:
+                    $ref: "#/components/schemas/UserUsername"
+                  display_name:
+                    $ref: "#/components/schemas/UserDisplayName"
+                  biography:
+                    $ref: "#/components/schemas/UserBio"
+                  password:
+                    type: object
+                    description: The old/new password combination.
+                    required: [old_password, new_password]
+                    properties:
+                      old_password:
+                        $ref: '#/components/schemas/UserPassword'
+                      new_password:
+                        $ref: '#/components/schemas/UserPassword'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateUser'
+        default:
+          $ref: '#/components/responses/DefaultError'
+
+    delete:
+      summary: Delete current user
+      description: This route permanently deletes the account of the user who is currently logged in along with all associated information.
       tags:
         - User
       responses:
         '204':
-          description: Logout successful
+          description: User deleted
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /usernames/{username}/check/:
+  /usernames/{username}/check:
     get:
       summary: Check username
-      description: This route checks the validity and availability of a given username.
+      description: This route checks the availability of a given username.
       tags:
         - User
       parameters:
         - name: username
           in: path
-          description: The username to check.
+          description: The username to query. # this description overrides the schema's description
           required: true
           schema:
             $ref: '#/components/schemas/UserUsername'
@@ -209,1104 +159,302 @@ paths:
             application/json:
               schema:
                 type: object
-                required:
-                  - valid
-                  - available
+                required: [available]
                 properties:
-                  valid:
-                    type: boolean
-                    description: Whether or not the username is valid.
-                    example: true
                   available:
                     type: boolean
                     description: Whether or not another user has reserved this username.
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/DefaultError'
+
+  /enterprises:
+    post:
+      summary: Create an enterprise
+      description: This route creates a new enterprise. The authenticated user making this request must be a part of the MyAce team.
+      tags:
+        - Enterprises
+      requestBody:
+        required: true
+        content:
+          'application/json':
+              schema:
+                $ref: "#/components/schemas/NewEnterprise"
+      responses:
+        '201':
+          description: Enterprise created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/Enterprise'
+        default:
+          $ref: '#/components/responses/DefaultError'
 
-  /users/{user_id}/:
+  /enterprises/{enterprise_id}:
     get:
-      summary: Get individual user
-      description: This route retrieves the profile of a given user. Can be used to check if the client is logged in and/or if their email is verified. This route only requires email confirmation if `user_id` does not indicate the client.
+      summary: Retrieve an enterprise
+      description: This route retrieves an enterprise by its unique ID.
       tags:
-        - User
+        - Enterprises
       parameters:
-        - name: user_id
+        - name: enterprise_id
           in: path
-          description: The ID of the user the client wishes to fetch.
           required: true
           schema:
-            $ref: '#/components/schemas/UserIDOrMe'
+            $ref: '#/components/schemas/EnterpriseID'
       responses:
         '200':
-          description: Retrieved user
+          description: Retrieved enterprise
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/Enterprise"
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /users/me/:
-    put:
-      summary: Update current user
-      description: This route edits the profile of the user who is currently logged in.
+    patch:
+      summary: Update an enterprise
+      description: This route edits an enterprise by its unique ID.
       tags:
-        - User
+        - Enterprises
+      parameters:
+        - name: enterprise_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnterpriseID'
       requestBody:
         description: All fields are optional
         required: false
         content:
           'application/json':
               schema:
-                type: object
-                properties:
-                  username:
-                    $ref: "#/components/schemas/UserUsername"
-                  display_name:
-                    $ref: "#/components/schemas/UserDisplayName"
-                  biography:
-                    $ref: "#/components/schemas/UserBio"
+                $ref: "#/components/schemas/UpdateEnterprise"
       responses:
         '200':
-          description: User updated
+          description: Updated enterprise
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Me'
+                $ref: "#/components/schemas/Enterprise"
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
     delete:
-      summary: Delete current user
-      description: This route permanently deletes the profile of the user who is currently logged in along with all associated information.
+      summary: Delete an enterprise
+      description: This route permanently deletes the specified enterprise.
       tags:
-        - User
+        - Enterprises
+      parameters:
+        - name: enterprise_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnterpriseID'
       responses:
         '204':
-          description: User deleted
+          description: Enterprise deleted
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /users/me/uploads:
-    get:
-      summary: Get current user's uploads
-      description: Retrieve a list of the current user's uploads.
-      tags:
-        - Uploads
-      parameters:
-        - name: bucket
-          in: query
-          description: Filter response to uploads in a given bucket.
-          required: false
-          schema:
-            $ref: "#/components/schemas/BucketID"
-        - name: shared-with
-          in: query
-          description: Filter response to uploads shared with a given user (either individually or as a part of a group).
-          required: false
-          schema:
-            $ref: "#/components/schemas/UserID"
-      responses:
-        '200':
-          description: Retrieved uploads
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [uploads]
-                properties:
-                  uploads:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Upload"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{user_id}/uploads:
-    get:
-      summary: Get another user's uploads
-      description: Retrieve a list of another user's uploads that are visible to the current user.
-      tags:
-        - Uploads
-      parameters:
-        - name: user_id
-          in: path
-          description: Numeric ID of the uploads' owner
-          required: true
-          schema:
-            $ref: "#/components/schemas/UserID"
-        - name: bucket
-          in: query
-          description: Filter response to uploads in a given bucket.
-          required: false
-          schema:
-            $ref: "#/components/schemas/BucketID"
-      responses:
-        '200':
-          description: Retrieved uploads
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [uploads]
-                properties:
-                  uploads:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Upload"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /uploads/{upload_id}/:
-    get:
-      summary: Get upload by ID
-      description: This route returns a specific upload, containing the URL to Apple's HTTP Live Streaming (HLS) playlist and setting cookies which enable temporary URL access.
-      tags:
-        - Uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to get
-          required: true
-          schema:
-            $ref: "#/components/schemas/UploadID"
-      responses:
-        '200':
-          description: Retrieved upload
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/Upload"
-                  - type: object
-                    properties:
-                      url:
-                        type: string
-                        description: "Will be omitted if stream_ready is false."
-                        example: "https://www.something.m3u8"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Edit upload
-      description: This route edits the attributes of an upload.
-      operationId: "editUpload" # keeping operationId here so i don't forget about it
-      tags:
-        - Uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to edit
-          required: true
-          schema:
-            $ref: "#/components/schemas/UploadID"
-      requestBody:
-        description: All fields are optional
-        required: false
-        content:
-          'application/json':
-              schema:
-                type: object
-                properties:
-                  display_title:
-                    $ref: '#/components/schemas/UploadDisplayTitle'
-                  bucket_id:
-                    $ref: '#/components/schemas/BucketID'
-                  visibility:
-                    $ref: '#/components/schemas/VisibilitySettingReq'
-      responses:
-        '200':
-          description: Updated upload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Upload'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete upload
-      description: This route permanently deletes a specified upload.
-      tags:
-        - Uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to delete
-          required: true
-          schema:
-            $ref: "#/components/schemas/UploadID"
-      responses:
-        '204':
-          description: Deleted upload
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /uploads/:
+  /enterprises/{enterprise_id}/invitations:
     post:
-      summary: Create upload URL
-      # TODO: what happens if an upload fails?
-      description: This route returns a presigned URL, which must be used to upload a video file directly to AWS using a POST request. The POST request to the AWS url must contain the specified fields in the request body. Furthermore, all field names containing underscores within fields, such as x_amz_date, must be hyphenated (ex. x-amz-date) when uploading to AWS. After a successful upload, the client should request to convert the media to a streamable format.
+      summary: Invite user to enterprise
+      description: This route invites a user by email to an enterprise. If the user account does not already exist, registration instructions will be sent to their email.
       tags:
-        - Uploads
+        - Enterprise Invitations
       requestBody:
         required: true
         content:
           'application/json':
               schema:
                 type: object
-                required:
-                  - filename
-                  - display_title
-                  - bucket_id
-                  - visibility
+                required: [user_email, role]
                 properties:
-                    filename:
-                      type: string
-                      example: "volley.mp4"
-                    display_title:
-                      $ref: '#/components/schemas/UploadDisplayTitle'
-                    bucket_id:
-                      $ref: '#/components/schemas/BucketID'
-                    visibility:
-                      $ref: '#/components/schemas/VisibilitySettingReq'
+                  user_email:
+                    $ref: "#/components/schemas/UserEmail"
+                  role:
+                    $ref: "#/components/schemas/EnterpriseRole"
       responses:
         '201':
-          description: Upload URL created
+          description: Enterprise invitation created
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - id
-                  - url
-                  - fields
-                properties:
-                  id:
-                    $ref: '#/components/schemas/UploadID'
-                  url:
-                    type: string
-                    example: "https://s3.us-east-2.amazonaws.com/example"
-                  fields:
-                    type: object
-                    required:
-                      - key
-                      - x_amz_algorithm
-                      - x_amz_credential
-                      - x_amz_date
-                      - policy
-                      - x_amz_signature
-                    properties:
-                      key:
-                        type: string
-                        example: "volley.mp4"
-                      x_amz_algorithm:
-                        type: string
-                      x_amz_credential:
-                        type: string
-                      x_amz_date:
-                        type: string
-                      policy:
-                        type: string
-                      x_amz_signature:
-                        type: string
+                $ref: '#/components/schemas/InvitationForEnterprise'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /uploads/{upload_id}/convert/:
-    post:
-      summary: Convert upload to stream-ready
-      description: This route begins converting an upload into a streamable format.
-      tags:
-        - Uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to convert
-          required: true
-          schema:
-            $ref: '#/components/schemas/UploadID'
-      responses:
-        '204':
-          description: 'Began conversion'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /uploads/{upload_id}/download/:
-    post:
-      summary: Get download URL
-      description: This route returns a presigned URL which can be used to download the originally uploaded file directly from AWS. If a user can see a post, they are permitted to download it.
-      tags:
-        - Uploads
-      parameters:
-        - name: upload_id
-          in: path
-          description: Numeric ID of the upload to download
-          required: true
-          schema:
-            $ref: '#/components/schemas/UploadID'
-      responses:
-        '200':
-          description: 'Retrieved URL'
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - url
-                properties:
-                  url:
-                    type: string
-                    example: "https://www.something.com/.../filename.mp4"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /comments:
     get:
-      summary: Get all comments
-      description: Without any query parameters, get a list of comments authored by the current user.
+      summary: Retrieve all outgoing invitations
+      description: This route retrieves all outgoing enterprise invitations for an enterprise manager to view.
       tags:
-        - Comments
-      parameters:
-        - name: upload
-          in: query
-          description: Return all comments under a specific upload ID.
-          required: false
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-        # - name: courtship
-        #   in: query
-        #   description: "Filter response to comments created by a specific type of user. The user may only view coach comments on their own uploads. TODO: this needs to be fixed"
-        #   required: false
-        #   schema:
-        #     type: string
-        #     enum:
-        #       - friend
-        #       - coach
-        #       - student
+        - Enterprise Invitations
       responses:
         '200':
-          description: 'Retrieved comments'
+          description: Retrieved outgoing invitations
           content:
             application/json:
               schema:
                 type: object
-                required: [comments]
+                required: [invitations]
                 properties:
-                  comments:
+                  invitations:
                     type: array
                     items:
-                      type: object
-                      $ref: "#/components/schemas/Comment"
+                      $ref: "#/components/schemas/InvitationForEnterprise"
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /comments/:
-    post:
-      summary: Create comment
-      description: This route posts a comment under a specified upload.
-      tags:
-        - Comments
-      requestBody:
-        required: true
-        content:
-          'application/json':
-              schema:
-                type: object
-                $ref: "#/components/schemas/CommentRequest"
-      responses:
-        '201':
-          description: Comment created
-          content:
-            application/json:
-              schema:
-                type: object
-                $ref: "#/components/schemas/Comment"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /comments/{comment_id}/:
-    delete:
-      summary: Delete comment
-      description: This route permanently deletes a specified comment. Upload owners may delete all comments under their uploads, and comment authors may delete their comments.
-      tags:
-        - Comments
-      parameters:
-        - name: comment_id
-          in: path
-          description: Numeric ID of the comment to delete
-          required: true
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-      responses:
-        '204':
-          description: Deleted comment.
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /buckets/:
-    post:
-      summary: Create bucket
-      description: This route creates a bucket specific to the user. A user cannot have multiple buckets of the same name. A user must create at least one bucket before uploading a video.
-      tags:
-        - Buckets
-      requestBody:
-        required: true
-        content:
-          'application/json':
-              schema:
-                type: object
-                $ref: "#/components/schemas/BucketRequest"
-      responses:
-        '201':
-          description: Bucket created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Bucket"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{user_id}/buckets:
+  /enterprises/invitations:
     get:
-      summary: Get all buckets
-      description: Retrieve a list of buckets owned by a given user.
+      summary: Retrieve all incoming invitations
+      description: This route retrieves all incoming enterprise invitations for the recipient to view.
       tags:
-        - Buckets
-      parameters:
-        - name: user_id
-          in: path
-          description: The user whose comments the client wishes to fetch.
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserIDOrMe'
+        - Enterprise Invitations
       responses:
         '200':
-          description: 'Retrieved buckets'
+          description: Retrieved incoming invitations
           content:
             application/json:
               schema:
                 type: object
-                required: [buckets]
+                required: [invitations]
                 properties:
-                  buckets:
+                  invitations:
                     type: array
                     items:
-                        type: object
-                        $ref: "#/components/schemas/Bucket"
+                      $ref: "#/components/schemas/InvitationForRecipient"
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /buckets/{bucket_id}/:
-    put:
-      summary: Edit bucket
-      description: This route only updates the properties of a bucket. To transfer an upload to another bucket, see [Edit Upload](#tag/Uploads/operation/editUpload).
-      tags:
-        - Buckets
-      parameters:
-        - name: bucket_id
-          in: path
-          description: Numeric ID of the bucket to edit
-          required: true
-          schema:
-            $ref: '#/components/schemas/BucketID'
-      requestBody:
-        description: All fields are optional
-        required: false
-        content:
-          'application/json':
-              schema:
-                type: object
-                properties:
-                  name:
-                    $ref: '#/components/schemas/BucketName'
-      responses:
-        '200':
-          description: Updated bucket
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Bucket'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
+  /enterprises/invitations/{invite_id}:
     delete:
-      summary: Delete bucket
-      description: This route permanently deletes a specified bucket and all its associated uploads.
+      summary: Delete invitation
+      description: This route deletes an invitation to join an enterprise. Calling this route means that an enterprise manager has uninvited a user, or a user has rejected an incoming invitation.
       tags:
-        - Buckets
+        - Enterprise Invitations
       parameters:
-        - name: bucket_id
+        - name: invite_id
           in: path
-          description: Numeric ID of the bucket to delete
           required: true
           schema:
-            $ref: '#/components/schemas/BucketID'
+            $ref: "#/components/schemas/EnterpriseInviteID"
       responses:
         '204':
-          description: Deleted bucket and uploads
+          description: Deleted/Rejected invite
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-  /users/search:
-    get:
-      summary: Search for users
-      description: This route returns a list of users given a search query. The current user is excluded from the response.
-      tags:
-        - Courtships
-      parameters:
-        - name: q
-          in: query
-          description: The search query.
-          required: true
-          schema:
-            type: string
-            example: tennislover9
-        - $ref: "#/components/parameters/Page"
-        - $ref: "#/components/parameters/PerPage"
-      responses:
-        '200':
-          description: 'Retrieved search results.'
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pageable"
-                  - type: object
-                    required:
-                      - users
-                    properties:
-                      users:
-                        type: array
-                        items:
-                            type: object
-                            $ref: "#/components/schemas/OtherUser"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /courtships/requests/:
+  /enterprises/invitations/{invite_id}/accept:
     post:
-      summary: Create courtship request
-      description: This route begins the courting process, ha ha 😐. Request that another user become your friend, student, xor coach. The current user cannot have an existing relationship with the specified user. For example, requesting to friend someone who has already requested to friend you will yield an error. As another example, requesting to coach your friend will yield an error until you unfriend them.
+      summary: Accept incoming invitation
+      description: This route accepts an incoming invitation to join an enterprise.
       tags:
-        - Courtships
-      requestBody:
-        required: true
-        content:
-          'application/json':
-              schema:
-                type: object
-                required:
-                  - user_id
-                  - type
-                properties:
-                  user_id:
-                    $ref: '#/components/schemas/UserID'
-                  type:
-                    $ref: '#/components/schemas/CourtshipReqType'
-      responses:
-        '201':
-          description: Courtship request created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OtherUserWCourtshipReq'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /courtships/requests:
-    get:
-      summary: Get all courtship requests
-      description:
-          Retrieve a list of all users with whom the client has an incoming or outgoing courtship request.
-      tags:
-        - Courtships
+        - Enterprise Invitations
       parameters:
-        - name: type
-          in: query
-          description: Filter response by the type of request.
-          required: false
-          schema:
-            $ref: '#/components/schemas/CourtshipReqType'
-        - name: dir
-          in: query
-          description: Filter response by the direction of the request.
-          required: false
-          schema:
-            $ref: '#/components/schemas/CourtshipReqDir'
-      responses:
-        '200':
-          description: 'Retrieved courtship requests'
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - requests
-                properties:
-                  requests:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/OtherUserWCourtshipReq'
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /courtships/requests/{other_user_id}/:
-    put:
-      summary: Update incoming courtship request
-      description: This route responds to an incoming courtship request.
-      tags:
-        - Courtships
-      parameters:
-        - name: other_user_id
+        - name: invite_id
           in: path
-          description: Numeric ID of the other user to whom the current user wishes to respond
           required: true
           schema:
-            $ref: '#/components/schemas/UserID'
-      requestBody:
-        description: The user's response to the courtship request
-        required: true
-        content:
-          'application/json':
-              schema:
-                type: object
-                required:
-                  - status
-                properties:
-                  status:
-                    type: string
-                    enum:
-                      - accept
-                      - decline
+            $ref: "#/components/schemas/EnterpriseInviteID"
       responses:
         '204':
-          description: Responded to request
+          description: Accepted invite
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/DefaultError'
 
-    delete:
-      summary: Delete outgoing courtship request
-      tags:
-        - Courtships
-      parameters:
-        - name: other_user_id
-          in: path
-          description: Numeric ID of the other user to whom the request was sent
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserID'
-      responses:
-        '204':
-          description: Deleted request
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{user_id}/courtships:
-    get:
-      summary: Get all courtships
-      description:
-          Retrieve a list of all users who have established courtships with a given user.
-      tags:
-        - Courtships
-      parameters:
-        - name: user_id
-          in: path
-          description: The user whose courtships the client wishes to fetch.
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserIDOrMe'
-        - name: type
-          in: query
-          description: Filter response by the type of courtship. For example, "student" will only return the user's students.
-          required: false
-          schema:
-            $ref: '#/components/schemas/CourtshipType'
-      responses:
-        '200':
-          description: 'Retrieved courtships'
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - courtships
-                properties:
-                  courtships:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/OtherUserWCourtship"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /users/{other_user_id}/courtships/:
-    delete:
-      summary: Delete courtship
-      tags:
-        - Courtships
-      parameters:
-        - name: other_user_id
-          in: path
-          description: Numeric ID of the other user involved in the courtship
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserID'
-      responses:
-        '204':
-          description: Deleted request
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /feed:
-    get:
-      summary: Get feed
-      description: This route returns a chronologically sorted list of uploads and their authors with whom the client has a courtship.
-      parameters:
-        - name: type
-          in: query
-          description: Filter response by the type of courtship. For example, "student" will filter uploads made by the user's students.
-          required: false
-          schema:
-            $ref: '#/components/schemas/CourtshipType'
-        - $ref: "#/components/parameters/Page"
-        - $ref: "#/components/parameters/PerPage"
-      responses:
-        '200':
-          description: 'Retrieved search results.'
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pageable"
-                  - type: object
-                    required:
-                      - feed
-                    properties:
-                      feed:
-                        type: array
-                        items:
-                          type: object
-                          required:
-                            - user
-                            - upload
-                          properties:
-                            user:
-                              $ref: "#/components/schemas/OtherUser"
-                            upload:
-                              $ref: "#/components/schemas/Upload"
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+  # /users/forgot/:
+  #   post:
+  #     summary: Forgot password
+  #     description: This route sends a password recovery link to a specified email if the email belongs to a user. If the provided email is invalid, no email will be sent, but the response will still indicate success in order to mitigate abuse.
+  #     tags:
+  #       - TODO # TODO
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         'application/json':
+  #             schema:
+  #               type: object
+  #               required:
+  #                 - email
+  #               properties:
+  #                 email:
+  #                   $ref: "#/components/schemas/UserEmail"
+  #     security: [] # no authentication
+  #     responses:
+  #       '204':
+  #         description: Email possibly sent.
+  #       default:
+  #         $ref: '#/components/responses/DefaultError'
 
 
 components:
-  parameters:
 
-    PerPage:
-      name: per_page
-      in: query
-      description: The number of entries per page to return. Defaults to 20 if omitted.
-      required: false
-      schema:
-        type: integer
-        format: int64
-        minimum: 0
-        example: 20
-
-    Page:
-      name: page
-      in: query
-      description: The response page number. Will error `404` if `page` is not equal to 1 and no items are found.
-      required: true
-      schema:
-        type: integer
-        format: int64
-        minimum: 1
-        example: 1
-
+  responses:
+    DefaultError:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: string
 
   schemas:
-
-    Pageable:
+    NewMyAceTeamMember:
       type: object
       required:
-          - has_next
+        - email
+        - username
+        - password
+        - role
+        - server_password
       properties:
-          has_next:
-            type: boolean
-            description: Whether more entries exist on the next page. Will be `true` if the final entry is exactly the `per_page`th element on a page, **even though there are no more entries on the next page.** In other words, `has_next` is only `false` when the number of returned entries is less than `per_page`.
+        email:
+          $ref: "#/components/schemas/UserEmail"
+        username:
+          $ref: "#/components/schemas/UserUsername"
+        password:
+          $ref: "#/components/schemas/UserPassword"
+        role:
+          $ref: "#/components/schemas/MyAceTeamRole"
+        server_password:
+          type: string
+          description: The master password of the application.
+          format: password
 
-
-    UploadID:
-      type: integer
-      description: "An upload's unique identifier."
-      format: int64
-      minimum: 1
-      example: 1
-
-    UploadCreated:
-      type: string
-      description: "When an upload was created"
-      format: date-time
-
-    UploadDisplayTitle:
-      type: string
-      description: "An upload's display title."
-      example: "Winning volley against Nadal"
-
-    Upload:
-        type: object
-        required:
-            - id
-            - created
-            - display_title
-            - stream_ready
-            - bucket
-            - visibility
-        properties:
-            id:
-              $ref: "#/components/schemas/UploadID"
-            created:
-              $ref: "#/components/schemas/UploadCreated"
-            display_title:
-              $ref: "#/components/schemas/UploadDisplayTitle"
-            stream_ready:
-              type: boolean
-              description: "A flag which determines if an upload has been processed and is ready for playback."
-              example: true
-            bucket:
-              $ref: "#/components/schemas/Bucket"
-            visibility:
-              $ref: "#/components/schemas/VisibilitySetting"
-            thumbnail:
-              description: "Will be omitted if stream_ready is false."
-              type: string
-              example: "https://www.something.jpg"
-
-    VisibilityDefault:
-      type: string
-      description: The default visibility mode. For example, "coaches" automatically shares an upload with all of the user's coaches.
-      enum:
-        - private
-        - coaches-only
-        - friends-only
-        - friends-and-coaches
-        - public
-
-    VisibilitySettingReq:
+    NewAppUser:
       type: object
       required:
-        - default
-        - also_shared_with
+        - username
+        - invite_code
+        - password
       properties:
-        default:
-          $ref: "#/components/schemas/VisibilityDefault"
-        also_shared_with:
-          description: "A list of user IDs who are exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
-          type: array
-          items:
-            type: integer
-            format: int64
-            minimum: 1
+        username:
+          $ref: "#/components/schemas/UserUsername"
+        display_name:
+          $ref: "#/components/schemas/UserDisplayName"
+        biography:
+          $ref: "#/components/schemas/UserBio"
+        invite_code:
+          type: string
+          description: A special code that will be used to join an enterprise immediately after registration.
+        password:
+          $ref: "#/components/schemas/UserPassword"
 
-    VisibilitySetting:
+    PublicUser:
+      description: The public view of a user, which contains sensitive profile information.
       type: object
       required:
-        - default
-        - also_shared_with
-      properties:
-        default:
-          $ref: "#/components/schemas/VisibilityDefault"
-        also_shared_with:
-          type: array
-          description: "Exceptions to the default visibility mode. Any included user will be able to view an upload with this visibility, regardless of the default."
-          items:
-            $ref: "#/components/schemas/OtherUser"
-
-    Me:
-      description: "The currently logged in user. Exposes sensitive profile information."
-      allOf:
-        - $ref: "#/components/schemas/OtherUser"
-        - type: object
-          required:
-            - email
-            - email_confirmed
-          properties:
-            email:
-              $ref: "#/components/schemas/UserEmail"
-            email_confirmed:
-              type: boolean
-              nullable: true
-              description: Whether the user has confirmed their email address. Will be `null` if the user's login method is not email/password.
-              example: null
-
-    UserEmail:
-      type: string
-      description: "The user's email address."
-      format: email
-      pattern: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
-      example: johnsmith@gmail.com
-
-    UserPassword:
-      type: string
-      description: "The user's password."
-      format: password
-      pattern: ^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~])[A-Za-z0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~]{6,}$
-      example: Tnns31!
-
-    UserID:
-      type: integer
-      description: "A user's unique identifier."
-      format: int64
-      minimum: 1
-      example: 1
-
-    UserIDOrMe:
-      oneOf:
-        - type: string
-          description: "An alias for the client's ID."
-          enum: [me]
-        - $ref: "#/components/schemas/UserID"
-
-    UserUsername:
-      type: string
-      description: "A unique, user-friendly profile identifier."
-      pattern: ^(?=.*?[a-z])[a-z0-9_.]{4,16}$
-      example: tennislover9
-
-    UserDisplayName:
-      type: string
-      description: "The name of a user."
-      example: John Smith
-
-    UserBio:
-      type: string
-      description: "A personalized biography."
-      example: I couldn't figure out why the ball was getting bigger. Then it hit me.
-
-    OtherUserNoCourtship:
-      type: object
-      description: "A building-block for other schemas."
-      required:
-        - id
+        - user_id
         - username
         - display_name
         - biography
-        - n_uploads
-        - n_courtships
       properties:
-        id:
+        user_id:
           $ref: "#/components/schemas/UserID"
         username:
           $ref: "#/components/schemas/UserUsername"
@@ -1314,276 +462,236 @@ components:
           $ref: "#/components/schemas/UserDisplayName"
         biography:
           $ref: "#/components/schemas/UserBio"
-        n_uploads:
-          type: integer
-          description: "The number of uploads owned by the user that are visible to the logged in user."
-          format: int64
-          minimum: 0
-          example: 29
-        n_courtships:
-          type: object
-          description: "Counts of the user's courtships."
-          required:
-            - friends
-            - coaches
-            - students
-          properties:
-            friends:
-              type: integer
-              description: "A count of this user's friends."
-              format: int64
-              minimum: 0
-              example: 86
-            coaches:
-              type: integer
-              description: "A count of this user's coaches."
-              format: int64
-              minimum: 0
-              example: 2
-            students:
-              type: integer
-              description: "A count of this user's students."
-              format: int64
-              minimum: 0
-              example: 10
 
-    OtherUser:
-      type: object
-      description: "A synopsis of a user's profile. What you might find as an identifier to a user's comment or upload."
+    PrivateUser:
+      description: The private view of a user, which contains sensitive profile information.
       allOf:
-        - $ref: "#/components/schemas/OtherUserNoCourtship"
+        - $ref: '#/components/schemas/PublicUser'
         - type: object
           required:
-            - courtship
+            - email
+            - created_at
+            - updated_at
           properties:
-            courtship:
-              type: object
-              nullable: true
-              description: "The client's relationship with this user. Will be `null` if the client *is* this user."
-              example: null
-              oneOf:
-                - $ref: "#/components/schemas/Courtship"
-                - $ref: "#/components/schemas/CourtshipReq"
-
-    OtherUserWCourtship:
-      type: object
-      description: "A profile synopsis of another user with whom the client has an established courtship."
-      allOf:
-        - $ref: "#/components/schemas/OtherUserNoCourtship"
-        - type: object
-          required:
-            - courtship
-          properties:
-            courtship:
-              $ref: "#/components/schemas/Courtship"
-
-    OtherUserWCourtshipReq:
-      type: object
-      description: "A profile synopsis of another user with whom the client has a pending courtship request."
-      allOf:
-        - $ref: "#/components/schemas/OtherUserNoCourtship"
-        - type: object
-          required:
-            - courtship
-          properties:
-            courtship:
-              $ref: "#/components/schemas/CourtshipReq"
-
-    User:
-      type: object
-      description: A profile synposis of a user that may or may not be the client and contain sensitive information.
-      oneOf:
-        - $ref: "#/components/schemas/Me"
-        - $ref: "#/components/schemas/OtherUser"
-
-    CourtshipType:
-      type: string
-      enum:
-        - friend
-        - student
-        - coach
-
-    CourtshipReqType:
-      type: string
-      enum:
-        - friend-req
-        - student-req
-        - coach-req
-
-    CourtshipReqDir:
-      type: string
-      description: "The direction of the request. `out` signifies the user sent the request."
-      enum:
-        - in
-        - out
-
-    Courtship:
-      type: object
-      description: An established courtship.
-            <table>
-            <tr>
-                <th>Courtship Type</th>
-                <th>Meaning</th>
-            </tr>
-            <tr>
-                <td>friend</td>
-                <td>This user is your friend</td>
-            </tr>
-            <tr>
-                <td>coach</td>
-                <td>This user is your coach</td>
-            </tr>
-            <tr>
-                <td>friend</td>
-                <td>This user is your student</td>
-            </tr>
-            </table>
-      required:
-        - type
-      properties:
-        type:
-          $ref: "#/components/schemas/CourtshipType"
-
-    CourtshipReq:
-      type: object
-      description: A pending courtship request.
-            <table>
-                <tr>
-                    <th>Dir</th>
-                    <th>Request Type</th>
-                    <th>Meaning</th>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>friend</td>
-                    <td>You request to add another user as a friend</td>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>coach</td>
-                    <td>You request that another user becomes your coach</td>
-                </tr>
-                <tr>
-                    <td>out</td>
-                    <td>student</td>
-                    <td>You request that another user becomes your student</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>friend</td>
-                    <td>Another user requests to add you as a friend</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>coach</td>
-                    <td>Another user requests that you coach them</td>
-                </tr>
-                <tr>
-                    <td>in</td>
-                    <td>student</td>
-                    <td>Another user requests to coach you</td>
-                </tr>
-            </table>
-      required:
-        - type
-        - dir
-      properties:
-        type:
-          $ref: "#/components/schemas/CourtshipReqType"
-        dir:
-          $ref: "#/components/schemas/CourtshipReqDir"
-
-    BucketID:
-      type: integer
-      description: "A bucket's unique identifier."
-      format: int64
-      minimum: 1
-      example: 1
-
-    Bucket:
-      allOf:
-        - type: object
-          required:
-          - id
-          - size
-          - last_modified
-          properties:
-            id:
-              $ref: "#/components/schemas/BucketID"
-            size:
-              type: integer
-              description: "The quantity of uploads in this bucket."
-              format: int32
-              minimum: 0
-              example: 5
-            last_modified:
+            email:
+              $ref: "#/components/schemas/UserEmail"
+            created_at:
               type: string
-              description: "If the bucket is empty, the bucket's creation datetime. Otherwise the creation datetime of the most recent viewable upload inside it."
               format: date-time
-        - $ref: '#/components/schemas/BucketRequest'
+            updated_at:
+              type: string
+              description: The ISO 8601 timestamp of the user's last profile edit.
+              format: date-time
+              nullable: true
 
-    BucketName:
-      type: string
-      description: "The title of the bucket."
-      example: "Forehand Groundstrokes 🎾"
+    PrivateUserWToken:
+      description: The private view of a user, which contains sensitive profile information and a refreshed session token.
+      allOf:
+        - $ref: "#/components/schemas/PrivateUser"
+        - type: object
+          required:
+            - token
+          properties:
+            token:
+              type: string
+              description: A bearer token that may be used in in the Authentication header.
 
-    BucketRequest:
+    NewEnterprise:
       type: object
-      required:
-        - name
+      required: [name]
       properties:
         name:
-          $ref: '#/components/schemas/BucketName'
+          $ref: "#/components/schemas/EnterpriseName"
+        website:
+          $ref: "#/components/schemas/EnterpriseWebsite"
+        support_email:
+          $ref: "#/components/schemas/EnterpriseEmail"
+        support_phone:
+          $ref: "#/components/schemas/EnterprisePhoneNumber"
 
-    Comment:
-      allOf:
-        - type: object
-          required:
-              - id
-              - created
-              - author
-          properties:
-            id:
-              type: integer
-              description: "The comment's unique identifier."
-              format: int64
-              minimum: 1
-            created:
-              type: string
-              format: date-time
-            author:
-              $ref: "#/components/schemas/User"
-        - $ref: "#/components/schemas/CommentRequest"
-
-    CommentRequest:
+    UpdateEnterprise:
       type: object
-      description: "Schema required to create a comment."
-      required:
-        - upload_id
-        - text
       properties:
-        text:
-          type: string
-          description: "The body of the comment."
-          example: "Tennis goals!!! LOML 😍"
-        upload_id:
-          type: integer
-          description: "The unique upload ID under which the comment is posted."
-          format: int64
-          minimum: 1
+        name:
+          $ref: "#/components/schemas/EnterpriseName"
+        website:
+          $ref: "#/components/schemas/EnterpriseWebsite"
+        support_email:
+          $ref: "#/components/schemas/EnterpriseEmail"
+        support_phone:
+          $ref: "#/components/schemas/EnterprisePhoneNumber"
 
-    Error:
+    Enterprise:
       type: object
       required:
-        - error
+        - enterprise_id
+        - name
+        - website
+        - support_email
+        - support_phone
+        - logo
+        - created_at
       properties:
-        error:
+        enterprise_id:
+          $ref: "#/components/schemas/EnterpriseID"
+        name:
+          $ref: "#/components/schemas/EnterpriseName"
+        website:
+          allOf:
+            - nullable: true
+            - $ref: "#/components/schemas/EnterpriseWebsite"
+        support_email:
+          allOf:
+            - nullable: true
+            - $ref: "#/components/schemas/EnterpriseEmail"
+        support_phone:
+          allOf:
+            - nullable: true
+            - $ref: "#/components/schemas/EnterprisePhoneNumber"
+        logo:
+          allOf:
+            - nullable: true
+            - $ref: "#/components/schemas/EnterpriseLogo"
+        created_at:
           type: string
+          format: date-time
+
+    InvitationForEnterprise:
+      type: object
+      description: An invitation to an enterprise from the perspective of that enterprise's manager.
+      required:
+        - invite_id
+        - user_email
+        - role
+        - created_at
+      properties:
+        invite_id:
+          $ref: "#/components/schemas/EnterpriseInviteID"
+        user_email:
+          $ref: "#/components/schemas/UserEmail"
+        role:
+          $ref: "#/components/schemas/EnterpriseRole"
+        created_at:
+          type: string
+          format: date-time
+
+    InvitationForRecipient:
+      type: object
+      description: An invitation to an enterprise from the perspective of the invitee.
+      required:
+        - invite_id
+        - role
+        - enterprise
+        - created_at
+      properties:
+        invite_id:
+          $ref: "#/components/schemas/EnterpriseInviteID"
+        role:
+          $ref: "#/components/schemas/EnterpriseRole"
+        enterprise:
+          $ref: "#/components/schemas/Enterprise"
+        created_at:
+          type: string
+          format: date-time
+
+
+    # ------------------------------ Common types ------------------------------
+
+    MyAceTeamRole:
+      type: string
+      description: The role of a user within the MyAce development team.
+      enum:
+        - backend
+        - frontend
+        - business
+
+    UserID:
+      type: string
+      description: The user's unique identifier.
+      format: uuid
+
+    UserEmail:
+      type: string
+      description: The user's email address.
+      format: email
+      pattern: ^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$
+      example: johnsmith@gmail.com
+
+    UserUsername:
+      type: string
+      description: A unique, user-friendly profile identifier.
+      pattern: ^[a-z0-9_.]{4,16}$
+      example: tennislover9
+
+    UserPassword:
+      type: string
+      description: The user's password.
+      format: password
+      # TODO: add regex
+      # pattern: ^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~])[A-Za-z0-9\-\"[\]!#$%&'()*+,./:;<=>?@^_`{|}~]{6,}$
+      example: Tnns31!
+
+    UserDisplayName:
+      type: string
+      description: The name of a user.
+      example: John Smith
+
+    UserBio:
+      type: string
+      description: A personalized biography.
+      example: I couldn't figure out why the ball was getting bigger. Then it hit me.
+
+    EnterpriseID:
+      type: string
+      description: The enterprise's unique identifier.
+      format: uuid
+
+    EnterpriseName:
+      type: string
+      description: The public name of an enterprise.
+      example: Laguna Beach Tennis Club
+
+    EnterpriseWebsite:
+      type: string
+      description: The homepage of an enterprise.
+      example: https://www.lagunabeachtennisclub.com
+
+    EnterprisePhoneNumber:
+      type: string
+      description: The support phone number for an enterprise.
+      pattern: ^\d+$
+
+    EnterpriseEmail:
+      type: string
+      description: The support email address for an enterprise.
+      format: email
+      pattern: ^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$
+      example: support@lagunabeachtennisclub.com
+
+    EnterpriseLogo:
+      type: string
+      description: The URL that points to an enterprise's 1:1 logo image.
+      example: https://logo.png
+
+    EnterpriseRole:
+      type: string
+      description: The role of a user within an enterprise.
+      enum:
+        - parent
+        - player
+        - instructor
+        - admin
+
+    EnterpriseInviteID:
+      type: string
+      description: The enterprise invitation's unique identifier.
+      format: uuid
 
   securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+
 security:
-  - cookieAuth: []
+  - bearerAuth: []
