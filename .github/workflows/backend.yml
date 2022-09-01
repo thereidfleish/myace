@@ -1,4 +1,4 @@
-name: Continuous Deployment
+name: Backend Continuous Deployment
 
 on:
 
@@ -51,6 +51,8 @@ jobs:
 
       - name: Setup database w/ migrations
         run: sqlx db setup
+        env:
+          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace
 
       # Runs a single command using the runners shell
       - name: Deploy
@@ -59,5 +61,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           HMAC_KEY: abc
-          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace
+          # used to generate the offline sqlx DB file
+          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace 
           SERVER_PASSWORD: abc
