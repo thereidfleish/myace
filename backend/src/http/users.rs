@@ -287,8 +287,9 @@ async fn get_user(
     ctx: Extension<ApiContext>,
 ) -> Result<Json<PrivatePublicUser>> {
     let user = sqlx::query_as!(UserFromDB, r#"select * from "user" where user_id = $1"#, id)
-        .fetch_one(&ctx.db)
-        .await?;
+        .fetch_optional(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound("user".to_string()))?;
 
     // check if requested user is the authenticated user
     let user = match auth_user.user_id() {

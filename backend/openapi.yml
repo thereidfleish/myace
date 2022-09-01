@@ -446,7 +446,7 @@ components:
           $ref: "#/components/schemas/UserPassword"
 
     PublicUser:
-      description: The public view of a user, which contains sensitive profile information.
+      description: The public view of a user.
       type: object
       required:
         - user_id
