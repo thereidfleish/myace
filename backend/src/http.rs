@@ -26,6 +26,8 @@ mod extractor;
 
 /// Contains enterprise-related routes.
 mod enterprises;
+/// Contains miscellaneous routes.
+mod miscroutes;
 /// Contains user-related routes.
 mod users;
 
@@ -57,6 +59,7 @@ pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
     );
 
     info!("Listening on localhost:8080");
+    println!("Listening on localhost:8080");
     axum::Server::bind(&"0.0.0.0:8080".parse()?)
         .serve(app.into_make_service())
         .await
@@ -64,5 +67,7 @@ pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
 }
 
 fn api_router() -> Router {
-    enterprises::router().merge(users::router())
+    miscroutes::router()
+        .merge(enterprises::router())
+        .merge(users::router())
 }

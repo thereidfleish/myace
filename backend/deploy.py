@@ -5,23 +5,20 @@ import json
 import re
 import subprocess
 import time
+import sys
+from typing import Optional
 
-def build() -> None:
-    """Build the Docker image"""
-    result = subprocess.run(["docker", "build", "-t", "myace-api-prod", "./src"], check=True, capture_output=True, text=True)
-    print(result.stderr)
-    print(result.stdout)
-    print("Image built!")
+SERVICE_NAME = "myace"
 
 
-def push() -> int:
+def push(image_name: str) -> int:
     """Push the Docker image to Lightsail and get the image version"""
-    result = subprocess.run(["aws", "lightsail", "push-container-image", "--region", "us-east-2", "--service-name", "tennistrainerapi", "--label", "tennistrainer", "--image", "myace-api-prod"],
+    result = subprocess.run(["aws", "lightsail", "push-container-image", "--region", "us-east-2", "--service-name", SERVICE_NAME, "--label", "myace", "--image", image_name, "--profile", "myace"],
         capture_output=True, text=True
     )
     assert result.returncode == 0, f"Failed to push image. Here's some info: \n{result.stdout}\n{result.stderr}"
     # Get the image version from STDOUT
-    version_pattern = r"Refer to this image as \":tennistrainerapi\.tennistrainer\.(\d+)\" in deployments\."
+    version_pattern = r"Refer to this image as \":" + SERVICE_NAME + "\.myace\.(\d+)\" in deployments\."
     match = re.search(version_pattern, result.stdout)
     assert match
     version = int(match.group(1))
@@ -30,11 +27,14 @@ def push() -> int:
 
 
 def _get_active_env() -> dict:
-    """Get the environment variables for the active container"""
-    result = subprocess.run(["aws", "lightsail", "get-container-services", "--query", "containerServices[].currentDeployment.containers.tennistrainerapi.environment", "--region", "us-east-2"], capture_output=True, text=True)
+    """Get the environment variables for the active container."""
+    result = subprocess.run(["aws", "lightsail", "get-container-services", "--query", "containerServices[].currentDeployment.containers." + SERVICE_NAME + ".environment", "--region", "us-east-2", "--profile", "myace"], capture_output=True, text=True)
     assert result.returncode == 0, f"Failed to get currentDeployment environment. Here's some info: \n{result.stdout}\n{result.stderr}"
     result = json.loads(result.stdout)
-    return result[0]
+    if len(result) > 0:
+        return result[0]
+    else:
+        return {}
 
 
 def deploy(image_version: int) -> int:
@@ -43,18 +43,20 @@ def deploy(image_version: int) -> int:
     while True:
         env = _get_active_env()
         result = subprocess.run(["aws", "lightsail", "create-container-service-deployment",
+            "--profile",
+            "myace",
             "--region",
             "us-east-2",
             "--service-name",
-            "tennistrainerapi",
+            SERVICE_NAME,
             "--containers",
-            '{ "tennistrainerapi": { "image": ":tennistrainerapi.tennistrainer.'+ str(image_version) +'","environment": ' + json.dumps(env) + ',"ports": {"6000": "HTTP"}}}',
+            '{ "' + SERVICE_NAME + '": { "image": ":'+SERVICE_NAME+'.myace.'+ str(image_version) +'","environment": ' + json.dumps(env) + ',"ports": {"8080": "HTTP"}}}',
             "--public-endpoint",
-            '{"containerName": "tennistrainerapi","containerPort": 6000,"healthCheck": {"path": "/health/","successCodes": "200-499"}}'
+            '{"containerName": "'+SERVICE_NAME+'","containerPort": 8080,"healthCheck": {"path": "/health","successCodes": "200"}}'
         ], capture_output=True, text=True)
         # Repeat if Lightsail is already deploying
         if result.returncode == 254:
-            print(f"Failed to create deployment because Lightsail is already busy activating another deployment. Waiting for {sec_waiting} seconds.")
+            print(f"Failed to create deployment because Lightsail is already busy activating another deployment. Waiting for {sec_waiting} seconds. Here's the output of result: {result}")
             sec_waiting += 15
             time.sleep(15)
             continue
@@ -72,7 +74,7 @@ def check_deployment(deployment_version: int) -> int:
     :return: 0 (success), 1 (error), 2 (pending)
     """
     # Get the deployment
-    result = subprocess.run(["aws", "lightsail", "get-container-service-deployments", "--service-name", "tennistrainerapi", "--region", "us-east-2"],
+    result = subprocess.run(["aws", "lightsail", "get-container-service-deployments", "--service-name", SERVICE_NAME, "--region", "us-east-2", "--profile", "myace"],
         check=True, capture_output=True, text=True
     )
     deployments = json.loads(result.stdout)["deployments"]
@@ -88,9 +90,12 @@ def check_deployment(deployment_version: int) -> int:
 
 
 def main():
+    if len(sys.argv) != 2:
+        print("Usage: deploy.py docker_image_name")
+        exit()
+    image_name = sys.argv[1]
     try:
-        build()
-        image_version = push()
+        image_version = push(image_name)
         deployment_version = deploy(image_version)
         # Standby for deploy status
         s = 0

@@ -42,3 +42,9 @@ dev:
 # Just the web frontend pointing at the production server
 prod:
 	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="api.myace.ai" docker compose up
+
+deployment:
+	make docs
+	cargo sqlx prepare -- --lib # DB must be up for this to generate sqlx-data.json
+	docker build -t myace-deployment . # builds with offline DB
+	python deploy.py myace-deployment

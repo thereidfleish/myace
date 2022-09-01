@@ -3,3 +3,6 @@
 /**/.env
 /**/docs.html
 TODO.md
+
+# we generate this file with our CD pipeline
+sqlx-data.json

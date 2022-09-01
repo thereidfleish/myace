@@ -1,0 +1,57 @@
+name: Continuous Deployment
+
+on:
+
+  push:
+    branches:
+      - main
+    paths:
+      - backend/**
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  deployment:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: myace
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: dbmasteruser
+        ports:
+          - 5432:5432
+            # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install redoc-cli
+        run: npm i -g redoc-cli
+
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli
+
+      # Runs a single command using the runners shell
+      - name: Deploy
+        run: make deployment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          HMAC_KEY: abc
+          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace
+          SERVER_PASSWORD: abc
