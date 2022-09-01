@@ -38,13 +38,19 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install redoc-cli
         run: npm i -g redoc-cli
 
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.0.0
+
       - name: Install sqlx-cli
         run: cargo install sqlx-cli
+
+      - name: Setup database w/ migrations
+        run: sqlx db setup
 
       # Runs a single command using the runners shell
       - name: Deploy
