@@ -40,14 +40,31 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2.0.0
+        # Determines if the cache should be saved even when the workflow has failed.
+        # Default: "false"
+        with:
+          cache-on-failure: "true"
+
+      - name: Docker layer cache
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true
+
       - name: Install redoc-cli
         run: npm i -g redoc-cli
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.0.0
-
       - name: Install sqlx-cli
         run: cargo install sqlx-cli
+
+      - name: Check for AWS-CLI v2
+        run: if (aws --version | grep aws-cli/2) then (exit 0) else (aws --version && exit 1) fi
+
+      - name: Install lightsailctl plugin
+        run: |
+          curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+          sudo chmod +x /usr/local/bin/lightsailctl
 
       - name: Setup database w/ migrations
         run: sqlx db setup

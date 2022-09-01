@@ -166,11 +166,18 @@ def check_deployment(deployment_version: int, aws_profile: Optional[str]) -> int
 
 
 def main():
+    # parse args
     if len(sys.argv) != 2:
         print("Usage: deploy.py <DOCKER_IMAGE_NAME> <optional: AWS_PROFILE>")
         exit()
+    # required args
     image_name = sys.argv[1]
-    aws_profile = sys.argv[2]
+    # optional args
+    try:
+        aws_profile = sys.argv[2]
+    except IndexError:
+        aws_profile = None
+
     try:
         image_version = push(image_name, aws_profile)
         deployment_version = deploy(image_version, aws_profile)

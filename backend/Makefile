@@ -44,7 +44,8 @@ prod:
 	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="api.myace.ai" docker compose up
 
 deployment:
+	echo "AWS profile (empty will use default):" $(MYACE_AWS_PROFILE)
 	make docs
 	cargo sqlx prepare -- --lib # DB must be up for this to generate sqlx-data.json
 	docker build -t myace-deployment . # builds with offline DB
-	python deploy.py myace-deployment
+	python deploy.py myace-deployment $(MYACE_AWS_PROFILE)
