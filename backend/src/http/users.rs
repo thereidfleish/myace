@@ -1,4 +1,5 @@
 use crate::http::error::{Error, ResultExt};
+use crate::http::types::Email;
 use crate::http::{ApiContext, Result};
 
 use anyhow::Context;
@@ -35,7 +36,7 @@ enum NewUser {
 
 #[derive(serde::Deserialize)]
 struct NewMyAceTeamMember {
-    email: String,
+    email: Email,
     username: String,
     password: String,
     role: MyAceTeamRole,
@@ -180,7 +181,7 @@ async fn create_user(
                 -- create new user
                 with new_user as (
                     insert into "user" (username, email, password_hash)
-                    values ($1::TEXT, $2::TEXT, $3)
+                    values ($1, $2, $3)
                     returning *
                 ),
                 -- create team entry
@@ -191,7 +192,7 @@ async fn create_user(
                 select * from new_user
                 "#,
                 user.username,
-                user.email,
+                user.email as Email,
                 password_hash,
                 user.role as MyAceTeamRole
             )
@@ -220,7 +221,7 @@ async fn create_user(
                 cte_user as (
                   insert into "user"
                   (username, display_name, biography, email, password_hash)
-                  values ($2::TEXT, $3, $4, (select user_email from cte_invite), $5)
+                  values ($2, $3, $4, (select user_email from cte_invite), $5)
                   returning *
                 ),
                 -- accept the enterprise invitation

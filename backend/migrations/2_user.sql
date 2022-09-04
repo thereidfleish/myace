@@ -28,13 +28,13 @@ create table "user"
     --
     -- We're not doing that here since the Realworld spec doesn't implement a search function for users.
     -- TODO: learn more about collation for MyAce.
-    username      uname         collate "case_insensitive" unique not null,
+    username      text          collate "case_insensitive" unique not null,
 
     display_name  text                                            not null default '',
 
     biography     text                                            not null default '',
 
-    email         email_address collate "case_insensitive" unique not null,
+    email         text          collate "case_insensitive" unique not null,
 
     -- The Argon2 hashed password string for the user.
     password_hash text                                            not null,

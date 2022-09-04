@@ -20,7 +20,7 @@ create table enterprise_invite
     enterprise_id    uuid                                            not null references "enterprise" (enterprise_id) on delete cascade,
 
     -- the new user's email
-    user_email       email_address collate "case_insensitive"        not null,
+    user_email       text          collate "case_insensitive"        not null,
 
     -- Users may be invited to multiple enterprises, but cannot be invited to the same enterprise twice
     unique (enterprise_id, user_email),

@@ -11,6 +11,9 @@ use tower::ServiceBuilder;
 /// Defines a common error type to use for all request handlers.
 mod error;
 
+/// Defines common types used for data validation.
+mod types;
+
 /// Contains logic for access control. Determines what is `403 Forbidden` for a given user and what is not.
 mod permissions;
 

@@ -136,7 +136,7 @@ async fn create_invitation(
         with new_invitation as (
             insert into "enterprise_invite"
             (enterprise_id, user_email, role)
-            values ($1, $2::TEXT, $3)
+            values ($1, $2, $3)
             returning *
         )
         select

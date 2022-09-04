@@ -8,8 +8,8 @@ create table "enterprise"
 
     -- Intended to be used exclusively by customers. For example, if a customer has a
     -- question about their membership, they can send an email to this address and expect a reply.
-    support_email     email_address,
-    support_phone     phone_number,
+    support_email     text,
+    support_phone     text,
 
     logo              text,
 

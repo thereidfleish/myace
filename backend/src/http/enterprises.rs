@@ -93,7 +93,7 @@ async fn create_enterprise(
 
     let new_enterprise: Enterprise = sqlx::query_as!(
         EnterpriseFromDB,
-        r#"insert into "enterprise" (name, website, support_email, support_phone) values ($1, $2, $3::TEXT, $4::TEXT) returning *"#,
+        r#"insert into "enterprise" (name, website, support_email, support_phone) values ($1, $2, $3, $4) returning *"#,
         req.name,
         req.website,
         req.support_email,
@@ -144,8 +144,8 @@ async fn update_enterprise(
            set
                name          = coalesce($1, name),
                website       = coalesce($2, website),
-               support_email = coalesce($3::TEXT),
-               support_phone = coalesce($4::TEXT)
+               support_email = coalesce($3),
+               support_phone = coalesce($4)
            where enterprise_id = $5 returning *"#,
         req.name,
         req.website,
