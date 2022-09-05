@@ -24,12 +24,7 @@ interface RestApi {
     @POST
     @Multipart
     fun uploadToS3(@Url awsUrl: String,
-                   @Part("key") key: RequestBody?,
-                   @Part("x-amz-algorithm") xAmzAlgorithm: RequestBody?,
-                   @Part("x-amz-credential") xAmzCredential: RequestBody?,
-                   @Part("x-amz-date") xAmzDate: RequestBody?,
-                   @Part("policy") policy: RequestBody?,
-                   @Part("x-amz-signature") xAmzSignature: RequestBody?,
+                   @PartMap body: Map<String,@JvmSuppressWildcards RequestBody>,
                    @Part video: MultipartBody.Part
     ): Call<ResponseBody>
 
