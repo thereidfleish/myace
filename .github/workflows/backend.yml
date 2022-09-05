@@ -1,0 +1,83 @@
+name: Backend Continuous Deployment
+
+on:
+
+  push:
+    branches:
+      - main
+    paths:
+      - backend/**
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  deployment:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: myace
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: dbmasteruser
+        ports:
+          - 5432:5432
+            # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2.0.0
+        # Determines if the cache should be saved even when the workflow has failed.
+        # Default: "false"
+        with:
+          cache-on-failure: "true"
+
+      - name: Docker layer cache
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true
+
+      - name: Install redoc-cli
+        run: npm i -g redoc-cli
+
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli
+
+      - name: Check for AWS-CLI v2
+        run: if (aws --version | grep aws-cli/2) then (exit 0) else (aws --version && exit 1) fi
+
+      - name: Install lightsailctl plugin
+        run: |
+          curl "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+          sudo chmod +x /usr/local/bin/lightsailctl
+
+      - name: Setup database w/ migrations
+        run: sqlx db setup
+        env:
+          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace
+
+      # Runs a single command using the runners shell
+      - name: Deploy
+        run: make deployment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          HMAC_KEY: abc
+          # used to generate the offline sqlx DB file
+          DATABASE_URL: postgresql://dbmasteruser:password@localhost:5432/myace 
+          SERVER_PASSWORD: abc
