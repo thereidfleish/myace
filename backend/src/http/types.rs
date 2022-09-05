@@ -10,7 +10,7 @@ impl<'de> Deserialize<'de> for Email {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_string(EmailVisitor)
+        deserializer.deserialize_str(EmailVisitor)
     }
 }
 
@@ -23,11 +23,11 @@ impl<'de> Visitor<'de> for EmailVisitor {
         formatter.write_str("a valid HTML5 email address")
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    fn visit_str<E>(self, string: &str) -> Result<Self::Value, E>
     where
         E: serde::de::Error,
     {
         // TODO: validate email
-        Ok(Email(v))
+        Ok(Email(string.to_string()))
     }
 }
