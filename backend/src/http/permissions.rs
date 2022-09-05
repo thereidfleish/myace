@@ -63,6 +63,11 @@ impl AuthUser {
     ) -> Result<(), Error> {
         // Long term TODO: make these available in ApiContext and then broadcast user permissions to frontend
         match action {
+            ApiPermission::ViewAPIDocumentation => match self.myace_team_role(&ctx.db).await? {
+                // anyone on the team can view API docs
+                Some(_) => Ok(()),
+                _ => Err(Error::Forbidden(action)),
+            },
             ApiPermission::CreateEnterprise => match self.myace_team_role(&ctx.db).await? {
                 Some(MyAceTeamRole::Backend) | Some(MyAceTeamRole::Frontend) => Ok(()),
                 _ => Err(Error::Forbidden(action)),
@@ -141,6 +146,7 @@ impl AuthUser {
 /// Actions that an authenticated user may be allowed to perform.
 #[derive(Debug, Clone, Copy)]
 pub enum ApiPermission {
+    ViewAPIDocumentation,
     CreateEnterprise,
     /// View an enterprise by its ID
     RetrieveEnterprise(Uuid),
@@ -167,6 +173,7 @@ impl fmt::Display for ApiPermission {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use ApiPermission::*;
         match self {
+            ViewAPIDocumentation => write!(f, "view API documentation"),
             CreateEnterprise => write!(f, "create enterprise"),
             RetrieveEnterprise(id) => {
                 write!(f, "retrieve enterprise with id {}", id)
