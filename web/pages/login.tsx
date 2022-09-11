@@ -10,7 +10,7 @@ const Login: NextPage = () => {
   const [password, setPassword] = useState("");
 
   const { mutateUser } = useUser({
-    redirectTo: '/profile',
+    redirectTo: '/apidocs',
   })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
