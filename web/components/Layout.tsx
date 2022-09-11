@@ -8,8 +8,8 @@ import React from 'react'
 function CommonHead() {
   return (
     <Head>
-      <title>My Ace</title>
-      <meta name="description" content="My Ace is an all-in-one solution to bring social tools to athletic clubs and teams." />
+      <title>MyAce</title>
+      <meta name="description" content="MyAce is an all-in-one solution to bring social tools to athletic clubs and teams." />
       <link rel="icon" href="/logo.svg" />
     </Head>
   )
@@ -59,8 +59,8 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
           <div className="p-4 container mx-auto flex max-w-6xl">
             <Link href="/">
               <a className="flex">
-                <Image src="/logo.svg" alt="My Ace logo" width="32" height="32" />
-                <p className="ml-3 text-2xl font-bold sm:text-2xl">My Ace</p>
+                <Image src="/logo.svg" alt="MyAce logo" width="32" height="32" />
+                <p className="ml-3 text-2xl font-bold sm:text-2xl">MyAce</p>
               </a>
             </Link>
           </div>

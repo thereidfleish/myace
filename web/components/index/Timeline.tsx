@@ -39,7 +39,7 @@ export default function Timeline() {
   const timelines = [
     {
       title: "Proof of Concept",
-      summary: "Initial team, application, and business development of the My Ace app.",
+      summary: "Initial team, application, and business development of the MyAce app.",
       date: "Jan 2022",
       icon: <LightBulbIcon />
     },
@@ -51,13 +51,13 @@ export default function Timeline() {
     },
     {
       title: "Back to the Drawing Board",
-      summary: "Start to market to athletic organizations and brainstorm the future of My Ace.",
+      summary: "Start to market to athletic organizations and brainstorm the future of MyAce.",
       date: 'Jul 2022',
       icon: <ArrowPathIcon />
     },
     {
       title: "Development",
-      summary: "With previous experience and talent, rebuild My Ace for Android, iOS, and the Web.",
+      summary: "With previous experience and talent, rebuild MyAce for Android, iOS, and the Web.",
       date: 'Sep 2022',
       icon: <CircleStackIcon />
     }

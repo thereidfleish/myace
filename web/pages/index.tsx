@@ -13,7 +13,7 @@ const Home: NextPage = () => {
         <h1 className="text-4xl font-bold leading-none sm:text-5xl">
           Next generation <span className="dark:text-violet-400">athletic training</span> for your club
         </h1>
-        <p className="px-8 mt-8 mb-12 text-lg">My Ace is social platform bringing coaches, players, and parents together.
+        <p className="px-8 mt-8 mb-12 text-lg">MyAce is social platform bringing coaches, players, and parents together.
         </p>
         <div className="flex flex-wrap justify-center py-2">
           <Link href="/login">

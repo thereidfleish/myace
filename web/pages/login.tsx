@@ -38,7 +38,7 @@ const Login: NextPage = () => {
         <div className="hidden lg:flex w-full lg:w-2/5 justify-around items-center">
           <div className="w-full mx-auto px-20 flex-col items-center space-y-6">
             <h2 className="text-white font-bold text-4xl font-sans">Join Your Club</h2>
-            <p className="text-white mt-1">Request a demo for your fitness program and see how we can tailor My Ace to your needs.</p>
+            <p className="text-white mt-1">Request a demo for your fitness program and see how we can tailor MyAce to your needs.</p>
             <div className="flex justify-start mt-6">
               <Link href="/contact"><button className="hover:bg-violet-600 hover:text-white hover:-translate-y-1 transition-all duration-500 bg-white text-indigo-800 mt-4 px-4 py-2 rounded-2xl font-bold mb-2">Contact Us</button></Link>
             </div>
