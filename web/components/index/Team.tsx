@@ -3,9 +3,12 @@ import Image from 'next/image'
 
 function Member({ name, description, linkedin, picture }: { name: string, description: string, linkedin: string, picture: string }) {
   return (
-    <div className="grid grid-cols-2 sm:block sm:mx-4 items-center mt-2 sm:mt-6">
+    <div className="grid grid-cols-2 sm:block sm:mx-4 items-center mt-4 sm:mt-6">
       <a target="_blank" rel="noreferrer" href={linkedin}>
-        <Image src={picture} alt={name} width="200" height="200" className="rounded-full outline outline-offset-[-3px] outline-3 dark:outline-violet-400" />
+        {/* <Image src={picture} alt={name} width="200" height="200" className="rounded-full outline outline-offset-[-3px] outline-3 outline-primary-dark" /> */}
+        <div className="flex items-center rounded-full border-4 border-primary-dark ">
+          <Image src={picture} alt={name} width="200" height="200" className="rounded-full" />
+        </div>
       </a>
 
       {/* label for mobile */}

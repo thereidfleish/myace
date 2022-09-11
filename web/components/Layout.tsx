@@ -17,11 +17,11 @@ function CommonHead() {
 
 function FooterSection({ name, children }: { name: string, children: React.ReactNode }) {
   return (
-    <section>
-      <p className="dark:text-gray-700">{name}</p>
-      <ul className="dark:text-gray-800 mt-1">
+    <section className="text-base-dark-700">
+      <p className="font-medium">{name}</p>
+      <ul className="text-base-dark-700 mt-2">
         {React.Children.map(children, child => {
-          return <li>{child}</li>
+          return <li className="mt-1">{child}</li>
         })}
       </ul>
     </section>
@@ -30,17 +30,17 @@ function FooterSection({ name, children }: { name: string, children: React.React
 
 function Footer() {
   return (
-    <footer className="p-8 dark:bg-violet-400 dark:text-gray-800">
+    <footer className="p-8 bg-primary-dark text-base-dark-800">
 
       <div className="grid grid-cols-2 content-center max-w-xl mx-auto">
         <FooterSection name="Company">
-          <Link href="/"><a>Home</a></Link>
-          <Link href="/contact"><a>Contact</a></Link>
+          <Link href="/"><a className="underline">Home</a></Link>
+          <Link href="/contact"><a className="underline">Contact</a></Link>
         </FooterSection>
 
         <FooterSection name="Legal">
-          <Link href="/privacy"><a>Privacy Policy</a></Link>
-          <p className="dark:text-gray-700">© 2022 MyAce.ai LLC</p>
+          <Link href="/privacy"><a className="underline">Privacy Policy</a></Link>
+          <p>© 2022 MyAce.ai LLC</p>
         </FooterSection>
       </div>
 
@@ -52,7 +52,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CommonHead />
-      <div className="pb-28 dark:bg-gray-800 dark:text-gray-100 min-h-screen">
+      <div className="pb-28 bg-base-dark-800 text-gray-100 min-h-screen">
 
         {/* header with logo */}
         <header>

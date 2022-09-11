@@ -49,7 +49,7 @@ const Login: NextPage = () => {
           {/* login card */}
           <div className="w-full px-3 sm:px-8 md:px-32 lg:px-24">
             <form className="bg-white rounded-md shadow-2xl shadow-gray-600 p-5" onSubmit={handleSubmit}>
-              <h1 className="text-gray-800 font-bold text-2xl mb-1">Hey there</h1>
+              <h1 className="text-base-dark-800 font-bold text-2xl mb-1">Hey there</h1>
               <p className="text-sm font-normal text-gray-600 mb-8">Welcome back</p>
 
               <div className="flex items-center border-2 mb-8 py-2 px-3 rounded-2xl
