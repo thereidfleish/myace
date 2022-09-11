@@ -84,6 +84,7 @@ struct UpdatePassword {
 
 /// Either a private or public user, depending on the currently authenticated user.
 #[derive(serde::Serialize)]
+#[serde(untagged)]
 enum PrivatePublicUser {
     Private(PrivateUser),
     Public(PublicUser),

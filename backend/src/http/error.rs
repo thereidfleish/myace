@@ -164,7 +164,9 @@ impl IntoResponse for Error {
                     [(WWW_AUTHENTICATE, HeaderValue::from_static("Token"))]
                         .into_iter()
                         .collect::<HeaderMap>(),
-                    self.to_string(),
+                    Json(ErrorResponse {
+                        error: self.to_string(),
+                    }),
                 )
                     .into_response();
             }
@@ -185,8 +187,19 @@ impl IntoResponse for Error {
             _ => (),
         }
 
-        (self.status_code(), self.to_string()).into_response()
+        (
+            self.status_code(),
+            Json(ErrorResponse {
+                error: self.to_string(),
+            }),
+        )
+            .into_response()
     }
+}
+
+#[derive(serde::Serialize)]
+struct ErrorResponse {
+    error: String,
 }
 
 /// A little helper trait for more easily converting database constraint errors into API errors.

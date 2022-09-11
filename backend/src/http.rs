@@ -38,6 +38,7 @@ pub use error::{Error, ResultExt};
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+use tower_http::cors::{Any, Cors, CorsLayer};
 use tower_http::trace::TraceLayer;
 
 /// The core type through which handler functions can access common API state.
@@ -55,6 +56,13 @@ pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
         ServiceBuilder::new()
             // Enables logging. Use `RUST_LOG=tower_http=debug`
             .layer(TraceLayer::new_for_http())
+            // Enables CORS
+            .layer(
+                CorsLayer::new()
+                    .allow_methods(Any)
+                    .allow_origin(Any)
+                    .allow_headers(Any),
+            )
             .layer(Extension(ApiContext {
                 config: Arc::new(config),
                 db,

@@ -16,10 +16,10 @@ services:
 
   web:
     build: ../web/
-    tty: false # docker run -t
+    # tty: true # docker run -t
     # services without a profile will always run on `docker compose up`
     environment:
-      REACT_APP_BACKEND_ENDPOINT: ${BACKEND_ENDPOINT}
+      NEXT_PUBLIC_BACKEND_ENDPOINT: ${BACKEND_ENDPOINT}
     ports:
       - 3000:3000
     volumes:
