@@ -17,9 +17,9 @@ function CommonHead() {
 
 function FooterSection({ name, children }: { name: string, children: React.ReactNode }) {
   return (
-    <section className="text-base-dark-700">
+    <section>
       <p className="font-medium">{name}</p>
-      <ul className="text-base-dark-700 mt-2">
+      <ul className="mt-2">
         {React.Children.map(children, child => {
           return <li className="mt-1">{child}</li>
         })}
@@ -30,7 +30,7 @@ function FooterSection({ name, children }: { name: string, children: React.React
 
 function Footer() {
   return (
-    <footer className="p-8 bg-primary-dark text-base-dark-800">
+    <footer className="p-8 bg-primary text-secondary-content">
 
       <div className="grid grid-cols-2 content-center max-w-xl mx-auto">
         <FooterSection name="Company">
@@ -52,7 +52,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CommonHead />
-      <div className="pb-28 bg-base-dark-800 text-gray-100 min-h-screen">
+      <div className="pb-28 bg-base-100 text-base-content min-h-screen">
 
         {/* header with logo */}
         <header>
@@ -83,7 +83,7 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
   return (
     <>
       <CommonHead />
-      <header className="h-9 px-2 bg-base-dark-800 flex justify-between items-center">
+      <header className="h-9 px-2 bg-base-100 flex justify-between items-center">
         {user &&
           (
             <p>Welcome, {user.username}</p>
@@ -101,7 +101,7 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
         </div>
       </header>
 
-      <main className={"bg-base-dark-600" + (padding ? " p-4" : "")}>
+      <main className={"bg-base-100" + (padding ? " p-4" : "")}>
         <div className="mx-auto">{children}</div>
       </main >
     </>

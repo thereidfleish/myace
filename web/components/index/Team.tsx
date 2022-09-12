@@ -5,8 +5,7 @@ function Member({ name, description, linkedin, picture }: { name: string, descri
   return (
     <div className="grid grid-cols-2 sm:block sm:mx-4 items-center mt-4 sm:mt-6">
       <a target="_blank" rel="noreferrer" href={linkedin}>
-        {/* <Image src={picture} alt={name} width="200" height="200" className="rounded-full outline outline-offset-[-3px] outline-3 outline-primary-dark" /> */}
-        <div className="flex items-center rounded-full border-4 border-primary-dark ">
+        <div className="flex items-center rounded-full border-4 border-primary">
           <Image src={picture} alt={name} width="200" height="200" className="rounded-full" />
         </div>
       </a>
@@ -56,7 +55,7 @@ export default function Team() {
   ]
 
   return (
-    <section className="mt-40 px-6 max-w-4xl mx-auto">
+    <section className="mt-40 max-w-4xl mx-auto">
       <h2 className="font-bold text-4xl">Meet the team</h2>
       <div className="mt-8 flex justify-center flex-wrap">
         {

@@ -7,9 +7,9 @@ function ContactURL({ icon, url, text }: { icon: React.ReactElement, url: string
   return (
     <a href={url} className="mt-6 flex items-center">
       {/* circle background */}
-      <div className="p-2 rounded-full flex items-center justify-center bg-violet-400">
+      <div className="p-2 rounded-full flex items-center justify-center bg-primary">
         {/* overwrite the className of `icon` */}
-        {React.cloneElement(icon, { className: "w-7 h-7" })}
+        {React.cloneElement(icon, { className: "w-7 h-7 text-primary-content" })}
       </div>
       <span className="text-2xl ml-4">{text}</span>
     </a>

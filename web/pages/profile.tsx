@@ -89,7 +89,7 @@ const Profile = () => {
   return (
     <AppLayout>
 
-      <div className="bg-base-dark-800 rounded-md shadow-2xl shadow-base-dark-700 p-5">
+      <div className="rounded-md shadow-xl shadow-base-300 p-5">
         <h1 className="text-2xl">Account</h1>
 
         <div className="m-4">

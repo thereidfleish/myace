@@ -10,12 +10,12 @@ function TimelineEntry({ title, summary, date, icon, showbar }: { title: string,
         {/* date on the left for mobile only */}
         <h3 className="font-bold text-sm sm:hidden">{date.toUpperCase()}</h3>
 
-        <h3 className="text-2xl font-semibold text-primary-dark">{title}</h3>
+        <h3 className="text-2xl font-semibold text-primary">{title}</h3>
         <h3>{summary}</h3>
       </div>
 
       {/* circle background */}
-      <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto my-4 rounded-full flex items-center justify-center border-primary-dark border-8">
+      <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto my-4 rounded-full flex items-center justify-center border-primary border-8">
         {/* overwrite the className of `icon` */}
         {React.cloneElement(icon, { className: "w-10 h-10 sm:w-16 sm:h-16" })}
       </div>
@@ -28,7 +28,7 @@ function TimelineEntry({ title, summary, date, icon, showbar }: { title: string,
       {/* connector to next entry */}
       {
         showbar &&
-        (<div className="col-start-3 sm:col-start-2 w-3 sm:w-4 h-16 my-2 mx-auto bg-primary-dark rounded-sm"></div>)
+        (<div className="col-start-3 sm:col-start-2 w-3 sm:w-4 h-16 my-2 mx-auto bg-primary rounded-sm"></div>)
       }
     </div>
   )

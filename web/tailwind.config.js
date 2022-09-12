@@ -8,16 +8,16 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        base: {
-          dark: colors.gray,
-        },
-        primary: {
-          // light: colors.violet,
-          dark: colors.violet["400"],
-          // dark: colors.green["400"],
-        }
-      }
+      // colors: {
+      //   base: {
+      //     dark: colors.gray,
+      //   },
+      //   primary: {
+      //     // light: colors.violet,
+      //     dark: colors.violet["400"],
+      //     // dark: colors.green["400"],
+      //   }
+      // }
     },
   },
   plugins: [require("daisyui")],
