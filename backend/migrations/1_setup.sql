@@ -42,17 +42,3 @@ $$ language plpgsql;
 -- This is a text collation that sorts text case-insensitively, useful for `UNIQUE` indexes
 -- over things like usernames and emails, without needing to remember to do case-conversion.
 create collation case_insensitive (provider = icu, locale = 'und-u-ks-level2', deterministic = false);
-
-
--- Various user defined types. Most data validation should be done at the application level, but these are lenient quality-of-life checks.
-
--- create domain phone_number as text
--- check(
---     value ~ '^\d+$'
--- );
-
--- create domain email_address as text
--- check(
---     -- HTML5 regex from emailregex.com
---     value ~ '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
--- );
