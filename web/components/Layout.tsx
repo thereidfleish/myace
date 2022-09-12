@@ -83,27 +83,30 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
   return (
     <>
       <CommonHead />
-      <header className="h-9 px-2 bg-base-100 flex justify-between items-center">
-        {user &&
-          (
-            <p>Welcome, {user.username}</p>
-          )
-        }
-        {
-          !user && (
-            <p>this text is prerendered</p>
-          )
-        }
-        <div className="flex">
-          <Link href="/apidocs"><a>docs</a></Link>
-          <Link href="/profile"><a className="ml-2">profile</a></Link>
-          <button className="ml-2" onClick={() => logout(setToken)}>logout</button>
-        </div>
-      </header>
+      <div className="bg-base-100 text-base-content min-h-screen">
+        <header className="h-9 px-2 bg-base-100 flex justify-between items-center">
+          {user &&
+            (
+              <p>Welcome, {user.username}</p>
+            )
+          }
+          {
+            !user && (
+              <p>this text is prerendered</p>
+            )
+          }
+          <div className="flex">
+            <Link href="/apidocs"><a>docs</a></Link>
+            <Link href="/profile"><a className="ml-2">profile</a></Link>
+            <button className="ml-2" onClick={() => logout(setToken)}>logout</button>
+          </div>
+        </header>
 
-      <main className={"bg-base-100" + (padding ? " p-4" : "")}>
-        <div className="mx-auto">{children}</div>
-      </main >
+        <main className={"bg-base-100" + (padding ? " p-4" : "")}>
+          <div className="mx-auto">{children}</div>
+        </main >
+
+      </div>
     </>
   )
 }

@@ -1,15 +1,17 @@
 import useUser from '../lib/useUser'
 import { AppLayout } from '../components/Layout'
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 
 const Profile = () => {
   // Fetch the user client-side
   const { user, mutateUser, token } = useUser()
   const [username, setUsername] = useState('')
+  const [usernameAvailable, setUsernameAvailable] = useState(true)
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [curPassword, setCurPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -21,6 +23,37 @@ const Profile = () => {
     }
   }, [user])
 
+  useEffect(() => {
+    const checkUsername = async () => {
+      // available if the username has not changed
+      if (username === user?.username) {
+        setUsernameAvailable(true)
+        return
+      }
+
+      // check if username is available
+      // make the request
+      const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/usernames/' + username + '/check', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        }
+      })
+
+      // handle response
+      if (res.status == 200) {
+        const isAvailable = await res.json().then(res => res.available)
+        setUsernameAvailable(isAvailable)
+      } else {
+        const error = await res.json()
+        console.error(error)
+        setError(error.error)
+      }
+    }
+    checkUsername()
+  })
+
   // Server-render loading state
   if (!user) {
     return <AppLayout>Loading...</AppLayout>
@@ -30,6 +63,7 @@ const Profile = () => {
     e.preventDefault();
 
     // clear status messages
+    setSaving(true);
     setError("")
     setSuccess("")
 
@@ -74,7 +108,6 @@ const Profile = () => {
 
     // handle response
     if (res.status == 200) {
-      // parse the token
       const user = await res.json()
       mutateUser(user)
       setSuccess("account updated")
@@ -83,13 +116,13 @@ const Profile = () => {
       console.error(error)
       setError(error.error)
     }
+    setSaving(false)
   }
 
-  // Once the user request finishes, show the user
   return (
     <AppLayout>
 
-      <div className="rounded-md shadow-xl shadow-base-300 p-5">
+      <div className="mx-auto max-w-5xl rounded-md shadow-xl shadow-base-300 p-5 bg-neutral text-neutral-content">
         <h1 className="text-2xl">Account</h1>
 
         <div className="m-4">
@@ -105,7 +138,7 @@ const Profile = () => {
           {success &&
             <p className="text-success">{success}</p>}
 
-          <div className="grid sm:grid-cols-2">
+          <div className="grid sm:grid-cols-2 gap-4">
             <section className="my-4">
               <h2 className="text-xl">Basic</h2>
               <div className="form-control w-full max-w-xs">
@@ -113,8 +146,9 @@ const Profile = () => {
                 <input type="text" placeholder={user.email} className="input input-bordered w-full max-w-xs" disabled />
               </div>
               <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Username</span></label>
-                <input type="text" value={username} className="input input-bordered w-full max-w-xs" onChange={(e) => setUsername(e.target.value)} />
+                <label className="label"><span className="label-text">Username</span>
+                  {!usernameAvailable && <span className="label-text-alt text-error">username taken</span>}</label>
+                <input type="text" value={username} className={"input input-bordered w-full max-w-xs " + (usernameAvailable ? 'input-success' : 'input-error')} onChange={e => setUsername(e.target.value)} />
               </div>
               <div className="form-control w-full max-w-xs">
                 <label className="label"><span className="label-text">Display Name</span></label>
@@ -126,8 +160,8 @@ const Profile = () => {
               </div>
             </section>
 
-            <section className="my-4">
-              <h2 className="text-xl">Security</h2>
+            <section>
+              <h2 className="text-xl">Change Password</h2>
               <div className="form-control w-full max-w-xs">
                 <label className="label"><span className="label-text">Current Password</span></label>
                 <input type="password" className="input input-bordered w-full max-w-xs" onChange={(e) => setCurPassword(e.target.value)} />
@@ -138,7 +172,7 @@ const Profile = () => {
               </div>
             </section>
           </div>
-          <button className="mt-4 btn btn-primary">Save</button>
+          <button className="mt-8 btn btn-primary" disabled={saving}>Save</button>
         </form>
       </div>
     </AppLayout>
