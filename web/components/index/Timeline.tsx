@@ -17,7 +17,7 @@ function TimelineEntry({ title, summary, date, icon, showbar }: { title: string,
       {/* circle background */}
       <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto my-4 rounded-full flex items-center justify-center border-primary border-8">
         {/* overwrite the className of `icon` */}
-        {React.cloneElement(icon, { className: "w-10 h-10 sm:w-16 sm:h-16" })}
+        {React.cloneElement(icon, { className: "text-accent w-10 h-10 sm:w-16 sm:h-16" })}
       </div>
 
       {/* date on the right for larger screens */}

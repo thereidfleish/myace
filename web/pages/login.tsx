@@ -90,7 +90,7 @@ const Login: NextPage = () => {
                 ">Sign in</button>
 
               <div className="flex justify-between mt-4">
-                {/* TODO: add forgot password */}
+                {/* TODO: add forgot password functionality */}
                 <a className="text-sm ml-2 text-gray-400 hover:text-accent cursor-pointer hover:-translate-y-1 duration-500 transition-all">Forgot Password ?</a>
                 <Link href="/contact"><a className="text-sm ml-2 text-gray-400 hover:text-accent cursor-pointer hover:-translate-y-1 duration-500 transition-all">Don&#39;t have an account yet?</a></Link>
               </div>
