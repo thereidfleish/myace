@@ -36,8 +36,8 @@ const ApiDocs: NextPage = () => {
   }
 
   return (
-    <AppLayout>
-      <iframe className="w-full h-screen" src={iFrameSrc}></iframe>
+    <AppLayout padding={false}>
+      <iframe className="w-full h-[calc(100vh-2.25rem)]" height="100%" src={iFrameSrc}></iframe>
     </AppLayout>
   )
 }

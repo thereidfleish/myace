@@ -76,28 +76,34 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children, padding = true }: { children: React.ReactNode, padding?: boolean }) {
   // const { mutate } = useSWRConfig()
   const { user, setToken } = useUser()
 
   return (
     <>
       <CommonHead />
-      {user &&
-        (
-          <p>Welcome, {user.display_name}</p>
-        )
-      }
-      {
-        !user && (
-          <p>this text is prerendered</p>
-        )
-      }
-      <button onClick={() => logout(setToken)}>logout</button>
+      <header className="h-9 px-2 bg-base-dark-800 flex justify-between items-center">
+        {user &&
+          (
+            <p>Welcome, {user.username}</p>
+          )
+        }
+        {
+          !user && (
+            <p>this text is prerendered</p>
+          )
+        }
+        <div className="flex">
+          <Link href="/apidocs"><a>docs</a></Link>
+          <Link href="/profile"><a className="ml-2">profile</a></Link>
+          <button className="ml-2" onClick={() => logout(setToken)}>logout</button>
+        </div>
+      </header>
 
-      <main>
+      <main className={"bg-base-dark-600" + (padding ? " p-4" : "")}>
         <div className="mx-auto">{children}</div>
-      </main>
+      </main >
     </>
   )
 }
