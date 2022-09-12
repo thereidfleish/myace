@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Router, { useRouter } from 'next/router'
 import useSWR from 'swr'
-import { FetchError } from './fetchJson'
+import jwt_decode from 'jwt-decode'
 
 export type User = {
   user_id: string
@@ -13,56 +13,70 @@ export type User = {
   updated_at: string | null
 }
 
-export function getToken() {
+export function logout(setToken: any) {
   if (typeof window !== "undefined") {
-    return window.sessionStorage.getItem('jwt')
-  }
-}
-
-export function setToken(token: string) {
-  if (typeof window !== "undefined") {
-    window.sessionStorage.setItem('jwt', token)
-  }
-}
-
-export function logout() {
-  if (typeof window !== "undefined") {
-    window.sessionStorage.removeItem('jwt')
+    window.localStorage.removeItem('jwt')
+    setToken('')
+    // mutateUser(undefined)
+    console.log("cleared jwt, token, and user")
     Router.push("/")
   }
+}
+
+// extract the user ID field from the JWT
+function userIdFromJWT(token: string) {
+  if (!token) {
+    throw Error('cannot decode JWT: ' + token)
+  }
+  const decoded: any = jwt_decode(token)
+  return decoded.user_id
 }
 
 export default function useUser({
   redirectTo = '',
 } = {}) {
 
-  const { data: user, mutate: mutateUser, error } = useSWR<User>([
-    process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/users/da09ba14-2cc8-11ed-a33c-6bb3e507074f',
-    getToken()
-  ])
-
   const router = useRouter()
 
-  if (error instanceof FetchError && router.pathname != '/login') {
-    console.error(error)
-    console.log("redirecting to /login from " + router.pathname)
-    router.push("/login")
-    // clear cache
-    mutateUser(undefined)
-  }
+  const [token, setToken] = useState(() => {
+    // get the stored token
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem('jwt')
+      return saved || ''
+    } else {
+      console.error('failed to retrieve stored JWT because window is undefined')
+      return ''
+    }
+  });
+
+  const { data: user, mutate: mutateUser, error } = useSWR<User>(
+    // if token is empty string, do not make the request
+    token == '' ? null :
+      [
+        process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/users/' + userIdFromJWT(token),
+        token
+      ])
 
   useEffect(() => {
-    console.log(user)
-    // if no redirect needed, just return (example: already on /dashboard)
-    // if user data not yet there (fetch in progress, logged in or not) then don't do anything yet
-    if (!redirectTo || !user) return
+    // sync `token` application state with localStorage
+    localStorage.setItem('jwt', token)
 
+    // redirect to login page if logged out
+    if (token == '' && router.pathname != '/' && router.pathname != '/login') {
+      console.log('redirecting to login page')
+      router.push('/login')
+    }
+  }, [token, router])
+
+  // redirect to `redirectTo` if logged in
+  useEffect(() => {
+    if (!redirectTo) return
     const loggedIn = user?.user_id !== undefined && user.user_id !== null
 
     if (redirectTo && loggedIn) {
-      Router.push(redirectTo)
+      router.push(redirectTo)
     }
-  }, [user, redirectTo, error])
+  }, [redirectTo, user, router])
 
-  return { user, mutateUser }
+  return { user, mutateUser, token, setToken, error }
 }

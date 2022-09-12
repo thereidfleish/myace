@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
-import { logout, User } from '../lib/useUser'
+import useUser, { logout } from '../lib/useUser'
 import React from 'react'
 
 // a common Head component used in all layouts
@@ -76,21 +76,24 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function AppLayout({ user, children }: { user: User | undefined, children: React.ReactNode }) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   // const { mutate } = useSWRConfig()
+  const { user, setToken } = useUser()
+
   return (
     <>
       <CommonHead />
-      {!user && console.log("nope")}
       {user &&
         (
           <p>Welcome, {user.display_name}</p>
         )
       }
-      {!user && (
-        <p>this text is prerendered</p>
-      )}
-      <button onClick={logout}>logout</button>
+      {
+        !user && (
+          <p>this text is prerendered</p>
+        )
+      }
+      <button onClick={() => logout(setToken)}>logout</button>
 
       <main>
         <div className="mx-auto">{children}</div>

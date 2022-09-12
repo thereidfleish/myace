@@ -1,9 +1,7 @@
 import type { NextPage } from 'next'
-import React, { useState } from 'react'
+import React from 'react'
 import { MarketingLayout } from '../components/Layout'
-import useUser, { setToken } from '../lib/useUser'
 import { EnvelopeIcon, PhoneArrowDownLeftIcon } from '@heroicons/react/24/solid'
-import Link from 'next/link'
 
 function ContactURL({ icon, url, text }: { icon: React.ReactElement, url: string, text: string }) {
   return (

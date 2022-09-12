@@ -1,32 +1,40 @@
 import type { NextPage } from 'next'
 import React, { useState } from 'react'
 import { MarketingLayout } from '../components/Layout'
-import useUser, { setToken } from '../lib/useUser'
+import useUser from '../lib/useUser'
 import { LockClosedIcon, AtSymbolIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 
 const Login: NextPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("")
 
-  const { mutateUser } = useUser({
+  const { mutateUser, setToken } = useUser({
     redirectTo: '/apidocs',
   })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // make the request
-    const user = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/login', {
+    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ email, password })
     })
-      .then(data => data.json())
-    // parse the token
-    setToken(user.token)
-    mutateUser(user)
+
+    if (res.status == 200) {
+      // parse the token
+      const user = await res.json()
+      setToken(user.token)
+      mutateUser(user)
+    } else {
+      const error = await res.json()
+      console.error(error)
+      setError(error.error)
+    }
   }
 
   return (
@@ -67,6 +75,10 @@ const Login: NextPage = () => {
                 <LockClosedIcon className="h-5 w-5 text-gray-400" />
                 <input className="bg-white text-black pl-2 w-full outline-none border-none" type="password" name="password" id="password" placeholder="Password" onChange={e => setPassword(e.target.value)} required />
               </div>
+
+              {error &&
+                <p className="text-red-500">{error}</p>
+              }
 
               <button type="submit" className="block w-full bg-violet-600 mt-5 py-2 text-white font-semibold mb-2 rounded-2xl
                 hover:bg-violet-700 hover:-translate-y-1

@@ -7,12 +7,12 @@ const Profile = () => {
 
   // Server-render loading state
   if (!user) {
-    return <AppLayout user={user}>Loading...</AppLayout>
+    return <AppLayout>Loading...</AppLayout>
   }
 
   // Once the user request finishes, show the user
   return (
-    <AppLayout user={user}>
+    <AppLayout>
       <h1>Your Profile</h1>
       <pre>{JSON.stringify(user, null, 2)}</pre>
     </AppLayout>
