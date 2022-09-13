@@ -3,7 +3,7 @@ use crate::http::{ApiContext, Result};
 
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::routing::{get, post};
+use axum::routing::get;
 use axum::{extract::Extension, Json, Router};
 use sqlx::types::time::OffsetDateTime;
 use sqlx::types::Uuid;
@@ -15,7 +15,10 @@ pub mod invitations;
 
 pub fn router() -> Router {
     Router::new()
-        .route("/enterprises", post(create_enterprise))
+        .route(
+            "/enterprises",
+            get(get_all_enterprises).post(create_enterprise),
+        )
         .route(
             "/enterprises/:enterprise_id",
             get(get_enterprise)
@@ -51,6 +54,12 @@ impl From<EnterpriseFromDB> for Enterprise {
     }
 }
 
+/// A response that contains multiple enterprises
+#[derive(serde::Serialize)]
+struct EnterpriseList {
+    enterprises: Vec<Enterprise>,
+}
+
 #[derive(serde::Serialize)]
 struct Enterprise {
     enterprise_id: Uuid,
@@ -80,6 +89,25 @@ struct UpdateEnterprise {
     support_phone: Option<String>,
 }
 
+/// Get all enterprises
+async fn get_all_enterprises(
+    auth_user: AuthUser,
+    ctx: Extension<ApiContext>,
+) -> Result<Json<EnterpriseList>> {
+    // check permissions
+    auth_user
+        .check_permission(&ctx, ApiPermission::RetrieveAllEnterprises)
+        .await?;
+
+    let enterprises: Vec<Enterprise> =
+        sqlx::query_as!(EnterpriseFromDB, r#"select * from "enterprise""#)
+            .fetch_all(&ctx.db)
+            .await?
+            .into_iter()
+            .map(|ent| ent.into())
+            .collect();
+    Ok(Json(EnterpriseList { enterprises }))
+}
 /// Create a new enterprise
 async fn create_enterprise(
     Json(req): Json<NewEnterprise>,
@@ -93,6 +121,7 @@ async fn create_enterprise(
 
     let new_enterprise: Enterprise = sqlx::query_as!(
         EnterpriseFromDB,
+        // TODO: add `auth_user` as an admin and restrict MyAce team access from accidental deletion
         r#"insert into "enterprise" (name, website, support_email, support_phone) values ($1, $2, $3, $4) returning *"#,
         req.name,
         req.website,
