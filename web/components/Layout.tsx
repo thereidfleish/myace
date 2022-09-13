@@ -97,6 +97,7 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
           }
           <div className="flex">
             <Link href="/apidocs"><a>docs</a></Link>
+            <Link href="/enterprises"><a className="ml-2">enterprises</a></Link>
             <Link href="/profile"><a className="ml-2">profile</a></Link>
             <button className="ml-2" onClick={() => logout(setToken)}>logout</button>
           </div>
