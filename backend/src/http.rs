@@ -54,7 +54,7 @@ struct ApiContext {
 pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
     let app = api_router().layer(
         ServiceBuilder::new()
-            // Enables logging. Use `RUST_LOG=tower_http=debug`
+            // Enables logging
             .layer(TraceLayer::new_for_http())
             // Enables CORS
             .layer(
