@@ -1,6 +1,17 @@
 import useUser from '../lib/useUser'
 import { AppLayout } from '../components/Layout'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import Avatar from '../components/Avatar';
+
+function ProfileInput({ type = "text", label, value, setState, disabled = false }: { type?: string, label: string, value: string, setState: any, disabled?: boolean }) {
+
+  return (
+    <div className="form-control w-full max-w-xs my-2">
+      <label className="label"><span className="label-text text-neutral-content">{label}</span></label>
+      <input type={type} value={value} className="input input-bordered w-full max-w-xs" onChange={(e) => { console.log(e); setState(e.target.value) }} disabled={disabled} />
+    </div>
+  )
+}
 
 const Profile = () => {
   // Fetch the user client-side
@@ -24,14 +35,13 @@ const Profile = () => {
   }, [user])
 
   useEffect(() => {
+    // check if username is available
     const checkUsername = async () => {
-      // available if the username has not changed
+      // don't check if username has not changed
       if (username === user?.username) {
-        setUsernameAvailable(true)
         return
       }
 
-      // check if username is available
       // make the request
       const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/usernames/' + username + '/check', {
         method: 'GET',
@@ -59,11 +69,10 @@ const Profile = () => {
     return <AppLayout>Loading...</AppLayout>
   }
 
-  const handleProfileEdit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onProfileSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // clear status messages
-    setSaving(true);
     setError("")
     setSuccess("")
 
@@ -97,6 +106,7 @@ const Profile = () => {
     }
 
     // make the request
+    setSaving(true);
     const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/users/me', {
       method: 'PATCH',
       headers: {
@@ -122,60 +132,70 @@ const Profile = () => {
   return (
     <AppLayout>
 
-      <div className="mx-auto max-w-5xl rounded-md shadow-xl shadow-base-300 p-5 bg-neutral text-neutral-content">
-        <h1 className="text-2xl">Account</h1>
+      <div className="mx-auto max-w-5xl rounded-md shadow-xl shadow-base-300 p-5 bg-neutral">
+        <h1 className="text-2xl text-neutral-content">Account</h1>
 
-        <div className="m-4">
-          <p>Joined {user.created_at}</p>
-          {user.updated_at &&
-            <p>Last edited {user.updated_at}</p>
-          }
+        <div className="flex flex-wrap mt-5">
+          <div className="mx-auto sm:ml-0 sm:mr-6">
+            <Avatar />
+          </div>
+          <div className="w-fit my-4 text-neutral-content">
+            <p>Joined {user.created_at}</p>
+            {user.updated_at &&
+              <p>Last edited {user.updated_at}</p>
+            }
+          </div>
         </div>
 
-        <form onSubmit={handleProfileEdit}>
+        <form onSubmit={onProfileSave}>
+          <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8">
+            <section className="my-4">
+              <h2 className="text-xl text-neutral-content">Basic</h2>
+              <ProfileInput type="email" label="Email Address" value={user.email} setState={() => { }} disabled />
+
+              {/* check username in real time */}
+              <div className="form-control w-full max-w-xs">
+                <label className="label"><span className="label-text text-neutral-content">Username</span>
+                  {/* add 'available' or 'unavailable' label */}
+                  {
+                    (() => {
+                      // no label if username has not changed
+                      if (username == user.username) return ''
+                      if (usernameAvailable)
+                        return <span className="label-text-alt text-success font-semibold">Username Available</span>
+                      else
+                        return <span className="label-text-alt text-error">Username Taken</span>
+                    })()
+                  }
+                </label>
+                <input type="text" value={username}
+                  className={
+                    "input input-bordered w-full max-w-xs " +
+                    // show border if username has changed and is/isn't available
+                    (username == user.username ? '' :
+                      usernameAvailable ? 'input-success' : 'input-error')
+                  } onChange={e => setUsername(e.target.value)} />
+              </div>
+
+              <ProfileInput label="Display Name" value={displayName} setState={setDisplayName} />
+              <ProfileInput label="Biography" value={bio} setState={setBio} />
+            </section>
+
+            <section className="my-4">
+              <h2 className="text-xl text-neutral-content">Change Password</h2>
+              <ProfileInput type="password" label="Current Password" value={curPassword} setState={setCurPassword} />
+              <ProfileInput type="password" label="New Password" value={newPassword} setState={setNewPassword} />
+            </section>
+          </div>
           {error &&
             <p className="text-error">{error}</p>}
           {success &&
             <p className="text-success">{success}</p>}
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <section className="my-4">
-              <h2 className="text-xl">Basic</h2>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Email Address</span></label>
-                <input type="text" placeholder={user.email} className="input input-bordered w-full max-w-xs" disabled />
-              </div>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Username</span>
-                  {!usernameAvailable && <span className="label-text-alt text-error">username taken</span>}</label>
-                <input type="text" value={username} className={"input input-bordered w-full max-w-xs " + (usernameAvailable ? 'input-success' : 'input-error')} onChange={e => setUsername(e.target.value)} />
-              </div>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Display Name</span></label>
-                <input type="text" value={displayName} className="input input-bordered w-full max-w-xs" onChange={(e) => setDisplayName(e.target.value)} />
-              </div>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Biography</span></label>
-                <input type="text" value={bio} className="input input-bordered w-full max-w-xs" onChange={(e) => setBio(e.target.value)} />
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl">Change Password</h2>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">Current Password</span></label>
-                <input type="password" className="input input-bordered w-full max-w-xs" onChange={(e) => setCurPassword(e.target.value)} />
-              </div>
-              <div className="form-control w-full max-w-xs">
-                <label className="label"><span className="label-text">New Password</span></label>
-                <input type="password" className="input input-bordered w-full max-w-xs" onChange={(e) => setNewPassword(e.target.value)} />
-              </div>
-            </section>
-          </div>
-          <button className="mt-8 btn btn-primary" disabled={saving}>Save</button>
+          <button className="mt-4 btn btn-primary" disabled={saving}>Save</button>
         </form>
-      </div>
-    </AppLayout>
+
+      </div >
+    </AppLayout >
   )
 }
 
