@@ -164,7 +164,7 @@ const Profile = () => {
                       if (usernameAvailable)
                         return <span className="label-text-alt text-success font-semibold">Username Available</span>
                       else
-                        return <span className="label-text-alt text-error">Username Taken</span>
+                        return <span className="label-text-alt text-error font-semibold">Username Taken</span>
                     })()
                   }
                 </label>

@@ -52,7 +52,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <CommonHead />
-      <div className="pb-28 bg-base-100 text-base-content min-h-screen">
+      <div className="pb-20 sm:pb-28 bg-base-100 text-base-content min-h-screen">
 
         {/* header with logo */}
         <header>
@@ -106,7 +106,6 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
         <main className={"bg-base-100" + (padding ? " p-4" : "")}>
           <div className="mx-auto">{children}</div>
         </main >
-
       </div>
     </>
   )

@@ -64,7 +64,7 @@ export default function Timeline() {
   ]
 
   return (
-    <section id="timeline" className="max-w-4xl mx-auto">
+    <section className="max-w-4xl mx-auto">
       <div className="flex justify-center mb-12">
         <h2 className="font-bold text-4xl">Project Timeline</h2>
       </div>
