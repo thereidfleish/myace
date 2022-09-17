@@ -1,7 +1,9 @@
 import useUser from '../lib/useUser'
 import { AppLayout } from '../components/Layout'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import Avatar from '../components/Avatar';
+import AppErrorContext from '../lib/error-context';
+import { authFetch } from '../lib/authFetch';
 
 function ProfileInput({ type = "text", label, value, setState, disabled = false }: { type?: string, label: string, value: string, setState: any, disabled?: boolean }) {
 
@@ -23,7 +25,7 @@ const Profile = () => {
   const [curPassword, setCurPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const { setError } = useContext(AppErrorContext)
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
@@ -43,12 +45,8 @@ const Profile = () => {
       }
 
       // make the request
-      const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/usernames/' + username + '/check', {
+      const res = await authFetch('/usernames/' + username + '/check', setError, token, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        }
       })
 
       // handle response
@@ -73,7 +71,6 @@ const Profile = () => {
     e.preventDefault();
 
     // clear status messages
-    setError("")
     setSuccess("")
 
     // create an interface for the body
@@ -107,12 +104,8 @@ const Profile = () => {
 
     // make the request
     setSaving(true);
-    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/users/me', {
+    const res = await authFetch('/users/me', setError, token, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
       body: JSON.stringify(body)
     })
 
@@ -187,8 +180,6 @@ const Profile = () => {
               <ProfileInput type="password" label="New Password" value={newPassword} setState={setNewPassword} />
             </section>
           </div>
-          {error &&
-            <p className="text-error">{error}</p>}
           {success &&
             <p className="text-success">{success}</p>}
           <button className="mt-4 btn btn-primary" disabled={saving}>Save</button>

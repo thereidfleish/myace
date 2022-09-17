@@ -2,7 +2,9 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 import useUser, { logout } from '../lib/useUser'
-import React from 'react'
+import React, { useContext } from 'react'
+import AppErrorContext from '../lib/error-context'
+import ErrorPopup from './ErrorPopup'
 
 // a common Head component used in all layouts
 function CommonHead() {
@@ -77,7 +79,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 }
 
 export function AppLayout({ children, padding = true }: { children: React.ReactNode, padding?: boolean }) {
-  // const { mutate } = useSWRConfig()
+  const { error } = useContext(AppErrorContext)
   const { user, setToken } = useUser()
 
   return (
@@ -104,6 +106,9 @@ export function AppLayout({ children, padding = true }: { children: React.ReactN
         </header>
 
         <main className={"bg-base-100" + (padding ? " p-4" : "")}>
+          {error &&
+            <ErrorPopup error={error} />
+          }
           <div className="mx-auto">{children}</div>
         </main >
       </div>

@@ -1,6 +1,4 @@
-import { Router } from "next/router"
-
-export class FetchError extends Error {
+class FetchError extends Error {
   response: Response
   data: {
     message: string
@@ -32,7 +30,8 @@ export class FetchError extends Error {
 
 export default async function fetchJson<JSON = unknown>(
   url: URL,
-  token?: RequestInit
+  setError: (_: string) => void,
+  token?: string
 ): Promise<JSON> {
   const response = await fetch(url, {
     headers: {
@@ -50,6 +49,7 @@ export default async function fetchJson<JSON = unknown>(
     return data
   }
 
+  setError(data.error)
   throw new FetchError({
     message: response.statusText,
     response,

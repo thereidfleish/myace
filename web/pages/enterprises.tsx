@@ -1,9 +1,11 @@
 import type { NextPage } from 'next'
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useContext, useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { AppLayout } from '../components/Layout'
 import useUser from '../lib/useUser'
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid'
+import { authFetch } from '../lib/authFetch'
+import AppErrorContext from '../lib/error-context'
 
 export type Enterprise = {
   enterprise_id: string,
@@ -55,28 +57,23 @@ function ModalInput({ type = "text", label, value, setState, required = false }:
 }
 
 function AddEnterpriseForm({ setModal }: { setModal: React.Dispatch<React.SetStateAction<boolean>> }) {
+  const { setError } = useContext(AppErrorContext)
   const { token } = useUser()
   const { enterprisesRes, mutateEnterprisesRes } = useEnterprisesRes(token)
   const [reqBody, setReqBody] = useState<createEnterpriseReq>({
     name: ''
   })
-  const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // clear status messages
-    setError("")
     setSubmitting(true);
 
     // make the request
-    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/enterprises', {
+    const res = await authFetch('/enterprises', setError, token, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
       body: JSON.stringify(reqBody)
     })
 
@@ -113,8 +110,6 @@ function AddEnterpriseForm({ setModal }: { setModal: React.Dispatch<React.SetSta
         <ModalInput label="Support Phone Number" type="phone" value={reqBody.support_phone || ''} setState={(e: ChangeEvent<HTMLInputElement>) => {
           setReqBody({ ...reqBody, support_phone: e.target.value })
         }} />
-        {error &&
-          <p className="text-error">{error}</p>}
         <button className="mt-4 btn btn-primary" disabled={submitting}>Create</button>
       </form>
     </>
@@ -151,17 +146,14 @@ function AddEnterpriseBtn() {
 
 // a card component containing all public information about an enterprise
 function EnterpriseCard(enterprise: Enterprise) {
+  const { setError } = useContext(AppErrorContext)
   const { token } = useUser()
   const { enterprisesRes, mutateEnterprisesRes } = useEnterprisesRes(token)
 
   const handleDeleteEnterprise = async (enterprise_id: string) => {
     // make the request
-    const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_ENDPOINT + '/enterprises/' + enterprise_id, {
+    const res = await authFetch('/enterprises/' + enterprise_id, setError, token, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
     })
 
     // handle response
@@ -211,12 +203,12 @@ const Enterprises: NextPage = () => {
   }
 
   return (
-    <AppLayout padding={false}>
+    <AppLayout>
       <div>
         <h1 className="text-2xl">MyAce Enterprises</h1>
         <AddEnterpriseBtn />
       </div>
-      <ul className="flex flex-wrap justify-evenly content-evenly">
+      <ul className="flex flex-wrap justify-around content-evenly">
         {
           enterprisesRes?.enterprises.map((enterprise, i) => {
             return (
