@@ -16,6 +16,9 @@ async fn main() -> anyhow::Result<()> {
     // This will exit with a help message if something is wrong.
     let config = Config::parse();
 
+    // Enable console logging. Use `RUST_LOG=tower_http=debug`.
+    tracing_subscriber::fmt::init();
+
     // We create a single connection pool for SQLx that's shared across the whole application.
     // This saves us from opening a new connection for every API call, which is wasteful.
     let db = PgPoolOptions::new()

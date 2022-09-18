@@ -66,11 +66,16 @@ impl AuthUser {
             ApiPermission::ViewAPIDocumentation => match self.myace_team_role(&ctx.db).await? {
                 // anyone on the team can view API docs
                 Some(_) => Ok(()),
-                _ => Err(Error::Forbidden(action)),
+                None => Err(Error::Forbidden(action)),
             },
             ApiPermission::CreateEnterprise => match self.myace_team_role(&ctx.db).await? {
                 Some(MyAceTeamRole::Backend) | Some(MyAceTeamRole::Frontend) => Ok(()),
                 _ => Err(Error::Forbidden(action)),
+            },
+            ApiPermission::RetrieveAllEnterprises => match self.myace_team_role(&ctx.db).await? {
+                // anyone on the team can view API docs
+                Some(_) => Ok(()),
+                None => Err(Error::Forbidden(action)),
             },
             // anyone can view an enterprise
             ApiPermission::RetrieveEnterprise(_) => Ok(()),
@@ -81,7 +86,15 @@ impl AuthUser {
                 }
             }
             ApiPermission::DeleteEnterprise(enterprise_id) => {
-                match self.enterprise_role(&ctx.db, enterprise_id).await? {
+                let enterprise_role = self.enterprise_role(&ctx.db, enterprise_id);
+                let myace_role = self.myace_team_role(&ctx.db);
+
+                // The team can delete any enterprise they want
+                if myace_role.await?.is_some() {
+                    return Ok(());
+                }
+
+                match enterprise_role.await? {
                     Some(EnterpriseRole::Admin) => Ok(()),
                     _ => Err(Error::Forbidden(action)),
                 }
@@ -147,6 +160,7 @@ impl AuthUser {
 #[derive(Debug, Clone, Copy)]
 pub enum ApiPermission {
     ViewAPIDocumentation,
+    RetrieveAllEnterprises,
     CreateEnterprise,
     /// View an enterprise by its ID
     RetrieveEnterprise(Uuid),
@@ -175,6 +189,7 @@ impl fmt::Display for ApiPermission {
         match self {
             ViewAPIDocumentation => write!(f, "view API documentation"),
             CreateEnterprise => write!(f, "create enterprise"),
+            RetrieveAllEnterprises => write!(f, "view all enterprises"),
             RetrieveEnterprise(id) => {
                 write!(f, "retrieve enterprise with id {}", id)
             }

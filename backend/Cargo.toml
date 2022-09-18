@@ -38,7 +38,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Axum builds on the types in tower
 tower = "0.4.13"
-tower-http = { version = "0.3.4", features = ["trace"] }
+tower-http = { version = "0.3.4", features = ["trace", "cors"] }
 
 # Utility crates
 anyhow = "1.0.58"

@@ -1,9 +1,3 @@
--- username regex
-create domain uname as text
-check(
-    value ~ '^[a-z0-9_.]{4,16}$'
-);
-
 -- As a style choice, avoiding plurals in table names makes queries read better.
 create table "user"
 (

@@ -5,8 +5,8 @@ WORKDIR /src
 
 COPY package.json /src
 
-RUN npm install
+RUN yarn install
 
 COPY . /src
 
-CMD yarn start
+CMD yarn dev

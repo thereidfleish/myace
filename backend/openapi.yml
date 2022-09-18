@@ -168,6 +168,27 @@ paths:
           $ref: '#/components/responses/DefaultError'
 
   /enterprises:
+    get:
+      summary: Retrieve all enterprises
+      description: This route retrieves all enterprises on the application. The client must be a MyAce team member to access this route.
+      tags:
+        - Enterprises
+      responses:
+        '200':
+          description: Retrieved enterprises
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enterprises]
+                properties:
+                  enterprises:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Enterprise"
+        default:
+          $ref: '#/components/responses/DefaultError'
+
     post:
       summary: Create an enterprise
       description: This route creates a new enterprise. The authenticated user making this request must be a part of the MyAce team.
