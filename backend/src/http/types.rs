@@ -4,9 +4,17 @@ use serde::{de::Visitor, Deserialize};
 #[derive(sqlx::Type)]
 #[sqlx(transparent)]
 pub struct Username(String);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
 pub struct Email(String);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
 pub struct PhoneNumber(String);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
 pub struct Bio(String);
+
+// add password
 
 // See https://serde.rs/impl-deserialize.html for more information
 impl<'de> Deserialize<'de> for Username {
