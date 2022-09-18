@@ -1,3 +1,6 @@
+# detect operating system
+UNAME_S := $(shell uname -s)
+
 # Load .env as makefile vars
 ifneq (,$(wildcard ./.env))
     include .env
@@ -10,7 +13,11 @@ docs:
 
 docs-open:
 	redoc-cli build openapi.yml --options.theme.colors.primary.main=green -o src/docs.html
+ifeq ($(UNAME_S),Darwin)
+	open src/docs.html
+else
 	xdg-open src/docs.html
+endif
 
 
 # reset the database
@@ -27,21 +34,25 @@ db:
 
 # Start the backend, database, and web on the local machine
 local:
-	BACKEND_ENDPOINT="http://localhost:8080" docker compose --profile db up --wait
+	BACKEND_ENDPOINT="http://localhost:8080" docker compose --profile db up --force-recreate --wait
 	sleep 1 
+ifeq ($(UNAME_S),Darwin)
+	open http://localhost:3000
+	open "http://localhost:7000/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
+else
 	xdg-open http://localhost:3000
 	xdg-open "http://localhost:7000/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
+endif
 	cargo watch --exec run
-
-
-# Just the web frontend pointing at the development server
-dev:
-	# In the background, sleep then open site
-	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="dev.myace.ai" docker compose up
 
 # Just the web frontend pointing at the production server
 prod:
-	sleep 3 && xdg-open http://localhost:3000 & BACKEND_ENDPOINT="api.myace.ai" docker compose up
+ifeq ($(UNAME_S),Darwin)
+	sleep 3 && open http://localhost:3000 &
+else
+	sleep 3 && xdg-open http://localhost:3000 &
+endif
+	BACKEND_ENDPOINT="dev.myace.ai" docker compose up
 
 deployment:
 	echo "AWS profile (empty will use default):" $(MYACE_AWS_PROFILE)
