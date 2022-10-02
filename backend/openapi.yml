@@ -384,6 +384,94 @@ paths:
         default:
           $ref: '#/components/responses/DefaultError'
 
+  /enterprises/{enterprise_id}/members:
+    get:
+      summary: Retrieve all enterprise members
+      description: This route retrieves all members within a given enterprise.
+      tags:
+        - Enterprise Members
+      parameters:
+        - name: enterprise_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EnterpriseID"
+      responses:
+        '200':
+          description: Retrieved members
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [members]
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EnterpriseMember"
+        default:
+          $ref: '#/components/responses/DefaultError'
+
+  /enterprises/{enterprise_id}/members/{user_id}:
+    patch:
+      summary: Edit enterprise role
+      description: This route edits the user's role within an enterprise.
+      tags:
+        - Enterprise Members
+      parameters:
+        - name: enterprise_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EnterpriseID"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID"
+      requestBody:
+        required: true
+        content:
+          'application/json':
+              schema:
+                type: object
+                required:
+                  - role
+                properties:
+                  role:
+                    $ref: "#/components/schemas/EnterpriseRole"
+      responses:
+        '200':
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnterpriseMember"
+        default:
+          $ref: '#/components/responses/DefaultError'
+
+    delete:
+      summary: Remove member
+      description: This route removes a member from an enterprise.
+      tags:
+        - Enterprise Members
+      parameters:
+        - name: enterprise_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EnterpriseID"
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID"
+      responses:
+        '204':
+          description: Removed user from enterprise
+        default:
+          $ref: '#/components/responses/DefaultError'
+
   # /users/forgot/:
   #   post:
   #     summary: Forgot password
@@ -483,6 +571,17 @@ components:
           $ref: "#/components/schemas/UserDisplayName"
         biography:
           $ref: "#/components/schemas/UserBio"
+
+    PublicUserWEmail:
+      description: The public view of a user, along with their email to be used for administrative purposes.
+      allOf:
+        - $ref: "#/components/schemas/PublicUser"
+        - type: object
+          required:
+            - email
+          properties:
+            email:
+              $ref: "#/components/schemas/UserEmail"
 
     PrivateUser:
       description: The private view of a user, which contains sensitive profile information.
@@ -615,6 +714,21 @@ components:
           type: string
           format: date-time
 
+    EnterpriseMember:
+      type: object
+      description: A user's membership information within an enterprise
+      required:
+        - user
+        - role
+        - member_since
+      properties:
+        user:
+          $ref: "#/components/schemas/PublicUserWEmail"
+        role:
+          $ref: "#/components/schemas/EnterpriseRole"
+        member_since:
+          type: string
+          format: date-time
 
     # ------------------------------ Common types ------------------------------
 

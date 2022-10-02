@@ -92,11 +92,21 @@ enum PrivatePublicUser {
 
 /// The public view of a user, which does **not** contain sensitive profile information.
 #[derive(serde::Serialize)]
-struct PublicUser {
+pub struct PublicUser {
     user_id: Uuid,
     username: String,
     display_name: String,
     biography: String,
+}
+
+/// The view of a user from the perspective of an enterprise manager.
+#[derive(serde::Serialize)]
+pub struct PublicUserWithEmail {
+    pub user_id: Uuid,
+    pub username: String,
+    pub display_name: String,
+    pub biography: String,
+    pub email: String,
 }
 
 /// The private view of a user, which **contains sensitive profile information**!
@@ -131,6 +141,29 @@ pub struct UserFromDB {
     updated_at: Option<OffsetDateTime>,
 }
 
+impl From<UserFromDB> for PublicUser {
+    fn from(db: UserFromDB) -> Self {
+        Self {
+            user_id: db.user_id,
+            username: db.username,
+            display_name: db.display_name,
+            biography: db.biography,
+        }
+    }
+}
+
+impl From<UserFromDB> for PublicUserWithEmail {
+    fn from(db: UserFromDB) -> Self {
+        Self {
+            user_id: db.user_id,
+            username: db.username,
+            email: db.email,
+            display_name: db.display_name,
+            biography: db.biography,
+        }
+    }
+}
+
 impl UserFromDB {
     /// Create a user type that **serializes sensitive fields**, such as the user's email, login
     /// token, and profile metadata.
@@ -149,16 +182,6 @@ impl UserFromDB {
             token,
             created_at: self.created_at,
             updated_at: self.updated_at,
-        }
-    }
-
-    /// Create a user type that only serializes non-sensitive fields.
-    fn into_public(self) -> PublicUser {
-        PublicUser {
-            user_id: self.user_id,
-            username: self.username,
-            display_name: self.display_name,
-            biography: self.biography,
         }
     }
 }
@@ -288,15 +311,16 @@ async fn get_user(
     Path(id): Path<Uuid>,
     ctx: Extension<ApiContext>,
 ) -> Result<Json<PrivatePublicUser>> {
-    let user = sqlx::query_as!(UserFromDB, r#"select * from "user" where user_id = $1"#, id)
-        .fetch_optional(&ctx.db)
-        .await?
-        .ok_or_else(|| Error::NotFound("user".to_string()))?;
+    let user: UserFromDB =
+        sqlx::query_as!(UserFromDB, r#"select * from "user" where user_id = $1"#, id)
+            .fetch_optional(&ctx.db)
+            .await?
+            .ok_or_else(|| Error::NotFound("user".to_string()))?;
 
     // check if requested user is the authenticated user
     let user = match auth_user.user_id() {
         Some(_) => PrivatePublicUser::Private(user.into_private(None)),
-        None => PrivatePublicUser::Public(user.into_public()),
+        None => PrivatePublicUser::Public(user.into()),
     };
 
     Ok(Json(user))

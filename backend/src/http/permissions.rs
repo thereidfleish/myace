@@ -73,7 +73,6 @@ impl AuthUser {
                 _ => Err(Error::Forbidden(action)),
             },
             ApiPermission::RetrieveAllEnterprises => match self.myace_team_role(&ctx.db).await? {
-                // anyone on the team can view API docs
                 Some(_) => Ok(()),
                 None => Err(Error::Forbidden(action)),
             },
@@ -152,6 +151,26 @@ impl AuthUser {
                     _ => Err(Error::Forbidden(action)),
                 }
             }
+            ApiPermission::RetrieveEnterpriseMembers(enterprise_id) => {
+                match self.enterprise_role(&ctx.db, enterprise_id).await? {
+                    Some(EnterpriseRole::Admin) => Ok(()),
+                    _ => Err(Error::Forbidden(action)),
+                }
+            }
+            ApiPermission::UpdateEnterpriseMembership {
+                enterprise_id,
+                user_id,
+            } => match self.enterprise_role(&ctx.db, enterprise_id).await? {
+                Some(EnterpriseRole::Admin) => Ok(()),
+                _ => Err(Error::Forbidden(action)),
+            },
+            ApiPermission::DeleteEnterpriseMembership {
+                enterprise_id,
+                user_id,
+            } => match self.enterprise_role(&ctx.db, enterprise_id).await? {
+                Some(EnterpriseRole::Admin) => Ok(()),
+                _ => Err(Error::Forbidden(action)),
+            },
         }
     }
 }
@@ -180,6 +199,18 @@ pub enum ApiPermission {
     AcceptEnterpriseInvitation(Uuid),
     /// Delete an enterprise invitation by its ID
     DeleteEnterpriseInvitation(Uuid),
+    /// View all enterprise members
+    RetrieveEnterpriseMembers(Uuid),
+    /// Edit a member's status within an enterprise
+    UpdateEnterpriseMembership {
+        enterprise_id: Uuid,
+        user_id: Uuid,
+    },
+    /// Remove a member from an enterprise
+    DeleteEnterpriseMembership {
+        enterprise_id: Uuid,
+        user_id: Uuid,
+    },
 }
 
 impl fmt::Display for ApiPermission {
@@ -215,6 +246,25 @@ impl fmt::Display for ApiPermission {
                     id
                 )
             }
+            RetrieveEnterpriseMembers(enterprise_id) => {
+                write!(f, "retrieve all members of enterprise {}", enterprise_id)
+            }
+            UpdateEnterpriseMembership {
+                enterprise_id,
+                user_id,
+            } => write!(
+                f,
+                "edit the membership status of user {} within enterprise {}",
+                user_id, enterprise_id
+            ),
+            DeleteEnterpriseMembership {
+                enterprise_id,
+                user_id,
+            } => write!(
+                f,
+                "remove user {} from enterprise {}",
+                user_id, enterprise_id
+            ),
         }
     }
 }

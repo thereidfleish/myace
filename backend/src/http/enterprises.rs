@@ -12,6 +12,7 @@ use super::extractor::AuthUser;
 use super::permissions::ApiPermission;
 
 pub mod invitations;
+pub mod members;
 
 pub fn router() -> Router {
     Router::new()
@@ -26,6 +27,7 @@ pub fn router() -> Router {
                 .delete(delete_enterprise),
         )
         .merge(invitations::router())
+        .merge(members::router())
 }
 
 #[derive(serde::Serialize, sqlx::FromRow)]

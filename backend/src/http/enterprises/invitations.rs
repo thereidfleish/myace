@@ -34,7 +34,7 @@ struct InvListBody<T> {
     invitations: Vec<T>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, sqlx::Type, PartialEq, Eq)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, sqlx::Type, PartialEq, Eq)]
 #[sqlx(type_name = "enterprise_role", rename_all = "snake_case")]
 pub enum EnterpriseRole {
     Parent,
