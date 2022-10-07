@@ -131,14 +131,14 @@ struct PrivateUser {
 
 #[derive(sqlx::FromRow)]
 pub struct UserFromDB {
-    user_id: Uuid,
-    username: String,
-    display_name: String,
-    biography: String,
-    email: String,
-    password_hash: String,
-    created_at: OffsetDateTime,
-    updated_at: Option<OffsetDateTime>,
+    pub user_id: Uuid,
+    pub username: String,
+    pub display_name: String,
+    pub biography: String,
+    pub email: String,
+    pub password_hash: String,
+    pub created_at: OffsetDateTime,
+    pub updated_at: Option<OffsetDateTime>,
 }
 
 impl From<UserFromDB> for PublicUser {
@@ -237,23 +237,15 @@ async fn create_user(
                 r#"
                 -- select enterprise invitation by code
                 with cte_invite as (
-                    select invite_id, enterprise_id, role, user_email
-                    from "enterprise_invite"
+                    delete from "app_invite"
                     where invite_code = $1
-                ),
-                -- insert new user row
-                cte_user as (
-                  insert into "user"
-                  (username, display_name, biography, email, password_hash)
-                  values ($2, $3, $4, (select user_email from cte_invite), $5)
-                  returning *
-                ),
-                -- accept the enterprise invitation
-                membership_id as (
-                    select accept_invitation(invite_id => (select invite_id from cte_invite))
+                    returning *
                 )
-                -- get the new user
-                select * from cte_user"#,
+                -- insert and return the new user
+                insert into "user"
+                (username, display_name, biography, email, password_hash)
+                values ($2, $3, $4, (select user_email from cte_invite), $5)
+                returning *;"#,
                 user.invite_code,
                 user.username,
                 user.display_name,

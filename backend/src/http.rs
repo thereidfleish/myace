@@ -1,5 +1,6 @@
 use crate::config::Config;
 use anyhow::Context;
+use aws_config::SdkConfig;
 use axum::{Extension, Router};
 use log::info;
 use sqlx::PgPool;
@@ -38,7 +39,7 @@ pub use error::{Error, ResultExt};
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-use tower_http::cors::{Any, Cors, CorsLayer};
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 
 /// The core type through which handler functions can access common API state.
@@ -49,9 +50,10 @@ use tower_http::trace::TraceLayer;
 struct ApiContext {
     config: Arc<Config>,
     db: PgPool,
+    aws_config: SdkConfig,
 }
 
-pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
+pub async fn serve(config: Config, db: PgPool, aws_config: SdkConfig) -> anyhow::Result<()> {
     let app = api_router().layer(
         ServiceBuilder::new()
             // Enables logging
@@ -66,6 +68,7 @@ pub async fn serve(config: Config, db: PgPool) -> anyhow::Result<()> {
             .layer(Extension(ApiContext {
                 config: Arc::new(config),
                 db,
+                aws_config,
             })),
     );
 

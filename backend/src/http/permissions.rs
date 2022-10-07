@@ -140,8 +140,11 @@ impl AuthUser {
                 }
             }
             ApiPermission::CreateEnterpriseInvitation { enterprise_id } => {
-                match self.enterprise_role(&ctx.db, enterprise_id).await? {
-                    Some(EnterpriseRole::Admin) => Ok(()),
+                let enterprise_role = self.enterprise_role(&ctx.db, enterprise_id);
+                let myace_role = self.myace_team_role(&ctx.db);
+                match (enterprise_role.await?, myace_role.await?) {
+                    (Some(EnterpriseRole::Admin), _) => Ok(()),
+                    (_, Some(_)) => Ok(()),
                     _ => Err(Error::Forbidden(action)),
                 }
             }
@@ -159,14 +162,14 @@ impl AuthUser {
             }
             ApiPermission::UpdateEnterpriseMembership {
                 enterprise_id,
-                user_id,
+                user_id: _,
             } => match self.enterprise_role(&ctx.db, enterprise_id).await? {
                 Some(EnterpriseRole::Admin) => Ok(()),
                 _ => Err(Error::Forbidden(action)),
             },
             ApiPermission::DeleteEnterpriseMembership {
                 enterprise_id,
-                user_id,
+                user_id: _,
             } => match self.enterprise_role(&ctx.db, enterprise_id).await? {
                 Some(EnterpriseRole::Admin) => Ok(()),
                 _ => Err(Error::Forbidden(action)),

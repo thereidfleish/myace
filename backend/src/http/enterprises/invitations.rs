@@ -1,8 +1,12 @@
+use std::fmt::Display;
+
 use super::Enterprise;
 use crate::http::error::Error;
 use crate::http::extractor::AuthUser;
 use crate::http::permissions::ApiPermission;
-use crate::http::{ApiContext, Result};
+use crate::http::users::{PublicUserWithEmail, UserFromDB};
+use crate::http::{ApiContext, Result, ResultExt};
+use crate::notifications;
 
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -35,12 +39,25 @@ struct InvListBody<T> {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, sqlx::Type, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "enterprise_role", rename_all = "snake_case")]
 pub enum EnterpriseRole {
     Parent,
     Player,
     Instructor,
     Admin,
+}
+
+impl Display for EnterpriseRole {
+    /// How a role will be displayed in emails and other public notices
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EnterpriseRole::Parent => write!(f, "Parent"),
+            EnterpriseRole::Player => write!(f, "Player"),
+            EnterpriseRole::Instructor => write!(f, "Instructor"),
+            EnterpriseRole::Admin => write!(f, "Admin"),
+        }
+    }
 }
 
 /// An invitation from the perspective of an enterprise manager.
@@ -123,14 +140,16 @@ async fn create_invitation(
     auth_user: AuthUser,
     ctx: Extension<ApiContext>,
 ) -> Result<Json<InvitationForEnterprise>> {
+    // check permission
     auth_user
         .check_permission(
             &ctx,
             ApiPermission::CreateEnterpriseInvitation { enterprise_id },
         )
         .await?;
-    // add the invitation to the database
-    let invitation: InvitationForEnterprise = sqlx::query_as!(
+
+    // add the enterprise invitation to the database
+    let invitation: InvitationFromDB = sqlx::query_as!(
         InvitationFromDB,
         r#"
         with new_invitation as (
@@ -157,22 +176,76 @@ async fn create_invitation(
         from "enterprise"
         inner join "new_invitation"
         using (enterprise_id)
-        --on enterprise.enterprise_id = new_invitation.enterprise_id
         ;"#,
         enterprise_id,
         req.user_email,
         req.role as EnterpriseRole
     )
     .fetch_optional(&ctx.db)
+    .await
+    .on_constraint("enterprise_invite_enterprise_id_user_email_key", |_| {
+        Error::InvitationAlreadySent
+    })?
+    .ok_or_else(|| Error::NotFound("enterprise".to_string()))?;
+
+    // check if user account already exists
+    let invited_user_opt: Option<PublicUserWithEmail> = sqlx::query_as!(
+        UserFromDB,
+        r#"select * from "user" where email = $1"#,
+        req.user_email
+    )
+    .fetch_optional(&ctx.db)
     .await?
-    .ok_or_else(|| Error::NotFound("enterprise".to_string()))?
-    .into();
+    .map(|from_db| from_db.into());
 
-    // TODO: send email invite
-    // email should look different depending on if the user has an account or not
-    todo!();
+    // email subject
+    let subject = format!(
+        "{} invites you to be a {}!",
+        invitation.enterprise_name, invitation.role
+    );
 
-    Ok(Json(invitation))
+    // email body looks different if user has an account or not
+    let body = match invited_user_opt {
+        // invitee has an account
+        Some(invited_user) => {
+            format!(
+                r#"Hey, {}. You were invited to join {}. To respond to the invitation, please <a href="https://myace.ai/login">login to MyAce</a>."#,
+                invited_user.username, invitation.enterprise_name
+            )
+        }
+        // invitee does not have an account
+        None => {
+            // create app invitation if user does not exist
+            let invite_code = sqlx::query!(
+                r#"
+                insert into "app_invite" (user_email) values ($1) 
+                on conflict do nothing -- if the app invite already exists, ignore the conflict
+                returning *;"#,
+                req.user_email
+            )
+            .fetch_one(&ctx.db)
+            .await?
+            .invite_code;
+            format!(
+                r#"Hey there! You have been invited to join {}. To get started with your organization, create an account with MyAce by clicking <a href="https://myace.ai/register?code={}">here</a>."#,
+                invitation.enterprise_name, invite_code
+            )
+        }
+    };
+
+    // send email invite
+    notifications::Email::new(req.user_email)
+        .subject(subject)
+        .body(body)
+        .send(&ctx.aws_config)
+        .await?;
+
+    Ok(Json(InvitationForEnterprise {
+        invite_id: invitation.invite_id,
+        user_email: invitation.user_email,
+        role: invitation.role,
+        created_at: invitation.created_at,
+    }))
 }
 
 /// Reject an invitation to join an enterprise.

@@ -40,6 +40,9 @@ pub enum Error {
     #[error("username taken: '{0}'")]
     UsernameTaken(String),
 
+    #[error("invitation has already been sent to this user")]
+    InvitationAlreadySent,
+
     /// Return `422 Unprocessable Entity`
     ///
     /// This also serializes the `errors` map to JSON to satisfy the requirement for
@@ -128,6 +131,7 @@ impl Error {
             Self::InvalidEmail(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::InvalidUsername(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::UsernameTaken(_) => StatusCode::CONFLICT,
+            Error::InvitationAlreadySent => StatusCode::CONFLICT,
             Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

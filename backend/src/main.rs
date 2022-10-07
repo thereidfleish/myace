@@ -33,12 +33,14 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("could not connect to database_url")?;
 
+    let aws_config = aws_config::load_from_env().await;
+
     // This embeds database migrations in the application binary so we can ensure the database
     // is migrated correctly on startup
     sqlx::migrate!().run(&db).await?;
 
     // Finally, we spin up our API.
-    http::serve(config, db).await?;
+    http::serve(config, db, aws_config).await?;
 
     Ok(())
 }
