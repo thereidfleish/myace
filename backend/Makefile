@@ -38,10 +38,10 @@ local:
 	sleep 1 
 ifeq ($(UNAME_S),Darwin)
 	open http://localhost:3000
-	open "http://localhost:7001/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
+	open "http://localhost:7100/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
 else
 	xdg-open http://localhost:3000
-	xdg-open "http://localhost:7001/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
+	xdg-open "http://localhost:7100/?pgsql=db&username=dbmasteruser&db=myace&ns=public"
 endif
 	cargo watch --exec run
 
