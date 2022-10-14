@@ -379,8 +379,34 @@ paths:
           schema:
             $ref: "#/components/schemas/EnterpriseInviteID"
       responses:
-        '204':
+        '200':
           description: Accepted invite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipForMember"
+        default:
+          $ref: '#/components/responses/DefaultError'
+
+  /memberships:
+    get:
+      summary: Retrieve the users' memberships
+      description: This route retrieves all enterprises to which the user belongs.
+      tags:
+        - Enterprise Memberships
+      responses:
+        '200':
+          description: Retrieved memberships
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [memberships]
+                properties:
+                  memberships:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MembershipForMember"
         default:
           $ref: '#/components/responses/DefaultError'
 
@@ -389,7 +415,7 @@ paths:
       summary: Retrieve all enterprise members
       description: This route retrieves all members within a given enterprise.
       tags:
-        - Enterprise Members
+        - Enterprise Memberships
       parameters:
         - name: enterprise_id
           in: path
@@ -408,7 +434,7 @@ paths:
                   members:
                     type: array
                     items:
-                      $ref: "#/components/schemas/EnterpriseMember"
+                      $ref: "#/components/schemas/MemberInEnterprise"
         default:
           $ref: '#/components/responses/DefaultError'
 
@@ -417,7 +443,7 @@ paths:
       summary: Edit enterprise role
       description: This route edits the user's role within an enterprise.
       tags:
-        - Enterprise Members
+        - Enterprise Memberships
       parameters:
         - name: enterprise_id
           in: path
@@ -446,15 +472,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EnterpriseMember"
+                $ref: "#/components/schemas/MemberInEnterprise"
         default:
           $ref: '#/components/responses/DefaultError'
 
     delete:
-      summary: Remove member
-      description: This route removes a member from an enterprise.
+      summary: Remove membership
+      description: This route removes a member from an enterprise. Calling this route means that an enterprise manager has removed a user, or a user has opted to leave an enterprise.
       tags:
-        - Enterprise Members
+        - Enterprise Memberships
       parameters:
         - name: enterprise_id
           in: path
@@ -714,9 +740,9 @@ components:
           type: string
           format: date-time
 
-    EnterpriseMember:
+    MemberInEnterprise:
       type: object
-      description: A user's membership information within an enterprise
+      description: A user's membership information within an enterprise from the perspective of an enterprise admin
       required:
         - user
         - role
@@ -724,6 +750,22 @@ components:
       properties:
         user:
           $ref: "#/components/schemas/PublicUserWEmail"
+        role:
+          $ref: "#/components/schemas/EnterpriseRole"
+        member_since:
+          type: string
+          format: date-time
+
+    MembershipForMember:
+      type: object
+      description: A user's membership information within an enterprise from the perspective of the user
+      required:
+        - enterprise
+        - role
+        - member_since
+      properties:
+        enterprise:
+          $ref: "#/components/schemas/Enterprise"
         role:
           $ref: "#/components/schemas/EnterpriseRole"
         member_since:

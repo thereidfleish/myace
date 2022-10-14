@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::http::extractor::AuthUser;
 
-use super::invitations::EnterpriseRole;
+use super::{invitations::EnterpriseRole, Enterprise};
 
 pub fn router() -> Router {
     Router::new()
@@ -20,6 +20,7 @@ pub fn router() -> Router {
             "/enterprises/:enterprise_id/members",
             get(enterprise_members),
         )
+        .route("/memberships", get(get_all_user_memberships))
         .route(
             "/enterprises/:enterprise_id/members/:user_id",
             patch(edit_membership),
@@ -30,24 +31,39 @@ pub fn router() -> Router {
         )
 }
 
-/// A response containing the members of an enterprise.
+/// A response containing the members of an enterprise from the perspective of an enterprise administrator.
 #[derive(serde::Serialize)]
-struct EnterpriseMembers {
-    members: Vec<EnterpriseMember>,
+struct MembersInEnterprise {
+    members: Vec<MemberInEnterprise>,
 }
 
-/// A member of an enterprise.
+/// An enterprise membership from the perspective of an enterprise administrator.
 #[derive(serde::Serialize)]
-struct EnterpriseMember {
+struct MemberInEnterprise {
     user: PublicUserWithEmail,
     role: EnterpriseRole,
     #[serde(with = "time::serde::iso8601")]
     member_since: OffsetDateTime,
 }
 
+/// All the memberships that a user has from the perspective of the member.
+#[derive(serde::Serialize)]
+struct MembershipsForMember {
+    memberships: Vec<MembershipForMember>,
+}
+
+/// An enterprise membership from the perspective of the member
+#[derive(serde::Serialize)]
+pub struct MembershipForMember {
+    pub enterprise: Enterprise,
+    pub role: EnterpriseRole,
+    #[serde(with = "time::serde::iso8601")]
+    pub member_since: OffsetDateTime,
+}
+
 /// The request body to update a user's enterprise-specific information.
 #[derive(serde::Deserialize)]
-struct UpdateMembership {
+struct UpdateMember {
     role: EnterpriseRole,
 }
 
@@ -56,7 +72,7 @@ async fn enterprise_members(
     Path(enterprise_id): Path<Uuid>,
     ctx: Extension<ApiContext>,
     auth_user: AuthUser,
-) -> Result<Json<EnterpriseMembers>> {
+) -> Result<Json<MembersInEnterprise>> {
     auth_user
         .check_permission(
             &ctx,
@@ -64,7 +80,7 @@ async fn enterprise_members(
         )
         .await?;
     // query members
-    let members: Vec<EnterpriseMember> = sqlx::query!(
+    let members: Vec<MemberInEnterprise> = sqlx::query!(
         r#"
         with members as (
             select
@@ -83,7 +99,7 @@ async fn enterprise_members(
     .fetch_all(&ctx.db)
     .await?
     .into_iter()
-    .map(|db_res| EnterpriseMember {
+    .map(|db_res| MemberInEnterprise {
         user: PublicUserWithEmail {
             user_id: db_res.user_id,
             username: db_res.username,
@@ -95,17 +111,57 @@ async fn enterprise_members(
         member_since: db_res.member_since,
     })
     .collect();
-    Ok(Json(EnterpriseMembers { members }))
+    Ok(Json(MembersInEnterprise { members }))
+}
+
+/// Get all enterprises to which the user belongs
+async fn get_all_user_memberships(
+    auth_user: AuthUser,
+    ctx: Extension<ApiContext>,
+) -> Result<Json<MembershipsForMember>> {
+    let memberships: Vec<MembershipForMember> = sqlx::query!(
+        r#"with memberships as (
+            select
+                enterprise_id,
+                role              "role: EnterpriseRole",
+                created_at         member_since
+            from "enterprise_membership"
+            where user_id = $1
+        )
+        select * from "enterprise"
+           inner join "memberships"
+           using (enterprise_id)
+           "#,
+        auth_user.user_id
+    )
+    .fetch_all(&ctx.db)
+    .await?
+    .into_iter()
+    .map(|rec| MembershipForMember {
+        enterprise: Enterprise {
+            enterprise_id: rec.enterprise_id,
+            name: rec.name,
+            website: rec.website,
+            support_email: rec.support_email,
+            support_phone: rec.support_phone,
+            logo: rec.logo,
+            created_at: rec.created_at,
+        },
+        role: rec.role,
+        member_since: rec.member_since,
+    })
+    .collect();
+    Ok(Json(MembershipsForMember { memberships }))
 }
 
 /// Update a user's enterprise membership details
 async fn edit_membership(
     Path(enterprise_id): Path<Uuid>,
     Path(user_id): Path<Uuid>,
-    Json(req): Json<UpdateMembership>,
+    Json(req): Json<UpdateMember>,
     ctx: Extension<ApiContext>,
     auth_user: AuthUser,
-) -> Result<Json<EnterpriseMember>> {
+) -> Result<Json<MemberInEnterprise>> {
     auth_user
         .check_permission(
             &ctx,
@@ -137,7 +193,7 @@ async fn edit_membership(
     .await?
     .ok_or_else(|| Error::NotFound(format!("user {} in enterprise {}", user_id, enterprise_id)))?;
 
-    Ok(Json(EnterpriseMember {
+    Ok(Json(MemberInEnterprise {
         user: PublicUserWithEmail {
             user_id: db_res.user_id,
             username: db_res.username,
@@ -150,10 +206,9 @@ async fn edit_membership(
     }))
 }
 
-/// Remove a member from an enterprise
+/// Remove a member from an enterprise. This may be called by either the member or the enterprise manager.
 async fn remove_member(
-    Path(enterprise_id): Path<Uuid>,
-    Path(user_id): Path<Uuid>,
+    Path((enterprise_id, user_id)): Path<(Uuid, Uuid)>,
     ctx: Extension<ApiContext>,
     auth_user: AuthUser,
 ) -> Result<StatusCode> {

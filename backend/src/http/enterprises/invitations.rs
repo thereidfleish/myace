@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use super::members::MembershipForMember;
 use super::Enterprise;
 use crate::http::error::Error;
 use crate::http::extractor::AuthUser;
@@ -8,6 +9,7 @@ use crate::http::users::{PublicUserWithEmail, UserFromDB};
 use crate::http::{ApiContext, Result, ResultExt};
 use crate::notifications;
 
+use anyhow::anyhow;
 use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
@@ -148,6 +150,22 @@ async fn create_invitation(
         )
         .await?;
 
+    // ensure user is not already a member
+    let existing_member_opt = sqlx::query!(
+        r#"
+        select membership_id from "enterprise_membership"
+        inner join "user"
+        using (user_id)
+        where enterprise_id = $1 and email = $2"#,
+        enterprise_id,
+        req.user_email
+    )
+    .fetch_optional(&ctx.db)
+    .await?;
+    if let Some(_) = existing_member_opt {
+        return Err(Error::AlreadyMember);
+    }
+
     // add the enterprise invitation to the database
     let invitation: InvitationFromDB = sqlx::query_as!(
         InvitationFromDB,
@@ -261,13 +279,22 @@ async fn delete_invitation(
         )
         .await?;
     // delete the invitation
-    sqlx::query!(
+    let res = sqlx::query!(
         r#"delete from "enterprise_invite" where invite_id = $1"#,
         invitation_id,
     )
-    .fetch_one(&ctx.db)
+    .execute(&ctx.db)
     .await?;
-    Ok(StatusCode::NO_CONTENT)
+    if res.rows_affected() == 0 {
+        Err(Error::NotFound(format!(
+            "invitation with id {}",
+            invitation_id
+        )))
+    } else if res.rows_affected() == 1 {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        unreachable!()
+    }
 }
 
 /// Accept an invitation to join an enterprise.
@@ -275,7 +302,7 @@ async fn accept_invitation(
     auth_user: AuthUser,
     Path(invitation_id): Path<Uuid>,
     ctx: Extension<ApiContext>,
-) -> Result<StatusCode> {
+) -> Result<Json<MembershipForMember>> {
     auth_user
         .check_permission(
             &ctx,
@@ -283,13 +310,52 @@ async fn accept_invitation(
         )
         .await?;
     // accept the invitation
-    sqlx::query!(
-        r#"select accept_invitation(invite_id => $1)"#,
-        invitation_id,
+    let new_membership_id = sqlx::query!(
+        r#"select accept_invitation(user_id => $1, inv_id => $2)"#,
+        auth_user.user_id,
+        invitation_id
+    )
+    .fetch_one(&ctx.db)
+    .await?
+    .accept_invitation
+    .ok_or_else(|| {
+        anyhow!("accept_invitation returned a None value. Expected the new membership ID.")
+    })?;
+
+    // fetch membership
+    // I believe this has to be a separate transaction from calling the `accept_invitation` function. Or maybe I just can't figure out SQL. Probably the latter.
+    let record = sqlx::query!(
+        r#"
+        with membership as (
+            select
+                enterprise_id,
+                role              "role: EnterpriseRole",
+                created_at         member_since
+            from "enterprise_membership"
+            where membership_id = $1
+        )
+        select * from "enterprise"
+           inner join "membership"
+           using (enterprise_id)
+        "#,
+        new_membership_id
     )
     .fetch_one(&ctx.db)
     .await?;
-    Ok(StatusCode::NO_CONTENT)
+
+    Ok(Json(MembershipForMember {
+        enterprise: Enterprise {
+            enterprise_id: record.enterprise_id,
+            name: record.name,
+            website: record.website,
+            support_email: record.support_email,
+            support_phone: record.support_phone,
+            logo: record.logo,
+            created_at: record.created_at,
+        },
+        role: record.role,
+        member_since: record.member_since,
+    }))
 }
 
 /// Get all incoming enterprise invitations for an existing user.

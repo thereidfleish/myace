@@ -63,16 +63,16 @@ struct EnterpriseList {
 }
 
 #[derive(serde::Serialize)]
-struct Enterprise {
-    enterprise_id: Uuid,
-    name: String,
-    website: Option<String>,
-    support_email: Option<String>,
-    support_phone: Option<String>,
-    logo: Option<String>,
+pub struct Enterprise {
+    pub enterprise_id: Uuid,
+    pub name: String,
+    pub website: Option<String>,
+    pub support_email: Option<String>,
+    pub support_phone: Option<String>,
+    pub logo: Option<String>,
 
     #[serde(with = "time::serde::iso8601")]
-    created_at: OffsetDateTime,
+    pub created_at: OffsetDateTime,
 }
 
 #[derive(serde::Deserialize)]
@@ -110,6 +110,7 @@ async fn get_all_enterprises(
             .collect();
     Ok(Json(EnterpriseList { enterprises }))
 }
+
 /// Create a new enterprise
 async fn create_enterprise(
     Json(req): Json<NewEnterprise>,

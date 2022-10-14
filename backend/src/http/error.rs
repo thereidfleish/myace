@@ -43,6 +43,9 @@ pub enum Error {
     #[error("invitation has already been sent to this user")]
     InvitationAlreadySent,
 
+    #[error("user is already a member in this enterprise")]
+    AlreadyMember,
+
     /// Return `422 Unprocessable Entity`
     ///
     /// This also serializes the `errors` map to JSON to satisfy the requirement for
@@ -123,7 +126,7 @@ impl Error {
         match self {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::Forbidden(_) => StatusCode::UNAUTHORIZED,
-            Error::IncorrectServerPassword => StatusCode::FORBIDDEN,
+            Self::IncorrectServerPassword => StatusCode::FORBIDDEN,
             Self::IncorrectPassword => StatusCode::FORBIDDEN,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
@@ -131,7 +134,8 @@ impl Error {
             Self::InvalidEmail(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::InvalidUsername(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::UsernameTaken(_) => StatusCode::CONFLICT,
-            Error::InvitationAlreadySent => StatusCode::CONFLICT,
+            Self::InvitationAlreadySent => StatusCode::CONFLICT,
+            Self::AlreadyMember => StatusCode::CONFLICT,
             Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

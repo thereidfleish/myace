@@ -169,11 +169,18 @@ impl AuthUser {
             },
             ApiPermission::DeleteEnterpriseMembership {
                 enterprise_id,
-                user_id: _,
-            } => match self.enterprise_role(&ctx.db, enterprise_id).await? {
-                Some(EnterpriseRole::Admin) => Ok(()),
-                _ => Err(Error::Forbidden(action)),
-            },
+                user_id: to_be_deleted,
+            } => {
+                // a user can always remove themselves from an enterprise
+                if self.user_id == to_be_deleted {
+                    Ok(())
+                } else {
+                    match self.enterprise_role(&ctx.db, enterprise_id).await? {
+                        Some(EnterpriseRole::Admin) => Ok(()),
+                        _ => Err(Error::Forbidden(action)),
+                    }
+                }
+            }
         }
     }
 }
